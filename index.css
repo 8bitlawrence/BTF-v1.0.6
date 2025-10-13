@@ -1,0 +1,81 @@
+
+:root{
+	--bg:#0f1724;
+	--card:#0b1220;
+	--accent:#7c3aed;
+	--muted:#94a3b8;
+	--glass: rgba(255,255,255,0.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+	margin:0;
+	font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+	background:linear-gradient(180deg,#071028 0%, #081226 100%);
+	color:#e6eef8;
+}
+.container{max-width:980px;margin:28px auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+header h1{margin:0;font-size:20px}
+.wallet{font-weight:600;color:var(--muted)}
+
+main{display:grid;grid-template-columns:1fr 360px;gap:18px;padding:12px}
+.gacha{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+.banner{font-weight:700;color:var(--accent);margin-bottom:12px}
+.controls{display:flex;gap:10px}
+button{background:var(--accent);border:0;padding:10px 14px;border-radius:10px;color:white;font-weight:600;cursor:pointer}
+button:active{transform:translateY(1px)}
+button.muted{background:#1f2937;color:var(--muted)}
+
+.result-area{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;min-height:86px}
+.result-card{width:100px;height:120px;border-radius:8px;background:var(--glass);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;border:1px solid rgba(255,255,255,0.04)}
+.rarity-common{border-color:rgba(255,255,255,0.02)}
+.rarity-rare{border-color:#3b82f6;box-shadow:0 6px 18px rgba(59,130,246,0.12)}
+.rarity-legendary{border-color:#f97316;box-shadow:0 8px 24px rgba(249,115,22,0.14)}
+.rarity-epic{border-color:#8b5cf6;box-shadow:0 8px 24px rgba(139,92,246,0.12)}
+.rarity-chromatic{border-color:transparent;box-shadow:0 10px 30px rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.pet-name{margin-top:6px;font-size:13px;text-align:center}
+
+.inventory{background:var(--card);padding:18px;border-radius:12px}
+.inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:420px;overflow:auto;padding-top:8px}
+.inventory-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:6px 8px;border-radius:18px;font-size:12px;font-weight:700}
+.badge.common{background:#0ea5a5;color:#052f2f}
+.badge.rare{background:#3b82f6;color:#05224b}
+.badge.legendary{background:#f97316;color:#331204}
+.badge.epic{background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white}
+.badge.chromatic{background:linear-gradient(90deg,#ff5bd1,#ffd800,#39ff14,#00e0ff,#ff5bd1);color:#111}
+
+/* rainbow shimmer animation for chromatic */
+.chromatic::after{
+	content:'';
+	position:absolute;left:0;top:0;right:0;bottom:0;
+	background:linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.03) 100%);
+	mix-blend-mode:overlay;
+	pointer-events:none;
+	animation: chromaShift 3s linear infinite;
+}
+
+@keyframes chromaShift{
+	0%{ transform:translateX(-30%)}
+	50%{ transform:translateX(30%)}
+	100%{ transform:translateX(-30%)}
+}
+
+footer{padding:12px;text-align:center;color:var(--muted)}
+
+/* small responsive */
+@media(max-width:880px){
+	main{grid-template-columns:1fr}
+	.inventory{order:2}
+}
+
+/* Capsule & sell button styles */
+.capsule{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);padding:18px;border-radius:12px}
+.sell-btn{background:#10b981;border-radius:8px;padding:6px 8px;font-weight:700;color:white;border:0}
+.small{padding:6px 8px;border-radius:8px;font-size:13px}
+/* add spacing between adjacent small sell buttons (Sell x1 and Sell All) */
+.sell-btn.small + .sell-btn.small{margin-left:12px}
+/* make the action container (right-side in inventory items) use flex and gap for reliable spacing */
+.inventory-item > div:last-child{ margin-left: auto; display: flex; gap: 12px; align-items: center; }
+

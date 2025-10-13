@@ -1,0 +1,60 @@
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>BTF Vibe Edition</title>
+		<link rel="stylesheet" href="index.css" />
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>BTF Vibe Edition</h1>
+				<div style="display:flex;align-items:center;gap:10px">
+					<div class="wallet">Coins: <span id="coins">0</span></div>
+					<!-- temporary admin button -->
+					<button id="adminAddCoins" style="background:#ef4444;padding:6px 10px;border-radius:8px;border:0;color:white;font-weight:700;">Admin +100k</button>
+				</div>
+			</header>
+
+			<main>
+				<section class="gacha">
+					<div class="banner">Pet Capsules</div>
+					<div class="controls">
+						<button id="singleRoll">Roll x1 (100)</button>
+						<button id="tenRoll">Roll x10 (900)</button>
+					</div>
+					<div id="resultArea" class="result-area"></div>
+				</section>
+
+				<section class="capsule">
+					<div class="banner">Normal Capsules</div>
+					<div class="controls">
+						<button id="capSingle">Roll Capsule x1 (20)</button>
+						<button id="capTen">Roll Capsule x10 (180)</button>
+					</div>
+					<div id="capsuleResultArea" class="result-area"></div>
+				</section>
+
+				<section class="inventory">
+					<h2>Your Pets</h2>
+					<div id="inventoryListPets" class="inventory-list"></div>
+					<button id="clearInv" class="muted">Clear Pets Inventory</button>
+
+					<hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)" />
+
+					<h2>Your Fruits</h2>
+					<div id="inventoryListFruits" class="inventory-list"></div>
+					<button id="clearFruits" class="muted">Clear Fruits Inventory</button>
+				</section>
+			</main>
+
+			<footer>
+				<small>Made by the Cookiemonster and the Eightbit Games Team</small>
+			</footer>
+		</div>
+
+		<script src="index.js"></script>
+	</body>
+</html>
