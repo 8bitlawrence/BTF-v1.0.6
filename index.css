@@ -79,3 +79,10 @@ footer{padding:12px;text-align:center;color:var(--muted)}
 /* make the action container (right-side in inventory items) use flex and gap for reliable spacing */
 .inventory-item > div:last-child{ margin-left: auto; display: flex; gap: 12px; align-items: center; }
 
+/* Modal: Rarities & Info */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60}
+.modal-backdrop{position:absolute;inset:0;background:rgba(2,6,23,0.6)}
+.modal-panel{position:relative;z-index:61;width:min(720px,92%);background:var(--card);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 16px 60px rgba(2,6,23,0.6)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.modal-body{min-height:160px}
+

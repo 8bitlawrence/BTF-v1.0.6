@@ -375,3 +375,17 @@ if(adminBtn){
 		setTimeout(()=>{ adminBtn.style.transform = ''; }, 120);
 	});
 }
+
+// Rarities & Info modal wiring
+const openRarityInfo = document.getElementById('openRarityInfo');
+const closeRarityInfo = document.getElementById('closeRarityInfo');
+const rarityModal = document.getElementById('rarityModal');
+if(openRarityInfo && rarityModal){
+	const backdrop = rarityModal.querySelector('.modal-backdrop');
+	function showRarityModal(){ rarityModal.style.display = 'flex'; }
+	function hideRarityModal(){ rarityModal.style.display = 'none'; }
+	openRarityInfo.addEventListener('click', showRarityModal);
+	if(closeRarityInfo) closeRarityInfo.addEventListener('click', hideRarityModal);
+	if(backdrop) backdrop.addEventListener('click', hideRarityModal);
+	document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideRarityModal(); });
+}
