@@ -22,6 +22,10 @@ const PRICE_TEN = 900; // discount
 // Inventory limits
 const MAX_INVENTORY = 20;
 
+// Config: show admin button and starting coins
+const SHOW_ADMIN_BUTTON = true; // set to false to hide admin button
+const START_WITH_MILLION = false; // if true, default starting coins = 1,000,000 when no save exists
+
 // Capsule prices for fruits
 const CAP_PRICE_SINGLE = 20;
 const CAP_PRICE_TEN = 180;
@@ -68,7 +72,7 @@ function loadState(){
 			const parsed = JSON.parse(raw);
 			// merge with defaults to ensure keys exist (older saves may miss fields)
 			state = {
-				coins: parsed.coins ?? 2000,
+				coins: parsed.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
 				inventory: parsed.inventory ?? {},
 				fruits: parsed.fruits ?? {},
 			};
@@ -366,14 +370,19 @@ saveState();
 
 // Admin button (temporary)
 if(adminBtn){
-	adminBtn.addEventListener('click', ()=>{
-		state.coins = (state.coins || 0) + 100000;
-		saveState();
-		updateUI();
-		// flash the button briefly
-		adminBtn.style.transform = 'scale(1.05)';
-		setTimeout(()=>{ adminBtn.style.transform = ''; }, 120);
-	});
+	if(!SHOW_ADMIN_BUTTON){
+		// hide admin button completely
+		adminBtn.style.display = 'none';
+	} else {
+		adminBtn.addEventListener('click', ()=>{
+			state.coins = (state.coins || 0) + 100000;
+			saveState();
+			updateUI();
+			// flash the button briefly
+			adminBtn.style.transform = 'scale(1.05)';
+			setTimeout(()=>{ adminBtn.style.transform = ''; }, 120);
+		});
+	}
 }
 
 // Rarities & Info modal wiring
