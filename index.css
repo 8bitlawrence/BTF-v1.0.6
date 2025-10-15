@@ -86,3 +86,32 @@ footer{padding:12px;text-align:center;color:var(--muted)}
 .modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
 .modal-body{min-height:160px}
 
+/* Coin pop animation */
+@keyframes coinPop {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+    15% { opacity: 1; transform: translate(0, -2px) scale(1.1); }
+    70% { opacity: 1; transform: translate(0, -20px) scale(1); }
+    100% { opacity: 0; transform: translate(0, -28px) scale(0.9); }
+}
+
+.coin-pop {
+    position: absolute;
+    color: #fbbf24;
+    font-weight: 700;
+    font-size: 15px;
+    pointer-events: none;
+    animation: coinPop 1.2s ease-out forwards;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Roll animations */
+@keyframes btnPulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.04) } 100%{ transform:scale(1) } }
+@keyframes popIn{ 0%{ transform: scale(0.6) rotate(-6deg); opacity:0 } 60%{ transform: scale(1.05) rotate(4deg); opacity:1 } 100%{ transform: scale(1) rotate(0) } }
+@keyframes revealGlow{ 0%{ box-shadow:0 0 0 rgba(255,255,255,0) } 50%{ box-shadow:0 16px 40px rgba(124,58,237,0.14) } 100%{ box-shadow:0 0 0 rgba(255,255,255,0) } }
+
+.controls button.anim-pulse{ animation: btnPulse 420ms ease-in-out }
+.result-area.animating{ pointer-events:none; opacity:0.6 }
+.result-card.pop{ animation: popIn 420ms cubic-bezier(.2,.8,.2,1); transform-origin:center; }
+.result-card.chromatic.pop{ animation: popIn 520ms cubic-bezier(.2,.9,.2,1), chromaShift 3s linear infinite }
+.result-card.reveal-glow{ animation: revealGlow 700ms ease-in-out }
+

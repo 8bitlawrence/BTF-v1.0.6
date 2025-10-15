@@ -3,16 +3,16 @@
 
 // Data model: pets with rarities and weights
 const PETS = [
-	{ id: 'pet_c_1', name: 'Bubble Pup', rarity: 'common', weight: 90, value: 20 },
-	{ id: 'pet_c_2', name: 'Float Finch', rarity: 'common', weight: 90, value: 20 },
-	{ id: 'pet_c_3', name: 'Shard Turtle', rarity: 'common', weight: 90, value: 25 },
+	{ id: 'pet_c_1', name: 'Dirt Pup', rarity: 'common', weight: 50, value: 20 },
+	{ id: 'pet_c_2', name: 'Dirt Finch', rarity: 'common', weight: 50, value: 20 },
+	{ id: 'pet_c_3', name: 'Dirt Turtle', rarity: 'common', weight: 50, value: 25 },
 
-	{ id: 'pet_r_1', name: 'Glimmer Fox', rarity: 'rare', weight: 9, value: 150 },
-	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 9, value: 160 },
+	{ id: 'pet_r_1', name: 'Glimmer Fox', rarity: 'rare', weight: 25, value: 150 },
+	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
-	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 2, value: 800 },
-	{ id: 'pet_l_1', name: 'Infinity Dragon', rarity: 'legendary', weight: 0.4, value: 1200 },
-	{ id: 'pet_ch_1', name: 'Prismatic Wyrm', rarity: 'chromatic', weight: 0.1, value: 5000 },
+	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
+	{ id: 'pet_l_1', name: 'Infinity Dragon', rarity: 'legendary', weight: 3, value: 1200 },
+	{ id: 'pet_ch_1', name: 'Prismatic Wyrm', rarity: 'chromatic', weight: 1, value: 5000 },
 ];
 
 // Prices
@@ -39,6 +39,7 @@ const FRUITS = [
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 70, value: 5},
 	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.2, value: 1200}
+
 ];
 
 // State
@@ -50,6 +51,7 @@ let state = {
 
 // DOM
 const coinsEl = document.getElementById('coins');
+const cpsEl = document.getElementById('cps');
 const singleBtn = document.getElementById('singleRoll');
 const tenBtn = document.getElementById('tenRoll');
 const resultArea = document.getElementById('resultArea');
@@ -94,6 +96,26 @@ function weightedPick(items){
 	return items[items.length-1];
 }
 
+// Coins-per-second mapping by rarity
+const RARITY_CPS = {
+	common: 1,
+	rare: 3,
+	epic: 8,
+	legendary: 20,
+	chromatic: 80,
+};
+
+function computeTotalCPS(){
+	let total = 0;
+	for(const [id,count] of Object.entries(state.inventory)){
+		const p = PETS.find(x=>x.id===id);
+		if(!p) continue;
+		const per = RARITY_CPS[p.rarity] || 0;
+		total += per * count;
+	}
+	return total;
+}
+
 // Pet roll functions
 function rollOnce(){ return weightedPick(PETS); }
 function rollTen(){
@@ -120,6 +142,11 @@ function rollFruitTen(){
 // UI
 function updateUI(){
 	coinsEl.textContent = state.coins;
+	// update CPS display if element exists
+	if(cpsEl){
+		const totalCps = computeTotalCPS();
+		cpsEl.textContent = `(+${totalCps}/s)`;
+	}
 
 	// Pets inventory
 	inventoryList.innerHTML = '';
@@ -136,6 +163,12 @@ function updateUI(){
 				badge.textContent = p.rarity.toUpperCase();
 				const name = document.createElement('div');
 				name.innerHTML = `<div style="font-weight:700">${p.name}</div><div style="color:var(--muted);font-size:12px">x${count} • Sell: ${p.value}c</div>`;
+				// show CPS for this pet line
+				const petCps = (RARITY_CPS[p.rarity] || 0) * count;
+				const cpsLine = document.createElement('div');
+				cpsLine.style.color = 'var(--muted)'; cpsLine.style.fontSize = '12px';
+				cpsLine.textContent = `CPS: ${petCps}`;
+				name.appendChild(cpsLine);
 
 				// sell buttons
 				const sell = document.createElement('button');
@@ -193,12 +226,195 @@ function updateUI(){
 	}
 }
 
+// Animation helper: run a pre-roll animation then reveal items
+function animateRoll(makeItemsCallback, revealCallback){
+	// disable controls
+	singleBtn.disabled = true; tenBtn.disabled = true; capSingle.disabled = true; capTen.disabled = true;
+	singleBtn.classList.add('anim-pulse'); tenBtn.classList.add('anim-pulse');
+	resultArea.classList.add('animating');
+	capsuleResultArea.classList.add('animating');
+
+	// small pre-roll delay
+	setTimeout(()=>{
+		// build items (the callback should return an array of item objects)
+		const items = makeItemsCallback();
+		// reveal them one by one with pop animation
+		const revealDelay = 160;
+		// clear current area
+		if(revealCallback === showResults) resultArea.innerHTML = '';
+		if(revealCallback === showCapsuleResults) capsuleResultArea.innerHTML = '';
+		items.forEach((it, idx)=>{
+			setTimeout(()=>{
+				// create a minimal card for animation then pass to reveal callback
+				const card = document.createElement('div');
+				card.className = `result-card rarity-${it.rarity} pop`;
+				const ic = document.createElement('div'); ic.style.fontSize='28px';
+				// placeholder icons reused from showResults
+				if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+				else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
+				else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
+				else if(it.rarity==='rare'){ ic.textContent='⭐'; }
+				else { ic.textContent='●'; }
+				const nm = document.createElement('div'); nm.className='pet-name'; nm.textContent = it.name;
+				card.appendChild(ic); card.appendChild(nm);
+				if(revealCallback === showResults) resultArea.appendChild(card);
+				if(revealCallback === showCapsuleResults) capsuleResultArea.appendChild(card);
+				// small glow
+				setTimeout(()=>{ card.classList.add('reveal-glow'); }, 80);
+			}, idx*revealDelay);
+		});
+
+		// after all revealed, finalize: call revealCallback to add to inventory/state properly
+		setTimeout(async ()=>{
+			await revealCallback(items);
+			// re-enable
+			singleBtn.disabled = false; tenBtn.disabled = false; capSingle.disabled = false; capTen.disabled = false;
+			singleBtn.classList.remove('anim-pulse'); tenBtn.classList.remove('anim-pulse');
+			resultArea.classList.remove('animating'); capsuleResultArea.classList.remove('animating');
+		}, items.length*revealDelay + 220);
+	}, 220);
+}
+
+// Custom alert modal (created dynamically). Returns a Promise that resolves when the user closes it.
+function showAlert(message){
+	return new Promise((resolve)=>{
+		// create backdrop
+		const backdrop = document.createElement('div');
+		backdrop.style.position = 'fixed';
+		backdrop.style.left = '0'; backdrop.style.top = '0'; backdrop.style.right = '0'; backdrop.style.bottom = '0';
+		backdrop.style.background = 'rgba(0,0,0,0.45)';
+		backdrop.style.display = 'flex';
+		backdrop.style.alignItems = 'center';
+		backdrop.style.justifyContent = 'center';
+		backdrop.style.zIndex = '9999';
+
+		// modal
+		const modal = document.createElement('div');
+	modal.style.width = 'min(420px, 92%)';
+	modal.style.background = 'var(--modal-bg, #1f2937)';
+	modal.style.color = 'var(--modal-fg, #fff)';
+		modal.style.borderRadius = '10px';
+		modal.style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)';
+		modal.style.padding = '18px';
+		modal.style.display = 'flex';
+		modal.style.flexDirection = 'column';
+		modal.style.gap = '12px';
+
+	const msg = document.createElement('div');
+	msg.style.fontSize = '15px';
+	msg.style.lineHeight = '1.4';
+	msg.style.color = 'var(--modal-fg, #fff)';
+	msg.textContent = message;
+
+		const btnRow = document.createElement('div');
+		btnRow.style.display = 'flex';
+		btnRow.style.justifyContent = 'flex-end';
+
+		const ok = document.createElement('button');
+		ok.textContent = 'OK';
+		ok.style.padding = '8px 14px';
+		ok.style.borderRadius = '8px';
+		ok.style.border = 'none';
+		ok.style.cursor = 'pointer';
+		ok.style.background = 'var(--accent, #3b82f6)';
+		ok.style.color = 'white';
+
+		btnRow.appendChild(ok);
+		modal.appendChild(msg);
+		modal.appendChild(btnRow);
+		backdrop.appendChild(modal);
+		document.body.appendChild(backdrop);
+
+		function close(){
+			document.body.removeChild(backdrop);
+			document.removeEventListener('keydown', onKey);
+			resolve();
+		}
+		function onKey(e){ if(e.key === 'Escape') close(); }
+		ok.addEventListener('click', close);
+		backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) close(); });
+		document.addEventListener('keydown', onKey);
+	});
+}
+
+// Custom confirm modal. Returns Promise<boolean> true if OK clicked, false if cancelled/closed.
+function showConfirm(message){
+	return new Promise((resolve)=>{
+		const backdrop = document.createElement('div');
+		backdrop.style.position = 'fixed';
+		backdrop.style.left = '0'; backdrop.style.top = '0'; backdrop.style.right = '0'; backdrop.style.bottom = '0';
+		backdrop.style.background = 'rgba(0,0,0,0.45)';
+		backdrop.style.display = 'flex';
+		backdrop.style.alignItems = 'center';
+		backdrop.style.justifyContent = 'center';
+		backdrop.style.zIndex = '9999';
+
+		const modal = document.createElement('div');
+	modal.style.width = 'min(520px, 94%)';
+	modal.style.background = 'var(--modal-bg, #1f2937)';
+	modal.style.color = 'var(--modal-fg, #fff)';
+		modal.style.borderRadius = '10px';
+		modal.style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)';
+		modal.style.padding = '18px';
+		modal.style.display = 'flex';
+		modal.style.flexDirection = 'column';
+		modal.style.gap = '12px';
+
+	const msg = document.createElement('div');
+	msg.style.fontSize = '15px';
+	msg.style.lineHeight = '1.4';
+	msg.style.color = 'var(--modal-fg, #fff)';
+	msg.textContent = message;
+
+		const btnRow = document.createElement('div');
+		btnRow.style.display = 'flex';
+		btnRow.style.justifyContent = 'flex-end';
+		btnRow.style.gap = '8px';
+
+	const cancel = document.createElement('button');
+	cancel.textContent = 'Cancel';
+	cancel.style.padding = '8px 12px';
+	cancel.style.borderRadius = '8px';
+	cancel.style.border = '1px solid rgba(255,255,255,0.08)';
+	cancel.style.cursor = 'pointer';
+	cancel.style.color = 'var(--modal-fg, #fff)';
+	cancel.style.background = 'transparent';
+
+		const ok = document.createElement('button');
+		ok.textContent = 'OK';
+		ok.style.padding = '8px 14px';
+		ok.style.borderRadius = '8px';
+		ok.style.border = 'none';
+		ok.style.cursor = 'pointer';
+		ok.style.background = 'var(--accent, #3b82f6)';
+		ok.style.color = 'white';
+
+		btnRow.appendChild(cancel);
+		btnRow.appendChild(ok);
+		modal.appendChild(msg);
+		modal.appendChild(btnRow);
+		backdrop.appendChild(modal);
+		document.body.appendChild(backdrop);
+
+		function close(result){
+			document.body.removeChild(backdrop);
+			document.removeEventListener('keydown', onKey);
+			resolve(result);
+		}
+		function onKey(e){ if(e.key === 'Escape') close(false); }
+		cancel.addEventListener('click', ()=>close(false));
+		ok.addEventListener('click', ()=>close(true));
+		backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) close(false); });
+		document.addEventListener('keydown', onKey);
+	});
+}
+
 // Helpers: inventory counts
 function getPetTotalCount(){
 	return Object.values(state.inventory).reduce((s,v)=>s+v,0);
 }
 
-function showResults(items){
+async function showResults(items){
 	resultArea.innerHTML = '';
 	let discarded = 0;
 	let available = MAX_INVENTORY - getPetTotalCount();
@@ -238,7 +454,7 @@ function showResults(items){
 	saveState();
 	updateUI();
 	if(discarded>0){
-		alert(`Inventory full — ${discarded} item(s) were not added. Sell pets to free space.`);
+		await showAlert(`Inventory full — ${discarded} item(s) were not added. Sell pets to free space or buy BTF+ for a .`);
 	}
 }
 
@@ -305,56 +521,56 @@ function sellPet(id, count){
 }
 
 // Button handlers
-singleBtn.addEventListener('click', ()=>{
+singleBtn.addEventListener('click', async ()=>{
 	if(state.coins < PRICE_SINGLE){ alert('Not enough coins for a single roll.'); return; }
 	// prevent rolling if inventory full
 	if(getPetTotalCount() >= MAX_INVENTORY){
-		alert('Your pet inventory is full (20). Sell some pets before rolling.');
+		await showAlert('Your pet inventory is full (20). Sell some pets before rolling.');
 		return;
 	}
 	state.coins -= PRICE_SINGLE;
-	const r = rollOnce();
-	showResults([r]);
+	// animate then reveal
+	animateRoll(()=>[rollOnce()], showResults);
 });
 
-tenBtn.addEventListener('click', ()=>{
+tenBtn.addEventListener('click', async ()=>{
 	if(state.coins < PRICE_TEN){ alert('Not enough coins for a ten-roll.'); return; }
 	// check available slots
 	const need = 10;
 	const avail = MAX_INVENTORY - getPetTotalCount();
 	if(avail <= 0){
-		alert('Your pet inventory is full (20). Sell some pets before rolling.');
+		await showAlert('Your pet inventory is full (20). Sell some pets before rolling.');
 		return;
 	}
 	if(avail < need){
-		if(!confirm(`You only have space for ${avail} more pet(s). Rolling x10 may discard the extra ${need-avail} pet(s). Continue?`)) return;
+		const cont = await showConfirm(`You only have space for ${avail} more pet(s). Rolling x10 may discard the extra ${need-avail} pet(s). Continue?`);
+		if(!cont) return;
 	}
 	state.coins -= PRICE_TEN;
-	const rs = rollTen();
-	showResults(rs);
+	animateRoll(()=>rollTen(), showResults);
 });
 
 capSingle.addEventListener('click', ()=>{
 	if(state.coins < CAP_PRICE_SINGLE){ alert('Not enough coins for capsule roll.'); return; }
 	state.coins -= CAP_PRICE_SINGLE;
-	showCapsuleResults([rollFruitOnce()]);
+	animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
 });
 
 capTen.addEventListener('click', ()=>{
 	if(state.coins < CAP_PRICE_TEN){ alert('Not enough coins for capsule x10.'); return; }
 	state.coins -= CAP_PRICE_TEN;
-	showCapsuleResults(rollFruitTen());
+	animateRoll(()=>rollFruitTen(), showCapsuleResults);
 });
 
-clearInv.addEventListener('click', ()=>{
-	if(!confirm('Clear your inventory?')) return;
+clearInv.addEventListener('click', async ()=>{
+	if(!await showConfirm('Clear your inventory?')) return;
 	state.inventory = {};
 	saveState();
 	updateUI();
 });
 
-clearFruits.addEventListener('click', ()=>{
-	if(!confirm('Clear fruits inventory?')) return;
+clearFruits.addEventListener('click', async ()=>{
+	if(!await showConfirm('Clear fruits inventory?')) return;
 	state.fruits = {};
 	saveState();
 	updateUI();
@@ -368,7 +584,22 @@ state.fruits = state.fruits || {};
 updateUI();
 saveState();
 
-// Admin button (temporary)
+// Passive income: add coins every second based on total CPS
+setInterval(()=>{
+    const total = computeTotalCPS();
+    if(total > 0){
+        state.coins += total;
+        saveState();
+        updateUI();
+        // show coin pop animation
+        const pop = document.createElement('div');
+        pop.className = 'coin-pop';
+        pop.textContent = '+' + total;
+        document.querySelector('.wallet').appendChild(pop);
+        // remove after animation
+        pop.addEventListener('animationend', ()=>pop.remove());
+    }
+}, 1000);// Admin button (temporary)
 if(adminBtn){
 	if(!SHOW_ADMIN_BUTTON){
 		// hide admin button completely
