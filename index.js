@@ -23,7 +23,7 @@ const PRICE_TEN = 900; // discount
 const MAX_INVENTORY = 20;
 
 // Config: show admin button and starting coins
-const SHOW_ADMIN_BUTTON = true; // set to false to hide admin button
+const SHOW_ADMIN_BUTTON = false; // set to false to hide admin button
 const START_WITH_MILLION = false; // if true, default starting coins = 1,000,000 when no save exists
 
 // Capsule prices for fruits
