@@ -32,13 +32,13 @@ const CAP_PRICE_TEN = 180;
 
 // FRUITS: capsule pool
 const FRUITS = [
-	{ id: 'fruit_c_1', name: 'Sandfruit', rarity: 'common', weight: 70, value: 5 },
-	{ id: 'fruit_c_2', name: 'Fireberry', rarity: 'common', weight: 70, value: 5 },
-	{ id: 'fruit_r_1', name: 'Golden Apple', rarity: 'rare', weight: 25, value: 30 },
-	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 6, value: 150 },
-	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
-	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 70, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.2, value: 1200}
+	{ id: 'fruit_c_1', name: 'Sandfruit', rarity: 'common', weight: 50, value: 5 },
+	{ id: 'fruit_c_2', name: 'Fireberry', rarity: 'common', weight: 50, value: 5 },
+	{ id: 'fruit_r_1', name: 'Golden Apple', rarity: 'rare', weight: 35, value: 30 },
+	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 10, value: 150 },
+	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 5, value: 200 },
+	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 1, value: 1200}
 
 ];
 
