@@ -7,12 +7,12 @@ const PETS = [
 	{ id: 'pet_c_2', name: 'Dirt Finch', rarity: 'common', weight: 50, value: 20 },
 	{ id: 'pet_c_3', name: 'Dirt Turtle', rarity: 'common', weight: 50, value: 25 },
 
-	{ id: 'pet_r_1', name: 'Glimmer Fox', rarity: 'rare', weight: 25, value: 150 },
+	{ id: 'pet_r_1', name: 'Dusk Fox', rarity: 'rare', weight: 25, value: 150 },
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_l_1', name: 'Infinity Dragon', rarity: 'legendary', weight: 3, value: 1200 },
-	{ id: 'pet_ch_1', name: 'Prismatic Wyrm', rarity: 'chromatic', weight: 1, value: 5000 },
+	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 3, value: 1200 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 1, value: 5000 },
 ];
 
 // Prices
@@ -32,8 +32,8 @@ const CAP_PRICE_TEN = 180;
 
 // FRUITS: capsule pool
 const FRUITS = [
-	{ id: 'fruit_c_1', name: 'Tiny Apple', rarity: 'common', weight: 70, value: 5 },
-	{ id: 'fruit_c_2', name: 'Small Berry', rarity: 'common', weight: 70, value: 5 },
+	{ id: 'fruit_c_1', name: 'Sandfruit', rarity: 'common', weight: 70, value: 5 },
+	{ id: 'fruit_c_2', name: 'Fireberry', rarity: 'common', weight: 70, value: 5 },
 	{ id: 'fruit_r_1', name: 'Golden Apple', rarity: 'rare', weight: 25, value: 30 },
 	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 6, value: 150 },
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
@@ -583,6 +583,24 @@ state.inventory = state.inventory || {};
 state.fruits = state.fruits || {};
 updateUI();
 saveState();
+
+// Welcome modal: show on first visit
+const welcomeModal = document.getElementById('welcomeModal');
+const closeWelcome = document.getElementById('closeWelcome');
+if(welcomeModal && closeWelcome){
+    const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
+    if(!hasSeenWelcome){
+        welcomeModal.style.display = 'flex';
+        closeWelcome.addEventListener('click', ()=>{
+            welcomeModal.style.display = 'none';
+            localStorage.setItem('btf_seen_welcome', 'true');
+        });
+        welcomeModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
+            welcomeModal.style.display = 'none';
+            localStorage.setItem('btf_seen_welcome', 'true');
+        });
+    }
+}
 
 // Passive income: add coins every second based on total CPS
 setInterval(()=>{
