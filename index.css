@@ -47,19 +47,53 @@ button.muted{background:#1f2937;color:var(--muted)}
 .badge.chromatic{background:linear-gradient(90deg,#ff5bd1,#ffd800,#39ff14,#00e0ff,#ff5bd1);color:#111}
 
 /* rainbow shimmer animation for chromatic */
+/* shimmering rainbow overlay used by chromatic elements */
 .chromatic::after{
-	content:'';
-	position:absolute;left:0;top:0;right:0;bottom:0;
-	background:linear-gradient(90deg, rgba(255,255,255,0.03) 0%, rgba(255,255,255,0.12) 50%, rgba(255,255,255,0.03) 100%);
-	mix-blend-mode:overlay;
-	pointer-events:none;
+	content: '';
+	position: absolute;
+	left: 0; top: 0; right: 0; bottom: 0;
+	background: linear-gradient(90deg,
+		#ff5bd1 0%, #ffd800 20%, #39ff14 40%, #00e0ff 60%, #ff5bd1 80%);
+	background-size: 200% 100%;
+	opacity: 0.9;
+	mix-blend-mode: screen;
+	pointer-events: none;
+	filter: blur(8px) saturate(1.2);
+	transform: translateZ(0);
 	animation: chromaShift 3s linear infinite;
 }
 
+/* make badges and result-cards display a subtler shimmer */
+.badge.chromatic{ position: relative; overflow: hidden; }
+.badge.chromatic::after{
+	content: '';
+	position: absolute; left: -10%; top: -10%; right: -10%; bottom: -10%;
+	background: linear-gradient(90deg, #ff5bd1 0%, #ffd800 25%, #39ff14 50%, #00e0ff 75%, #ff5bd1 100%);
+	background-size: 200% 100%;
+	opacity: 0.85;
+	mix-blend-mode: overlay;
+	filter: blur(6px);
+	animation: chromaShift 3.2s linear infinite;
+	pointer-events:none;
+}
+
+.result-card.chromatic{ position: relative; overflow: hidden; }
+.result-card.chromatic::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg, #ff5bd1 0%, #ffd800 20%, #39ff14 40%, #00e0ff 60%, #ff5bd1 80%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(14px) saturate(1.1);
+	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
+
 @keyframes chromaShift{
-	0%{ transform:translateX(-30%)}
-	50%{ transform:translateX(30%)}
-	100%{ transform:translateX(-30%)}
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
 }
 
 footer{padding:12px;text-align:center;color:var(--muted)}

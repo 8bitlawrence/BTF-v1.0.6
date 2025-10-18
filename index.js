@@ -39,6 +39,14 @@ const FRUITS = [
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 5, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 1, value: 1200}
+	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
+	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
+	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 5, value: 200 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 1, value: 5 }
+	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 5, value: 5 }
+
+
+
 
 ];
 
@@ -77,6 +85,19 @@ function loadState(){
 				coins: parsed.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
 				inventory: parsed.inventory ?? {},
 				fruits: parsed.fruits ?? {},
+			};
+		} else {
+			// No save data found, start with all fruits and pets
+			state = {
+				coins: START_WITH_MILLION ? 1000000 : 2000,
+				inventory: PETS.reduce((acc, pet) => {
+					acc[pet.id] = 10; // Start with 10 of each pet
+					return acc;
+				}, {}),
+				fruits: FRUITS.reduce((acc, fruit) => {
+					acc[fruit.id] = 10; // Start with 10 of each fruit
+					return acc;
+				}, {})
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
@@ -581,6 +602,17 @@ loadState();
 // ensure required objects exist (in case older saves lack them)
 state.inventory = state.inventory || {};
 state.fruits = state.fruits || {};
+
+// For testing: if the player's inventory or fruits are empty after loading,
+// populate with 10 of each pet and fruit so you reliably start with all items.
+// This is intentionally forgiving: it only fills missing/empty inventories.
+if(Object.keys(state.inventory).length === 0){
+	PETS.forEach(p => { state.inventory[p.id] = 10; });
+}
+if(Object.keys(state.fruits).length === 0){
+	FRUITS.forEach(f => { state.fruits[f.id] = 10; });
+}
+
 updateUI();
 saveState();
 
