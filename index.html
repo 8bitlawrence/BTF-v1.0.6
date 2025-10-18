@@ -16,8 +16,6 @@
 				<h1>BTF Vibe Edition</h1>
 				<div style="display:flex;align-items:center;gap:10px">
 					<div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
-					<!-- temporary admin button -->
-					<button id="adminAddCoins" style="background:#ef4444;padding:6px 10px;border-radius:8px;border:0;color:white;font-weight:700;">Admin +100k</button>
 				</div>
 			</header>
 
@@ -25,8 +23,8 @@
 				<section class="gacha">
 					<div class="banner">Pet Capsules</div>
 					<div class="controls">
-						<button id="singleRoll">Roll x1 (100c)</button>
-						<button id="tenRoll">Roll x10 (900c)</button>
+						<button id="singleRoll">Open x1 (100c)</button>
+						<button id="tenRoll">Open x10 (900c)</button>
 					</div>
 					<div id="resultArea" class="result-area"></div>
 				</section>
@@ -34,8 +32,8 @@
 				<section class="capsule">
 					<div class="banner">Fruit Capsules</div>
 					<div class="controls">
-						<button id="capSingle">Roll Capsule x1 (20c)</button>
-						<button id="capTen">Roll Capsule x10 (180c)</button>
+						<button id="capSingle">Open Capsule x1 (20c)</button>
+						<button id="capTen">Open Capsule x10 (180c)</button>
 					</div>
 					<div id="capsuleResultArea" class="result-area"></div>
 				</section>
@@ -54,11 +52,14 @@
 			</main>
 
 			<footer>
-				<small>Made by the Cookiemonster and the Eightbit Games Team</small>
+				<small>Made by the Cookiemonster and the Eightbit Games Team</small><br>
+				<small>© 2025 Eightbit Games | Contact: lawrencetong1030@gmail.com</small>
+
 				<button id="openRarityInfo" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#2563eb;color:white;font-weight:700;">Rarities &amp; Info</button>
 			</footer>
 		</div>
-
+				<button id="openRarityInfo" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#2563eb;color:white;font-weight:700;">Rarities &amp; Info</button>
+				<button id="openTerms" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#374151;color:white;font-weight:700;">Terms &amp; Conditions</button>
 		<!-- Rarities & Info modal (empty body for now) -->
 		<div id="rarityModal" class="modal" style="display:none">
 			<div class="modal-backdrop"></div>

@@ -13,6 +13,7 @@ const PETS = [
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 3, value: 1200 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 1, value: 5000 },
+	
 ];
 
 // Prices
@@ -36,14 +37,14 @@ const FRUITS = [
 	{ id: 'fruit_c_2', name: 'Fireberry', rarity: 'common', weight: 50, value: 5 },
 	{ id: 'fruit_r_1', name: 'Golden Apple', rarity: 'rare', weight: 35, value: 30 },
 	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 10, value: 150 },
-	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 5, value: 200 },
+	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 1, value: 1200}
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.5, value: 1200}
 	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
 	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
-	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 5, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 1, value: 5 }
-	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 5, value: 5 }
+	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 1, value: 200 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.5, value: 5 }
+	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 1, value: 5 }
 
 
 
@@ -71,7 +72,6 @@ const clearFruits = document.getElementById('clearFruits');
 const capSingle = document.getElementById('capSingle');
 const capTen = document.getElementById('capTen');
 const capsuleResultArea = document.getElementById('capsuleResultArea');
-const adminBtn = document.getElementById('adminAddCoins');
 
 // Persistence
 const STORAGE_KEY = 'mini_gacha_state_v1';
@@ -87,17 +87,11 @@ function loadState(){
 				fruits: parsed.fruits ?? {},
 			};
 		} else {
-			// No save data found, start with all fruits and pets
+			// No save data found, start fresh
 			state = {
 				coins: START_WITH_MILLION ? 1000000 : 2000,
-				inventory: PETS.reduce((acc, pet) => {
-					acc[pet.id] = 10; // Start with 10 of each pet
-					return acc;
-				}, {}),
-				fruits: FRUITS.reduce((acc, fruit) => {
-					acc[fruit.id] = 10; // Start with 10 of each fruit
-					return acc;
-				}, {})
+				inventory: {},
+				fruits: {}
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
@@ -603,16 +597,6 @@ loadState();
 state.inventory = state.inventory || {};
 state.fruits = state.fruits || {};
 
-// For testing: if the player's inventory or fruits are empty after loading,
-// populate with 10 of each pet and fruit so you reliably start with all items.
-// This is intentionally forgiving: it only fills missing/empty inventories.
-if(Object.keys(state.inventory).length === 0){
-	PETS.forEach(p => { state.inventory[p.id] = 10; });
-}
-if(Object.keys(state.fruits).length === 0){
-	FRUITS.forEach(f => { state.fruits[f.id] = 10; });
-}
-
 updateUI();
 saveState();
 
@@ -649,22 +633,7 @@ setInterval(()=>{
         // remove after animation
         pop.addEventListener('animationend', ()=>pop.remove());
     }
-}, 1000);// Admin button (temporary)
-if(adminBtn){
-	if(!SHOW_ADMIN_BUTTON){
-		// hide admin button completely
-		adminBtn.style.display = 'none';
-	} else {
-		adminBtn.addEventListener('click', ()=>{
-			state.coins = (state.coins || 0) + 100000;
-			saveState();
-			updateUI();
-			// flash the button briefly
-			adminBtn.style.transform = 'scale(1.05)';
-			setTimeout(()=>{ adminBtn.style.transform = ''; }, 120);
-		});
-	}
-}
+}, 1000);
 
 // Rarities & Info modal wiring
 const openRarityInfo = document.getElementById('openRarityInfo');
@@ -678,4 +647,12 @@ if(openRarityInfo && rarityModal){
 	if(closeRarityInfo) closeRarityInfo.addEventListener('click', hideRarityModal);
 	if(backdrop) backdrop.addEventListener('click', hideRarityModal);
 	document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideRarityModal(); });
+}
+
+// Terms & Conditions button: opens terms.html in a new tab/window
+const openTermsBtn = document.getElementById('openTerms');
+if(openTermsBtn){
+	openTermsBtn.addEventListener('click', ()=>{
+		window.open('terms.html', '_blank');
+	});
 }
