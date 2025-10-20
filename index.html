@@ -15,9 +15,21 @@
 			<header>
 				<h1>BTF Vibe Edition</h1>
 				<div style="display:flex;align-items:center;gap:10px">
-					<div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
+                    <div style="text-align:right">
+                        <div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
+                        <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
+                    </div>
 				</div>
 			</header>
+
+			<nav class="nav-bar">
+				<a href="index.html" class="active">Game</a>
+				<a href="shop.html">Shop</a>
+				<a href="inventory.html">Inventory</a>
+				<a href="#" id="openRarityInfo">About</a>
+				<a href="terms.html">Terms &amp; Conditions</a>
+				<a href="news.html">News</a>
+			</nav>
 
 			<main>
 				<section class="gacha">
@@ -54,18 +66,15 @@
 			<footer>
 				<small>Made by the Cookiemonster and the Eightbit Games Team</small><br>
 				<small>© 2025 Eightbit Games | Contact: lawrencetong1030@gmail.com</small>
-
-				<button id="openRarityInfo" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#2563eb;color:white;font-weight:700;">Rarities &amp; Info</button>
 			</footer>
 		</div>
-				<button id="openRarityInfo" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#2563eb;color:white;font-weight:700;">Rarities &amp; Info</button>
-				<button id="openTerms" style="margin-left:12px;padding:6px 10px;border-radius:8px;border:0;background:#374151;color:white;font-weight:700;">Terms &amp; Conditions</button>
+
 		<!-- Rarities & Info modal (empty body for now) -->
 		<div id="rarityModal" class="modal" style="display:none">
 			<div class="modal-backdrop"></div>
 			<div class="modal-panel">
 				<div class="modal-header">
-					<h3>Rarities &amp; Info</h3>
+					<h3>About BTF</h3>
 					<button id="closeRarityInfo" class="muted">Close</button>
 				</div>
 				<div class="modal-body">

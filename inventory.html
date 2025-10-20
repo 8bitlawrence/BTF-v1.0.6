@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>BTF Inventory</title>
+    <link rel="stylesheet" href="index.css" />
+    <style>
+        .nav-bar {
+            background: var(--card);
+            padding: 12px 18px;
+            border-radius: 12px;
+            display: flex;
+            gap: 12px;
+            margin-bottom: 18px;
+        }
+        .nav-bar a {
+            text-decoration: none;
+            color: var(--muted);
+            font-weight: 600;
+        }
+        .nav-bar a.active {
+            color: var(--accent);
+        }
+        .inventory-section {
+            background: var(--glass);
+            border-radius: 12px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+        .inventory-section h2 {
+            margin-top: 0;
+            font-size: 18px;
+            color: var(--accent);
+        }
+        .items-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 12px;
+        }
+        .item-card {
+            background: var(--card);
+            border-radius: 8px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .item-icon {
+            font-size: 24px;
+            width: 48px;
+            height: 48px;
+            background: var(--glass);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .item-info h3 {
+            margin: 0 0 4px 0;
+            font-size: 15px;
+        }
+        .item-info p {
+            margin: 0;
+            font-size: 13px;
+            color: var(--muted);
+        }
+        .effect-active {
+            color: #10b981;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BTF Inventory</h1>
+            <div style="text-align:right">
+                <div class="wallet" style="position:relative">Coins: <span id="coins">0</span></div>
+                <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
+            </div>
+        </header>
+
+        <nav class="nav-bar">
+            <a href="index.html">Game</a>
+            <a href="shop.html">Shop</a>
+            <a href="inventory.html" class="active">Inventory</a>
+            <a href="terms.html">Terms &amp; Conditions</a>
+            <a href="news.html">News</a>
+        </nav>
+
+        <main>
+            <section class="inventory-section">
+                <h2>Active Effects</h2>
+                <div id="activeEffects" class="items-grid">
+                    <!-- Active potions will be listed here -->
+                </div>
+            </section>
+
+            <section class="inventory-section">
+                <h2>Purchased Items</h2>
+                <div id="purchasedItems" class="items-grid">
+                    <!-- Purchased items will be listed here -->
+                </div>
+            </section>
+        </main>
+    </div>
+    <script src="inventory.js"></script>
+</body>
+</html>

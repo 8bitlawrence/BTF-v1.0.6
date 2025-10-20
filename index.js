@@ -39,12 +39,14 @@ const FRUITS = [
 	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 10, value: 150 },
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
+	{id: 'fruit_c_4', name: 'Watermelon', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.5, value: 1200}
 	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
 	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 1, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.5, value: 5 }
-	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 1, value: 5 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.5, value: 1200 }
+	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 1, value: 500 }
+	,{id: 'fruit_ch_3', name: 'Cursed Pumpkin', rarity: 'chromatic', weight: 0.5, value: 1500 }
 
 
 
@@ -56,11 +58,14 @@ let state = {
 	coins: 2000,
 	inventory: {}, // pets id -> count
 	fruits: {}, // fruits id -> count
+	potionActive: false,
+	potionEndsAt: 0
 };
 
 // DOM
 const coinsEl = document.getElementById('coins');
 const cpsEl = document.getElementById('cps');
+const luckMultiplierEl = document.getElementById('luckMultiplier');
 const singleBtn = document.getElementById('singleRoll');
 const tenBtn = document.getElementById('tenRoll');
 const resultArea = document.getElementById('resultArea');
@@ -85,6 +90,8 @@ function loadState(){
 				coins: parsed.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
 				inventory: parsed.inventory ?? {},
 				fruits: parsed.fruits ?? {},
+				potionActive: parsed.potionActive ?? false,
+				potionEndsAt: parsed.potionEndsAt ?? 0
 			};
 		} else {
 			// No save data found, start fresh
@@ -102,11 +109,16 @@ function saveState(){
 
 // Helpers: weighted pick
 function weightedPick(items){
-	const total = items.reduce((s,i)=>s+i.weight,0);
+	// Check if luck potion is active
+	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
+	const multiplier = potionActive ? 3 : 1;
+
+	// Apply luck multiplier to weights
+	const total = items.reduce((s,i)=>s+(i.weight * multiplier),0);
 	let r = Math.random()*total;
 	for(const it of items){
-		if(r < it.weight) return it;
-		r -= it.weight;
+		if(r < (it.weight * multiplier)) return it;
+		r -= (it.weight * multiplier);
 	}
 	return items[items.length-1];
 }
@@ -162,6 +174,12 @@ function updateUI(){
 		const totalCps = computeTotalCPS();
 		cpsEl.textContent = `(+${totalCps}/s)`;
 	}
+    
+    // Update luck multiplier
+    if(luckMultiplierEl){
+        const isActive = state.potionActive && state.potionEndsAt > Date.now();
+        luckMultiplierEl.textContent = isActive ? "3x" : "1x";
+    }
 
 	// Pets inventory
 	inventoryList.innerHTML = '';
@@ -641,10 +659,10 @@ const closeRarityInfo = document.getElementById('closeRarityInfo');
 const rarityModal = document.getElementById('rarityModal');
 if(openRarityInfo && rarityModal){
 	const backdrop = rarityModal.querySelector('.modal-backdrop');
-	function showRarityModal(){ rarityModal.style.display = 'flex'; }
+	function showRarityModal(e){ if(e) e.preventDefault(); rarityModal.style.display = 'flex'; }
 	function hideRarityModal(){ rarityModal.style.display = 'none'; }
 	openRarityInfo.addEventListener('click', showRarityModal);
-	if(closeRarityInfo) closeRarityInfo.addEventListener('click', hideRarityModal);
+	if(closeRarityInfo) closeRarityInfo.addEventListener('click', (e)=>{ e.preventDefault(); hideRarityModal(); });
 	if(backdrop) backdrop.addEventListener('click', hideRarityModal);
 	document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideRarityModal(); });
 }
