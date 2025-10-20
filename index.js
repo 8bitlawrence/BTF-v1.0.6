@@ -11,8 +11,8 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 3, value: 1200 },
-	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 1, value: 5000 },
+	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
 	
 ];
 
@@ -37,16 +37,16 @@ const FRUITS = [
 	{ id: 'fruit_c_2', name: 'Fireberry', rarity: 'common', weight: 50, value: 5 },
 	{ id: 'fruit_r_1', name: 'Golden Apple', rarity: 'rare', weight: 35, value: 30 },
 	{ id: 'fruit_e_1', name: 'Starfruit', rarity: 'epic', weight: 10, value: 150 },
-	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 1, value: 200 },
+	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 0.5, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_c_4', name: 'Watermelon', rarity: 'common', weight: 50, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.5, value: 1200}
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.25, value: 1200}
 	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
 	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
-	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 1, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.5, value: 1200 }
-	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 1, value: 500 }
-	,{id: 'fruit_ch_3', name: 'Cursed Pumpkin', rarity: 'chromatic', weight: 0.5, value: 1500 }
+	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
+	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
+	,	
 
 
 
@@ -59,7 +59,9 @@ let state = {
 	inventory: {}, // pets id -> count
 	fruits: {}, // fruits id -> count
 	potionActive: false,
-	potionEndsAt: 0
+	potionEndsAt: 0,
+	bennyActive: false,
+	bennyEndsAt: 0
 };
 
 // DOM
@@ -91,7 +93,9 @@ function loadState(){
 				inventory: parsed.inventory ?? {},
 				fruits: parsed.fruits ?? {},
 				potionActive: parsed.potionActive ?? false,
-				potionEndsAt: parsed.potionEndsAt ?? 0
+				potionEndsAt: parsed.potionEndsAt ?? 0,
+				bennyActive: parsed.bennyActive ?? false,
+				bennyEndsAt: parsed.bennyEndsAt ?? 0
 			};
 		} else {
 			// No save data found, start fresh
@@ -139,6 +143,10 @@ function computeTotalCPS(){
 		if(!p) continue;
 		const per = RARITY_CPS[p.rarity] || 0;
 		total += per * count;
+	}
+	// Apply Benny Boost (+5% CPS) if active
+	if(state.bennyActive && state.bennyEndsAt > Date.now()){
+		return Math.floor(total * 1.05);
 	}
 	return total;
 }
@@ -191,6 +199,10 @@ function updateUI(){
 				const p = PETS.find(x=>x.id===id) || {name:id, rarity:'common', value:5};
 				const el = document.createElement('div');
 				el.className = 'inventory-item';
+				// apply benny glow to pet inventory items only
+				if(state.bennyActive && state.bennyEndsAt > Date.now()){
+					el.classList.add('benny-glow');
+				}
 				const badge = document.createElement('div');
 				badge.className = `badge ${p.rarity}`;
 				badge.textContent = p.rarity.toUpperCase();
@@ -234,6 +246,14 @@ function updateUI(){
 			const f = FRUITS.find(x=>x.id===id) || {name:id, rarity:'common', value:1};
 			const el = document.createElement('div');
 			el.className = 'inventory-item';
+			// apply benny glow to pets only
+			if(state.bennyActive && state.bennyEndsAt > Date.now()){
+				el.classList.add('benny-glow');
+			}
+			// apply benny glow if active
+			if(state.bennyActive && state.bennyEndsAt > Date.now()){
+				el.classList.add('benny-glow');
+			}
 			const badge = document.createElement('div');
 			badge.className = `badge ${f.rarity}`;
 			badge.textContent = f.rarity.toUpperCase();
@@ -281,6 +301,10 @@ function animateRoll(makeItemsCallback, revealCallback){
 				// create a minimal card for animation then pass to reveal callback
 				const card = document.createElement('div');
 				card.className = `result-card rarity-${it.rarity} pop`;
+				// only apply Benny glow on pet reveals (showResults), not capsule/fruit reveals
+				if(revealCallback === showResults && state.bennyActive && state.bennyEndsAt > Date.now()){
+					card.classList.add('benny-glow');
+				}
 				const ic = document.createElement('div'); ic.style.fontSize='28px';
 				// placeholder icons reused from showResults
 				if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
@@ -456,26 +480,14 @@ async function showResults(items){
 		card.className = `result-card rarity-${it.rarity}`;
 		const ic = document.createElement('div');
 		ic.style.fontSize = '28px';
-		// icon mapping: chromatic > epic > legendary > rare > common
-		if(it.rarity==='chromatic'){
-			ic.textContent = '🌈';
-			card.classList.add('chromatic');
-		}else if(it.rarity==='epic'){
-			ic.textContent = '✨';
-			card.classList.add('epic');
-		}else if(it.rarity==='legendary'){
-			ic.textContent = '🔱';
-		}else if(it.rarity==='rare'){
-			ic.textContent = '⭐';
-		}else{
-			ic.textContent = '●';
-		}
-		const nm = document.createElement('div');
-		nm.className = 'pet-name';
-		nm.textContent = it.name;
-		card.appendChild(ic);
-		card.appendChild(nm);
-		resultArea.appendChild(card);
+		// placeholder icons reused from showResults
+		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
+		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
+		else if(it.rarity==='rare'){ ic.textContent='⭐'; }
+		else { ic.textContent='●'; }
+			const el = document.createElement('div');
+			el.className = 'inventory-item';
 		// add to inventory if space; otherwise mark discarded
 		if(available > 0){
 			state.inventory[it.id] = (state.inventory[it.id] || 0) + 1;
@@ -645,12 +657,24 @@ setInterval(()=>{
         updateUI();
         // show coin pop animation
         const pop = document.createElement('div');
-        pop.className = 'coin-pop';
+		pop.className = 'coin-pop';
         pop.textContent = '+' + total;
         document.querySelector('.wallet').appendChild(pop);
+		// if Benny Boost active, add purple variant
+		if(state.bennyActive && state.bennyEndsAt > Date.now()){
+			pop.classList.add('benny');
+		}
         // remove after animation
         pop.addEventListener('animationend', ()=>pop.remove());
     }
+}, 1000);
+
+// Periodic check to clear expired effects
+setInterval(()=>{
+	let dirty = false;
+	if(state.potionActive && state.potionEndsAt <= Date.now()){ state.potionActive = false; dirty = true; }
+	if(state.bennyActive && state.bennyEndsAt <= Date.now()){ state.bennyActive = false; dirty = true; }
+	if(dirty){ saveState(); updateUI(); }
 }, 1000);
 
 // Rarities & Info modal wiring
