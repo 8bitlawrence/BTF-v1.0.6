@@ -17,6 +17,28 @@ body{
 .container{max-width:980px;margin:28px auto;padding:20px}
 header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
 header h1{margin:0;font-size:20px}
+.halloween-shimmer{
+	display:inline-block;
+	background: linear-gradient(90deg,#ff7a18 0%, #8e2de2 50%, #ff7a18 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: halloweenShift 3s linear infinite;
+	font-weight:800;
+}
+.subtitle{
+	font-size:12px;
+	color:#ffd86b;
+	font-weight:700;
+	margin-top:4px;
+	text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+
+@keyframes halloweenShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
 .wallet{font-weight:600;color:var(--muted)}
 
 .nav-bar {
@@ -62,6 +84,19 @@ button.muted{background:#1f2937;color:var(--muted)}
 .badge.legendary{background:#f97316;color:#331204}
 .badge.epic{background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white}
 .badge.chromatic{background:linear-gradient(90deg,#ff5bd1,#ffd800,#39ff14,#00e0ff,#ff5bd1);color:#111}
+
+/* Spooky rarity (Halloween) */
+.badge.spooky{background: linear-gradient(90deg,#ff7a18,#8e2de2); color: white}
+.rarity-spooky{ border-color: transparent; box-shadow: 0 8px 30px rgba(255,122,24,0.18); position: relative; overflow: hidden }
+.rarity-spooky::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,#ff7a18, #8e2de2, #ff7a18);
+	mix-blend-mode: screen; opacity: 0.7;
+	filter: blur(10px) saturate(1.1);
+	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
 
 /* rainbow shimmer animation for chromatic */
 /* shimmering rainbow overlay used by chromatic elements */
@@ -114,6 +149,9 @@ button.muted{background:#1f2937;color:var(--muted)}
 }
 
 footer{padding:12px;text-align:center;color:var(--muted)}
+
+/* make small inline disclaimers use the same muted color as the footer */
+#disclaimer{ color: var(--muted); font-size: 13px; }
 
 /* small responsive */
 @media(max-width:880px){
@@ -177,4 +215,13 @@ footer{padding:12px;text-align:center;color:var(--muted)}
 	box-shadow: 0 0 12px rgba(155,89,255,0.9), 0 0 28px rgba(155,89,255,0.45) !important;
 	border: 1px solid rgba(155,89,255,0.6) !important;
 }
+
+#idk {
+	font-weight: bold;
+}
+
+#idk2 {
+	font-weight: bold;
+}
+
 

@@ -12,7 +12,9 @@ const PETS = [
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
+	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
+	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 }
 	
 ];
 
@@ -31,6 +33,9 @@ const START_WITH_MILLION = false; // if true, default starting coins = 1,000,000
 const CAP_PRICE_SINGLE = 20;
 const CAP_PRICE_TEN = 180;
 
+// Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
+const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
+
 // FRUITS: capsule pool
 const FRUITS = [
 	{ id: 'fruit_c_1', name: 'Sandfruit', rarity: 'common', weight: 50, value: 5 },
@@ -46,7 +51,7 @@ const FRUITS = [
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
 	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
-	,	
+	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 
 
 
@@ -95,7 +100,9 @@ function loadState(){
 				potionActive: parsed.potionActive ?? false,
 				potionEndsAt: parsed.potionEndsAt ?? 0,
 				bennyActive: parsed.bennyActive ?? false,
-				bennyEndsAt: parsed.bennyEndsAt ?? 0
+				bennyEndsAt: parsed.bennyEndsAt ?? 0,
+				blessingActive: parsed.blessingActive ?? false,
+				blessingEndsAt: parsed.blessingEndsAt ?? 0
 			};
 		} else {
 			// No save data found, start fresh
@@ -117,14 +124,30 @@ function weightedPick(items){
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
 	const multiplier = potionActive ? 3 : 1;
 
-	// Apply luck multiplier to weights
-	const total = items.reduce((s,i)=>s+(i.weight * multiplier),0);
+	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
+	const halloweenStillOn = Date.now() < HALLOWEEN_END;
+	const pool = items.filter(i => !(i.rarity === 'spooky' && !halloweenStillOn));
+	const useItems = pool.length ? pool : items;
+
+	// Blessing effect: when active, spooky items are 2/3 as likely (weights * 2/3)
+	const blessingActive = state.blessingActive && state.blessingEndsAt > Date.now();
+
+	// Apply luck multiplier and blessing scaling to weights
+	const adjustedWeights = useItems.map(i => {
+		let w = i.weight * multiplier;
+		if(blessingActive && i.rarity === 'spooky') w = w * (2/3);
+		return w;
+	});
+
+	const total = adjustedWeights.reduce((s,w)=>s+w, 0);
 	let r = Math.random()*total;
-	for(const it of items){
-		if(r < (it.weight * multiplier)) return it;
-		r -= (it.weight * multiplier);
+	for(let idx=0; idx<useItems.length; idx++){
+		const it = useItems[idx];
+		const w = adjustedWeights[idx];
+		if(r < w) return it;
+		r -= w;
 	}
-	return items[items.length-1];
+	return useItems[useItems.length-1];
 }
 
 // Coins-per-second mapping by rarity
@@ -133,6 +156,7 @@ const RARITY_CPS = {
 	rare: 3,
 	epic: 8,
 	legendary: 20,
+	spooky: 30,
 	chromatic: 80,
 };
 
@@ -160,7 +184,9 @@ function rollTen(){
 	if(hasRareOrBetter){
 		results.push(rollOnce());
 	}else{
-		const rarePool = PETS.filter(p=>['rare','legendary','epic','chromatic'].includes(p.rarity));
+		// include spooky in the guaranteed pool during Halloween window
+		const spookyActive = Date.now() < HALLOWEEN_END;
+		const rarePool = PETS.filter(p=>['rare','legendary','epic','chromatic'].concat(spookyActive?['spooky']:[]).includes(p.rarity));
 		results.push(weightedPick(rarePool));
 	}
 	return results;
@@ -482,6 +508,7 @@ async function showResults(items){
 		ic.style.fontSize = '28px';
 		// placeholder icons reused from showResults
 		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
 		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
 		else if(it.rarity==='rare'){ ic.textContent='⭐'; }
@@ -499,7 +526,7 @@ async function showResults(items){
 	saveState();
 	updateUI();
 	if(discarded>0){
-		await showAlert(`Inventory full — ${discarded} item(s) were not added. Sell pets to free space or buy BTF+ for a .`);
+		await showAlert(`Inventory full — ${discarded} item(s) were not added. Sell pets to free space or buy BTF+ for an inventory size of 50.`);
 	}
 }
 
@@ -514,6 +541,9 @@ function showCapsuleResults(items){
 		if(it.rarity==='chromatic'){
 			ic.textContent = '🌈';
 			card.classList.add('chromatic');
+		}else if(it.rarity==='spooky'){
+			ic.textContent = '🎃';
+			card.classList.add('spooky');
 		}else if(it.rarity==='epic'){
 			ic.textContent = '✨';
 			card.classList.add('epic');
@@ -630,6 +660,26 @@ state.fruits = state.fruits || {};
 updateUI();
 saveState();
 
+// Toggle Halloween visuals based on HALLOWEEN_END
+function updateHalloweenVisuals(){
+	const h = document.querySelector('.halloween-shimmer');
+	const s = document.querySelector('.subtitle');
+	const active = Date.now() < HALLOWEEN_END;
+	if(!h && !s) return;
+	if(active){
+		// ensure shimmer class exists and subtitle visible
+		if(h) h.classList.add('halloween-shimmer');
+		if(s) s.style.display = '';
+	} else {
+		// event ended: remove shimmer and hide subtitle
+		if(h){ h.classList.remove('halloween-shimmer'); h.style.color = ''; }
+		if(s) s.style.display = 'none';
+	}
+}
+// run now and every minute in case the page stays open across the event end
+updateHalloweenVisuals();
+setInterval(updateHalloweenVisuals, 60*1000);
+
 // Welcome modal: show on first visit
 const welcomeModal = document.getElementById('welcomeModal');
 const closeWelcome = document.getElementById('closeWelcome');
@@ -646,6 +696,40 @@ if(welcomeModal && closeWelcome){
             localStorage.setItem('btf_seen_welcome', 'true');
         });
     }
+}
+
+// Halloween Update modal: show on first visit (after welcome modal if both unseen)
+const halloweenUpdateModal = document.getElementById('halloweenUpdateModal');
+const closeHalloweenUpdate = document.getElementById('closeHalloweenUpdate');
+if(halloweenUpdateModal && closeHalloweenUpdate){
+    const hasSeenHalloweenUpdate = localStorage.getItem('btf_seen_halloween_update');
+    const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
+    
+    // Show Halloween update after welcome modal is closed (or immediately if welcome was already seen)
+    const showHalloweenUpdate = () => {
+        if(!hasSeenHalloweenUpdate){
+            halloweenUpdateModal.style.display = 'flex';
+        }
+    };
+    
+    if(!hasSeenWelcome){
+        // Wait for welcome modal to close before showing Halloween update
+        closeWelcome?.addEventListener('click', ()=>{
+            setTimeout(showHalloweenUpdate, 300);
+        });
+    } else {
+        // Show immediately if welcome was already seen
+        showHalloweenUpdate();
+    }
+    
+    closeHalloweenUpdate.addEventListener('click', ()=>{
+        halloweenUpdateModal.style.display = 'none';
+        localStorage.setItem('btf_seen_halloween_update', 'true');
+    });
+    halloweenUpdateModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
+        halloweenUpdateModal.style.display = 'none';
+        localStorage.setItem('btf_seen_halloween_update', 'true');
+    });
 }
 
 // Passive income: add coins every second based on total CPS
@@ -674,22 +758,11 @@ setInterval(()=>{
 	let dirty = false;
 	if(state.potionActive && state.potionEndsAt <= Date.now()){ state.potionActive = false; dirty = true; }
 	if(state.bennyActive && state.bennyEndsAt <= Date.now()){ state.bennyActive = false; dirty = true; }
+	if(state.blessingActive && state.blessingEndsAt <= Date.now()){ state.blessingActive = false; dirty = true; }
 	if(dirty){ saveState(); updateUI(); }
 }, 1000);
 
-// Rarities & Info modal wiring
-const openRarityInfo = document.getElementById('openRarityInfo');
-const closeRarityInfo = document.getElementById('closeRarityInfo');
-const rarityModal = document.getElementById('rarityModal');
-if(openRarityInfo && rarityModal){
-	const backdrop = rarityModal.querySelector('.modal-backdrop');
-	function showRarityModal(e){ if(e) e.preventDefault(); rarityModal.style.display = 'flex'; }
-	function hideRarityModal(){ rarityModal.style.display = 'none'; }
-	openRarityInfo.addEventListener('click', showRarityModal);
-	if(closeRarityInfo) closeRarityInfo.addEventListener('click', (e)=>{ e.preventDefault(); hideRarityModal(); });
-	if(backdrop) backdrop.addEventListener('click', hideRarityModal);
-	document.addEventListener('keydown', (e)=>{ if(e.key==='Escape') hideRarityModal(); });
-}
+// About is now a separate page (about.html); modal wiring removed
 
 // Terms & Conditions button: opens terms.html in a new tab/window
 const openTermsBtn = document.getElementById('openTerms');

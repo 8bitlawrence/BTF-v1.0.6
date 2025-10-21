@@ -13,7 +13,8 @@
 	<body>
 		<div class="container">
 			<header>
-				<h1>BTF Vibe Edition</h1>
+				<h1 class="halloween-shimmer">BTF Vibe Edition</h1>
+				<div class="subtitle">Happy Halloween!</div>
 				<div style="display:flex;align-items:center;gap:10px">
                     <div style="text-align:right">
                         <div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
@@ -26,7 +27,7 @@
 				<a href="index.html" class="active">Game</a>
 				<a href="shop.html">Shop</a>
 				<a href="inventory.html">Inventory</a>
-				<a href="#" id="openRarityInfo">About</a>
+				<a href="about.html">About</a>
 				<a href="terms.html">Terms &amp; Conditions</a>
 				<a href="news.html">News</a>
 			</nav>
@@ -69,38 +70,7 @@
 			</footer>
 		</div>
 
-		<!-- Rarities & Info modal (empty body for now) -->
-		<div id="rarityModal" class="modal" style="display:none">
-			<div class="modal-backdrop"></div>
-			<div class="modal-panel">
-				<div class="modal-header">
-					<h3>About BTF</h3>
-					<button id="closeRarityInfo" class="muted">Close</button>
-				</div>
-				<div class="modal-body">
-					<!-- content will be added later -->
-					 <p>BTF v1.0.6 was programmed by the Cookiemonster with support from the Eightbit Games Team.</p>
-					 <br>
-					 <p>Pet Rarities:</p>
-					 <ul>
-						<li><strong>Common:</strong> 70.1% chance</li>
-						<li><strong>Rare:</strong> 23.4% chance</li>
-						<li><strong>Epic:</strong> 4.7% chance</li>
-						<li><strong>Legendary:</strong> 1.4% chance</li>
-						<li><strong>Chromatic:</strong> 0.5% chance</li>
-					</ul>
-					<p>Fruit Rarities:</p>
-					<ul>
-						<li><strong>Common:</strong> 67.9% chance</li>
-						<li><strong>Rare:</strong> 23.8% chance</li>
-						<li><strong>Epic:</strong> 6.8% chance</li>
-						<li><strong>Legendary:</strong> 1.0% chance</li>
-						<li><strong>Chromatic:</strong> 0.5% chance</li>
-					</ul>
-				</div>
-
-			</div>
-		</div>
+		<!-- About moved to its own page: about.html -->
 
 		<!-- Welcome/Update modal -->
 		<div id="welcomeModal" class="modal" style="display:none">
@@ -112,9 +82,30 @@
 				</div>
 				<div class="modal-body">
 					<!-- text for update here -->
-					<p>Welcome to the new season of BTF! I know its been a while, but we're back with tones of new features. Now, you can enjoy collecting pets, fruits and so much more! Enjoy the vibes and happy collecting!</p>
+					<p>Welcome to the new season of BTF! I know its been a while, but we're back with tons of new features. Now, you can enjoy collecting pets, fruits and so much more! Enjoy the vibes and happy collecting!</p>
 					<p>As always, thank you for playing and supporting BTF. If you have any feedback or questions, feel free to reach out to the Eightbit Games Team.</p>
 					<p>Happy gaming!</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Halloween Update modal -->
+		<div id="halloweenUpdateModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3>🎃 Halloween Update Is Here!</h3>
+					<button id="closeHalloweenUpdate" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<p>Hello Players! The Halloween Update is finally out! The new Spooky rarity is now obtainable ONLY DURING THE HALLOWEEN EVENT! Happy Halloween and as always, happy gaming!</p><br>
+					<p>Exclusive Halloween Event items:</p><br>
+					<ul>
+						<li>Spooky - Cursed Pumpkin</li>
+						<li>Spooky - Nightmare Skeleton</li>
+						<li>Spooky - Spooky Ghost</li>
+						<li>New Shop Item - Blessing of the Pumpkin</li>
+					</ul>
 				</div>
 			</div>
 		</div>

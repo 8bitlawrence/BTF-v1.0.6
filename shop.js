@@ -4,6 +4,8 @@ const POTION_COST = 10000;
 const POTION_DURATION = 5 * 60 * 1000; // 5 minutes in ms
 const BENNY_COST = 10000;
 const BENNY_DURATION = 5 * 60 * 1000; // 5 minutes
+const BLESSING_COST = 8000;
+const BLESSING_DURATION = 5 * 60 * 1000; // 5 minutes
 
 // DOM elements
 const coinsEl = document.getElementById('coins');
@@ -12,6 +14,8 @@ const buyBtn = document.getElementById('buyLuckPotion');
 const timerEl = document.getElementById('potionTimer');
 const buyBennyBtn = document.getElementById('buyBennyBoost');
 const bennyTimerEl = document.getElementById('bennyTimer');
+const buyBlessingBtn = document.getElementById('buyPumpkinBlessing');
+const blessingTimerEl = document.getElementById('blessingTimer');
 
 // State
 let state = {
@@ -20,6 +24,8 @@ let state = {
     potionEndsAt: 0,
     bennyActive: false,
     bennyEndsAt: 0,
+    blessingActive: false,
+    blessingEndsAt: 0,
     purchasedItems: []
 };
 
@@ -32,6 +38,10 @@ function loadState() {
             state.coins = parsed.coins ?? 0;
             state.potionActive = parsed.potionActive ?? false;
             state.potionEndsAt = parsed.potionEndsAt ?? 0;
+            state.bennyActive = parsed.bennyActive ?? false;
+            state.bennyEndsAt = parsed.bennyEndsAt ?? 0;
+            state.blessingActive = parsed.blessingActive ?? false;
+            state.blessingEndsAt = parsed.blessingEndsAt ?? 0;
             state.purchasedItems = parsed.purchasedItems ?? [];
         }
     } catch (e) { console.warn('load failed', e) }
@@ -49,6 +59,8 @@ function saveState() {
             potionEndsAt: state.potionEndsAt,
             bennyActive: state.bennyActive,
             bennyEndsAt: state.bennyEndsAt,
+            blessingActive: state.blessingActive,
+            blessingEndsAt: state.blessingEndsAt,
             purchasedItems: state.purchasedItems
         }));
     } catch (e) { console.warn(e) }
@@ -75,6 +87,20 @@ function updateUI() {
             bennyTimerEl.style.display = 'inline';
         } else {
             bennyTimerEl.style.display = 'none';
+        }
+    }
+    // Blessing UI
+    if(blessingTimerEl){
+        const blActive = state.blessingActive && state.blessingEndsAt > Date.now();
+        if(buyBlessingBtn) buyBlessingBtn.disabled = state.coins < BLESSING_COST || blActive;
+        if(blActive){
+            const remaining = Math.ceil((state.blessingEndsAt - Date.now())/1000);
+            const minutes = Math.floor(remaining/60);
+            const seconds = remaining%60;
+            blessingTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} remaining`;
+            blessingTimerEl.style.display = 'inline';
+        } else {
+            blessingTimerEl.style.display = 'none';
         }
     }
     
@@ -127,6 +153,22 @@ if(buyBennyBtn){
             state.bennyEndsAt = Date.now() + BENNY_DURATION;
             if(!state.purchasedItems.some(i=>i.name==='Benny Boost')){
                 state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+5% CPS for 5 minutes' });
+            }
+            saveState();
+            updateUI();
+        }
+    });
+}
+
+// Buy Blessing of the Pumpkin
+if(buyBlessingBtn){
+    buyBlessingBtn.addEventListener('click', ()=>{
+        if(state.coins >= BLESSING_COST && !state.blessingActive){
+            state.coins -= BLESSING_COST;
+            state.blessingActive = true;
+            state.blessingEndsAt = Date.now() + BLESSING_DURATION;
+            if(!state.purchasedItems.some(i=>i.name==='Blessing of the Pumpkin')){
+                state.purchasedItems.push({ name: 'Blessing of the Pumpkin', icon: '🎃', description: 'Makes spooky items 2/3 as rare for 5 minutes' });
             }
             saveState();
             updateUI();
