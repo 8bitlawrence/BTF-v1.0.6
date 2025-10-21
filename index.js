@@ -3,7 +3,7 @@
 
 // Data model: pets with rarities and weights
 const PETS = [
-	{ id: 'pet_c_1', name: 'Dirt Pup', rarity: 'common', weight: 50, value: 20 },
+	{ id: 'pet_c_1', name: 'Dirt Fox', rarity: 'common', weight: 50, value: 20 },
 	{ id: 'pet_c_2', name: 'Dirt Finch', rarity: 'common', weight: 50, value: 20 },
 	{ id: 'pet_c_3', name: 'Dirt Turtle', rarity: 'common', weight: 50, value: 25 },
 

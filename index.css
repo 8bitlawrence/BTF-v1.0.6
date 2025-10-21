@@ -40,6 +40,15 @@ header h1{margin:0;font-size:20px}
 	100%{ background-position: 0% 50%; }
 }
 .wallet{font-weight:600;color:var(--muted)}
+.wallet::before{
+	content: '';
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	margin-right: 6px;
+	background: url('coin.png') no-repeat center / contain;
+	vertical-align: -3px;
+}
 
 .nav-bar {
     background: var(--card);
@@ -78,10 +87,10 @@ button.muted{background:#1f2937;color:var(--muted)}
 .inventory{background:var(--card);padding:18px;border-radius:12px}
 .inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:420px;overflow:auto;padding-top:8px}
 .inventory-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.02)}
-.badge{display:inline-block;padding:6px 8px;border-radius:18px;font-size:12px;font-weight:700}
-.badge.common{background:#0ea5a5;color:#052f2f}
-.badge.rare{background:#3b82f6;color:#05224b}
-.badge.legendary{background:#f97316;color:#331204}
+.badge{display:inline-block;padding:6px 12px;border-radius:18px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.common{background:#849090;color:#000000}
+.badge.rare{background:#0062ff;color:#05224b}
+.badge.legendary{background:linear-gradient(90deg,#ff9800,#ffd700,#ffeb3b,#ffd700,#ff9800);background-size:200% 100%;color:#331204;position:relative;overflow:hidden;animation:goldShimmer 2.5s linear infinite}
 .badge.epic{background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white}
 .badge.chromatic{background:linear-gradient(90deg,#ff5bd1,#ffd800,#39ff14,#00e0ff,#ff5bd1);color:#111}
 
@@ -143,6 +152,12 @@ button.muted{background:#1f2937;color:var(--muted)}
 }
 
 @keyframes chromaShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+@keyframes goldShimmer{
 	0%{ background-position: 0% 50%; }
 	50%{ background-position: 100% 50%; }
 	100%{ background-position: 0% 50%; }
