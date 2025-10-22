@@ -111,9 +111,9 @@ function generateTradeCode(tradeData) {
             timestamp: Date.now()
         };
         
-        // Encode to Base64
+        // Encode to Base64 (handle Unicode)
         const jsonString = JSON.stringify(tradePackage);
-        const base64 = btoa(jsonString);
+        const base64 = btoa(encodeURIComponent(jsonString));
         
         // Create code with BTF prefix
         return 'BTF-' + base64;
@@ -136,8 +136,8 @@ function loadTradeCode(code) {
         
         const base64 = code.substring(4);
         
-        // Decode from Base64
-        const jsonString = atob(base64);
+        // Decode from Base64 (handle Unicode)
+        const jsonString = decodeURIComponent(atob(base64));
         const tradePackage = JSON.parse(jsonString);
         
         // Check expiry (10 minutes)
