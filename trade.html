@@ -147,13 +147,28 @@
                 <!-- Create Trade Offer -->
                 <div class="trade-panel">
                     <h2 style="margin-top:0">💰 Create Trade Offer</h2>
-                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Select items you want to trade, then generate a code to share with another player</p>
+                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Choose what you will give and what you want to receive, then generate a code to share.</p>
                     
-                    <div id="yourOfferPreview" class="trade-items" style="min-height:60px;background:var(--glass);border-radius:8px;padding:12px;margin-bottom:16px">
-                        <p style="color:var(--muted);font-size:13px;margin:0">No items selected</p>
+                    <div style="background:var(--glass);border-radius:8px;padding:12px;margin-bottom:12px">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <strong style="color:#10b981">You will give:</strong>
+                            <button id="selectItemsBtn" class="small" style="padding:6px 12px">Select items you give</button>
+                        </div>
+                        <div id="yourOfferPreview" class="trade-items" style="min-height:48px;margin-top:8px">
+                            <p style="color:var(--muted);font-size:13px;margin:0">No items selected</p>
+                        </div>
                     </div>
 
-                    <button id="selectItemsBtn" style="width:100%;margin-bottom:12px">Select Items to Trade</button>
+                    <div style="background:var(--glass);border-radius:8px;padding:12px;margin-bottom:12px">
+                        <div style="display:flex;justify-content:space-between;align-items:center">
+                            <strong style="color:#f59e0b">You want to receive:</strong>
+                            <button id="selectRequestItemsBtn" class="small" style="padding:6px 12px">Select items you want</button>
+                        </div>
+                        <div id="yourRequestPreview" class="trade-items" style="min-height:48px;margin-top:8px">
+                            <p style="color:var(--muted);font-size:13px;margin:0">No requested items</p>
+                        </div>
+                    </div>
+
                     <button id="generateCodeBtn" style="width:100%;background:#10b981" disabled>Generate Trade Code</button>
 
                     <div id="tradeCodeDisplay" style="display:none;margin-top:16px;padding:16px;background:var(--glass);border-radius:8px;border:2px solid var(--accent)">
@@ -201,7 +216,7 @@
 
             <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
                 <button id="cancelItemSelection" class="muted">Cancel</button>
-                <button id="confirmItemSelection">Confirm Selection</button>
+                <button id="confirmItemSelection">Use These Items</button>
             </div>
         </div>
     </div>

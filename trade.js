@@ -51,15 +51,21 @@ let currentState = {
     inventory: {},
     fruits: {}
 };
-let selectedItems = {
+let selectedOffer = {
     pets: {},
     fruits: {},
     coins: 0
 };
+let selectedRequest = {
+    pets: {},
+    fruits: {},
+    coins: 0
+};
+let modalMode = 'offer';
 let tradeMessage = '';
 
 // DOM elements (will be initialized after DOM loads)
-let coinsEl, yourOfferPreviewEl, selectItemsBtn, generateCodeBtn, tradeCodeDisplay, tradeCodeInput, copyCodeBtn;
+let coinsEl, yourOfferPreviewEl, yourRequestPreviewEl, selectItemsBtn, selectRequestItemsBtn, generateCodeBtn, tradeCodeDisplay, tradeCodeInput, copyCodeBtn;
 let redeemCodeInput, redeemCodeBtn, tradeOfferDisplay, itemSelectionModal, closeItemModal;
 let yourInventoryEl, tradeNoteEl, cancelItemSelectionBtn, confirmItemSelectionBtn;
 
@@ -106,7 +112,8 @@ function generateTradeCode(tradeData) {
     try {
         // Create trade package with timestamp
         const tradePackage = {
-            items: tradeData.items,
+            offer: tradeData.offer,
+            request: tradeData.request,
             message: tradeData.message,
             timestamp: Date.now()
         };
@@ -152,7 +159,65 @@ function loadTradeCode(code) {
     }
 }
 
+// Custom alert modal (same as index.js)
+function showAlert(message){
+    return new Promise((resolve)=>{
+        const backdrop = document.createElement('div');
+        backdrop.style.position = 'fixed';
+        backdrop.style.left = '0'; backdrop.style.top = '0'; backdrop.style.right = '0'; backdrop.style.bottom = '0';
+        backdrop.style.background = 'rgba(0,0,0,0.45)';
+        backdrop.style.display = 'flex';
+        backdrop.style.alignItems = 'center';
+        backdrop.style.justifyContent = 'center';
+        backdrop.style.zIndex = '9999';
 
+        const modal = document.createElement('div');
+        modal.style.width = 'min(420px, 92%)';
+        modal.style.background = 'var(--modal-bg, #1f2937)';
+        modal.style.color = 'var(--modal-fg, #fff)';
+        modal.style.borderRadius = '10px';
+        modal.style.boxShadow = '0 8px 24px rgba(0,0,0,0.35)';
+        modal.style.padding = '18px';
+        modal.style.display = 'flex';
+        modal.style.flexDirection = 'column';
+        modal.style.gap = '12px';
+
+        const msg = document.createElement('div');
+        msg.style.fontSize = '15px';
+        msg.style.lineHeight = '1.4';
+        msg.style.color = 'var(--modal-fg, #fff)';
+        msg.textContent = message;
+
+        const btnRow = document.createElement('div');
+        btnRow.style.display = 'flex';
+        btnRow.style.justifyContent = 'flex-end';
+
+        const ok = document.createElement('button');
+        ok.textContent = 'OK';
+        ok.style.padding = '8px 14px';
+        ok.style.borderRadius = '8px';
+        ok.style.border = 'none';
+        ok.style.cursor = 'pointer';
+        ok.style.background = 'var(--accent, #3b82f6)';
+        ok.style.color = 'white';
+
+        btnRow.appendChild(ok);
+        modal.appendChild(msg);
+        modal.appendChild(btnRow);
+        backdrop.appendChild(modal);
+        document.body.appendChild(backdrop);
+
+        function close(){
+            document.body.removeChild(backdrop);
+            document.removeEventListener('keydown', onKey);
+            resolve();
+        }
+        function onKey(e){ if(e.key === 'Escape') close(); }
+        ok.addEventListener('click', close);
+        backdrop.addEventListener('click', (e)=>{ if(e.target===backdrop) close(); });
+        document.addEventListener('keydown', onKey);
+    });
+}
 
 // Close item selection modal
 function closeItemSelectionModal() {
@@ -174,16 +239,17 @@ function renderYourInventory() {
         petsHeader.innerHTML = '<strong style="color:var(--accent);font-size:14px;margin-bottom:8px;display:block">Pets:</strong>';
         yourInventoryEl.appendChild(petsHeader);
 
+        const sel = modalMode === 'offer' ? selectedOffer : selectedRequest;
         for (const [petId, count] of Object.entries(currentState.inventory)) {
             const item = document.createElement('div');
             item.className = 'selectable-item';
-            if (selectedItems.pets[petId]) {
+            if (sel.pets[petId]) {
                 item.classList.add('selected');
             }
             const petName = getPetName(petId);
             item.innerHTML = `
                 <span>${petName} (x${count})</span>
-                <input type="number" min="0" max="${count}" value="${selectedItems.pets[petId] || 0}" 
+                <input type="number" min="0" max="${count}" value="${sel.pets[petId] || 0}" 
                     style="width:60px;padding:4px;border-radius:4px;background:var(--card);border:1px solid rgba(255,255,255,0.08);color:#e6eef8"
                     onchange="updateSelectedItem('pets', '${petId}', this.value, ${count})">
             `;
@@ -197,16 +263,17 @@ function renderYourInventory() {
         fruitsHeader.innerHTML = '<strong style="color:var(--accent);font-size:14px;margin-top:12px;margin-bottom:8px;display:block">Fruits:</strong>';
         yourInventoryEl.appendChild(fruitsHeader);
 
+        const sel2 = modalMode === 'offer' ? selectedOffer : selectedRequest;
         for (const [fruitId, count] of Object.entries(currentState.fruits)) {
             const item = document.createElement('div');
             item.className = 'selectable-item';
-            if (selectedItems.fruits[fruitId]) {
+            if (sel2.fruits[fruitId]) {
                 item.classList.add('selected');
             }
             const fruitName = getFruitName(fruitId);
             item.innerHTML = `
                 <span>${fruitName} (x${count})</span>
-                <input type="number" min="0" max="${count}" value="${selectedItems.fruits[fruitId] || 0}"
+                <input type="number" min="0" max="${count}" value="${sel2.fruits[fruitId] || 0}"
                     style="width:60px;padding:4px;border-radius:4px;background:var(--card);border:1px solid rgba(255,255,255,0.08);color:#e6eef8"
                     onchange="updateSelectedItem('fruits', '${fruitId}', this.value, ${count})">
             `;
@@ -224,7 +291,7 @@ function renderYourInventory() {
         coinsItem.className = 'selectable-item';
         coinsItem.innerHTML = `
             <span>💰 Coins (${currentState.coins} available)</span>
-            <input type="number" min="0" max="${currentState.coins}" value="${selectedItems.coins || 0}"
+            <input type="number" min="0" max="${currentState.coins}" value="${(modalMode==='offer'?selectedOffer.coins:selectedRequest.coins) || 0}"
                 style="width:80px;padding:4px;border-radius:4px;background:var(--card);border:1px solid rgba(255,255,255,0.08);color:#e6eef8"
                 onchange="updateSelectedCoins(this.value)">
         `;
@@ -235,19 +302,23 @@ function renderYourInventory() {
 // Update selected item
 function updateSelectedItem(type, id, value, max) {
     const count = Math.max(0, Math.min(parseInt(value) || 0, max));
+    const target = modalMode === 'offer' ? selectedOffer : selectedRequest;
     if (count > 0) {
-        selectedItems[type][id] = count;
+        target[type][id] = count;
     } else {
-        delete selectedItems[type][id];
+        delete target[type][id];
     }
     renderOfferPreview();
+    renderRequestPreview();
 }
 window.updateSelectedItem = updateSelectedItem;
 
 // Update selected coins
 function updateSelectedCoins(value) {
-    selectedItems.coins = Math.max(0, Math.min(parseInt(value) || 0, currentState.coins));
+    const v = Math.max(0, Math.min(parseInt(value) || 0, currentState.coins));
+    if (modalMode === 'offer') selectedOffer.coins = v; else selectedRequest.coins = v;
     renderOfferPreview();
+    renderRequestPreview();
 }
 window.updateSelectedCoins = updateSelectedCoins;
 
@@ -256,7 +327,7 @@ function renderOfferPreview() {
     yourOfferPreviewEl.innerHTML = '';
     let hasItems = false;
 
-    for (const [petId, count] of Object.entries(selectedItems.pets)) {
+    for (const [petId, count] of Object.entries(selectedOffer.pets)) {
         hasItems = true;
         const item = document.createElement('span');
         item.className = 'trade-item';
@@ -265,7 +336,7 @@ function renderOfferPreview() {
         yourOfferPreviewEl.appendChild(item);
     }
 
-    for (const [fruitId, count] of Object.entries(selectedItems.fruits)) {
+    for (const [fruitId, count] of Object.entries(selectedOffer.fruits)) {
         hasItems = true;
         const item = document.createElement('span');
         item.className = 'trade-item';
@@ -274,16 +345,51 @@ function renderOfferPreview() {
         yourOfferPreviewEl.appendChild(item);
     }
 
-    if (selectedItems.coins > 0) {
+    if (selectedOffer.coins > 0) {
         hasItems = true;
         const item = document.createElement('span');
         item.className = 'trade-item';
-        item.textContent = `💰 ${selectedItems.coins} coins`;
+        item.textContent = `💰 ${selectedOffer.coins} coins`;
         yourOfferPreviewEl.appendChild(item);
     }
 
     if (!hasItems) {
         yourOfferPreviewEl.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No items selected</p>';
+    }
+}
+
+function renderRequestPreview() {
+    yourRequestPreviewEl.innerHTML = '';
+    let hasItems = false;
+
+    for (const [petId, count] of Object.entries(selectedRequest.pets)) {
+        hasItems = true;
+        const item = document.createElement('span');
+        item.className = 'trade-item';
+        const petName = getPetName(petId);
+        item.textContent = `${petName}: x${count}`;
+        yourRequestPreviewEl.appendChild(item);
+    }
+
+    for (const [fruitId, count] of Object.entries(selectedRequest.fruits)) {
+        hasItems = true;
+        const item = document.createElement('span');
+        item.className = 'trade-item';
+        const fruitName = getFruitName(fruitId);
+        item.textContent = `${fruitName}: x${count}`;
+        yourRequestPreviewEl.appendChild(item);
+    }
+
+    if (selectedRequest.coins > 0) {
+        hasItems = true;
+        const item = document.createElement('span');
+        item.className = 'trade-item';
+        item.textContent = `💰 ${selectedRequest.coins} coins`;
+        yourRequestPreviewEl.appendChild(item);
+    }
+
+    if (!hasItems) {
+        yourRequestPreviewEl.innerHTML = '<p style="color:var(--muted);font-size:13px;margin:0">No requested items</p>';
     }
 }
 
@@ -347,48 +453,57 @@ function renderTradeOffer(tradeData, code) {
 
 // Accept trade offer
 function acceptTradeOffer(code) {
-    const tradeData = loadTradeCode(code);
-    
+    let tradeData = loadTradeCode(code);
     if (!tradeData) {
-        alert('Trade offer has expired');
+        showAlert('Trade offer has expired');
         return;
     }
+    // Backward compatibility
+    if (tradeData.items && !tradeData.offer) {
+        tradeData = { offer: tradeData.items, request: { pets:{}, fruits:{}, coins:0 } };
+    }
 
-    // Validate that items still exist
-    for (const [petId, count] of Object.entries(tradeData.items.pets || {})) {
+    // Validate you can give requested items
+    for (const [petId, count] of Object.entries(tradeData.request?.pets || {})) {
         if ((currentState.inventory[petId] || 0) < count) {
-            alert(`You don't have enough ${petId} (need ${count}, have ${currentState.inventory[petId] || 0})`);
+            showAlert(`You don't have enough ${getPetName(petId)} (need ${count}, have ${currentState.inventory[petId] || 0})`);
             return;
         }
     }
-
-    for (const [fruitId, count] of Object.entries(tradeData.items.fruits || {})) {
+    for (const [fruitId, count] of Object.entries(tradeData.request?.fruits || {})) {
         if ((currentState.fruits[fruitId] || 0) < count) {
-            alert(`You don't have enough ${fruitId} (need ${count}, have ${currentState.fruits[fruitId] || 0})`);
+            showAlert(`You don't have enough ${getFruitName(fruitId)} (need ${count}, have ${currentState.fruits[fruitId] || 0})`);
             return;
         }
     }
-
-    if (tradeData.items.coins > currentState.coins) {
-        alert(`You don't have enough coins (need ${tradeData.items.coins}, have ${currentState.coins})`);
+    if ((tradeData.request?.coins || 0) > currentState.coins) {
+        showAlert(`You don't have enough coins (need ${tradeData.request.coins}, have ${currentState.coins})`);
         return;
     }
 
-    // Execute trade: Add items to your inventory
-    for (const [petId, count] of Object.entries(tradeData.items.pets || {})) {
+    // Apply trade: subtract requested, add offered
+    for (const [petId, count] of Object.entries(tradeData.request?.pets || {})) {
+        currentState.inventory[petId] = (currentState.inventory[petId] || 0) - count;
+        if (currentState.inventory[petId] <= 0) delete currentState.inventory[petId];
+    }
+    for (const [fruitId, count] of Object.entries(tradeData.request?.fruits || {})) {
+        currentState.fruits[fruitId] = (currentState.fruits[fruitId] || 0) - count;
+        if (currentState.fruits[fruitId] <= 0) delete currentState.fruits[fruitId];
+    }
+    currentState.coins -= (tradeData.request?.coins || 0);
+
+    for (const [petId, count] of Object.entries(tradeData.offer?.pets || {})) {
         currentState.inventory[petId] = (currentState.inventory[petId] || 0) + count;
     }
-
-    for (const [fruitId, count] of Object.entries(tradeData.items.fruits || {})) {
+    for (const [fruitId, count] of Object.entries(tradeData.offer?.fruits || {})) {
         currentState.fruits[fruitId] = (currentState.fruits[fruitId] || 0) + count;
     }
-
-    currentState.coins += (tradeData.items.coins || 0);
+    currentState.coins += (tradeData.offer?.coins || 0);
 
     saveState();
     updateUI();
 
-    alert('Trade completed successfully! Items added to your inventory.');
+    showAlert('Trade completed! Your items were exchanged.');
     tradeOfferDisplay.style.display = 'none';
     redeemCodeInput.value = '';
 }
@@ -406,7 +521,9 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize DOM elements
     coinsEl = document.getElementById('coins');
     yourOfferPreviewEl = document.getElementById('yourOfferPreview');
+    yourRequestPreviewEl = document.getElementById('yourRequestPreview');
     selectItemsBtn = document.getElementById('selectItemsBtn');
+    selectRequestItemsBtn = document.getElementById('selectRequestItemsBtn');
     generateCodeBtn = document.getElementById('generateCodeBtn');
     tradeCodeDisplay = document.getElementById('tradeCodeDisplay');
     tradeCodeInput = document.getElementById('tradeCodeInput');
@@ -423,6 +540,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up event listeners
     selectItemsBtn.addEventListener('click', () => {
+        modalMode = 'offer';
+        renderYourInventory();
+        itemSelectionModal.classList.add('show');
+    });
+    selectRequestItemsBtn.addEventListener('click', () => {
+        modalMode = 'request';
         renderYourInventory();
         itemSelectionModal.classList.add('show');
     });
@@ -434,23 +557,25 @@ document.addEventListener('DOMContentLoaded', () => {
         tradeMessage = tradeNoteEl.value.trim();
         closeItemSelectionModal();
         renderOfferPreview();
+        renderRequestPreview();
         
-        // Enable generate code button if items selected
-        const hasItems = Object.keys(selectedItems.pets).length > 0 || 
-                         Object.keys(selectedItems.fruits).length > 0 || 
-                         selectedItems.coins > 0;
-        generateCodeBtn.disabled = !hasItems;
+        // Enable generate code button if offering has items
+        const hasOffer = Object.keys(selectedOffer.pets).length > 0 || 
+                         Object.keys(selectedOffer.fruits).length > 0 || 
+                         selectedOffer.coins > 0;
+        generateCodeBtn.disabled = !hasOffer;
     });
 
     generateCodeBtn.addEventListener('click', () => {
         const tradeData = {
-            items: selectedItems,
+            offer: selectedOffer,
+            request: selectedRequest,
             message: tradeMessage
         };
         
         const code = generateTradeCode(tradeData);
         if (!code) {
-            alert('Failed to generate trade code');
+            showAlert('Failed to generate trade code');
             return;
         }
 
@@ -469,43 +594,59 @@ document.addEventListener('DOMContentLoaded', () => {
     redeemCodeBtn.addEventListener('click', () => {
         const code = redeemCodeInput.value.trim();
         if (!code) {
-            alert('Please enter a trade code');
+            showAlert('Please enter a trade code');
             return;
         }
 
-        const tradeData = loadTradeCode(code);
+        let tradeData = loadTradeCode(code);
         if (!tradeData) {
-            alert('Invalid or expired trade code');
+            showAlert('Invalid or expired trade code');
             return;
+        }
+        // Backward compatibility for older codes
+        if (tradeData.items && !tradeData.offer) {
+            tradeData = { offer: tradeData.items, request: { pets:{}, fruits:{}, coins:0 }, message: tradeData.message, timestamp: tradeData.timestamp };
         }
 
         // Display the trade offer
         let html = '<h3 style="margin-top:0">Trade Offer</h3>';
         
         if (tradeData.message) {
-            html += `<p style="color:var(--muted);font-style:italic;margin-bottom:12px">"${tradeData.message}"</p>`;
+            html += `<p style=\"color:var(--muted);font-style:italic;margin-bottom:12px\">\"${tradeData.message}\"</p>`;
         }
 
-        html += '<div class="trade-items" style="margin-bottom:16px">';
-        
-        // Pets
-        for (const [petId, count] of Object.entries(tradeData.items.pets || {})) {
+        html += '<div style="margin-bottom:12px">'
+              + '<div style="font-weight:700;color:#10b981">You will receive:</div>'
+              + '<div class="trade-items">';
+        for (const [petId, count] of Object.entries(tradeData.offer?.pets || {})) {
             const petName = getPetName(petId);
             html += `<div class="trade-item"><span>${petName}</span><span>×${count}</span></div>`;
         }
-        
-        // Fruits
-        for (const [fruitId, count] of Object.entries(tradeData.items.fruits || {})) {
+        for (const [fruitId, count] of Object.entries(tradeData.offer?.fruits || {})) {
             const fruitName = getFruitName(fruitId);
             html += `<div class="trade-item"><span>${fruitName}</span><span>×${count}</span></div>`;
         }
-        
-        // Coins
-        if (tradeData.items.coins > 0) {
-            html += `<div class="trade-item"><span>💰 Coins</span><span>×${tradeData.items.coins}</span></div>`;
+        if (tradeData.offer?.coins > 0) {
+            html += `<div class="trade-item"><span>💰 Coins</span><span>×${tradeData.offer.coins}</span></div>`;
         }
+        html += '</div></div>';
 
-        html += '</div>';
+        html += '<div>'
+              + '<div style="font-weight:700;color:#f59e0b">You will give:</div>'
+              + '<div class="trade-items">';
+        for (const [petId, count] of Object.entries(tradeData.request?.pets || {})) {
+            const petName = getPetName(petId);
+            html += `<div class="trade-item"><span>${petName}</span><span>×${count}</span></div>`;
+        }
+        for (const [fruitId, count] of Object.entries(tradeData.request?.fruits || {})) {
+            const fruitName = getFruitName(fruitId);
+            html += `<div class="trade-item"><span>${fruitName}</span><span>×${count}</span></div>`;
+        }
+        if (tradeData.request?.coins > 0) {
+            html += `<div class="trade-item"><span>💰 Coins</span><span>×${tradeData.request.coins}</span></div>`;
+        }
+        html += '</div></div>';
+
         html += `<div style="display:flex;gap:10px;justify-content:flex-end">`;
         html += `<button class="muted" onclick="declineTradeOffer()">Decline</button>`;
         html += `<button onclick="acceptTradeOffer('${code}')">Accept Trade</button>`;
