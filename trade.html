@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Trade - BTF Vibe Edition</title>
+    <link rel="icon" type="image/x-icon" href="btflogo.png" />
+    <link rel="stylesheet" href="index.css" />
+    <style>
+        .trade-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+        .trade-panel {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 18px;
+        }
+        .player-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .player-card {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .player-card.online::before {
+            content: '●';
+            color: #10b981;
+            margin-right: 8px;
+        }
+        .trade-offer {
+            background: var(--glass);
+            border: 1px solid rgba(124,58,237,0.3);
+            border-radius: 8px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+        .trade-items {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+        .trade-item {
+            background: var(--card);
+            border-radius: 6px;
+            padding: 6px 10px;
+            font-size: 13px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .item-selector {
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 12px 0;
+        }
+        .selectable-item {
+            background: var(--glass);
+            border: 1px solid rgba(255,255,255,0.04);
+            border-radius: 6px;
+            padding: 8px;
+            margin-bottom: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+        }
+        .selectable-item:hover {
+            border-color: var(--accent);
+        }
+        .selectable-item.selected {
+            background: rgba(124,58,237,0.2);
+            border-color: var(--accent);
+        }
+        .connection-status {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+        .connection-status.connected {
+            background: rgba(16,185,129,0.2);
+            color: #10b981;
+        }
+        .connection-status.disconnected {
+            background: rgba(239,68,68,0.2);
+            color: #ef4444;
+        }
+        .trade-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+        .trade-modal.show {
+            display: flex;
+        }
+        .trade-modal-content {
+            background: var(--card);
+            border-radius: 12px;
+            padding: 24px;
+            max-width: 600px;
+            width: 90%;
+            border: 1px solid rgba(255,255,255,0.08);
+        }
+        @media(max-width:880px) {
+            .trade-container {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>BTF Trading</h1>
+            <div style="text-align:right">
+                <div class="wallet">Coins: <span id="coins">0</span></div>
+            </div>
+        </header>
+
+        <nav class="nav-bar">
+            <a href="index.html">Game</a>
+            <a href="shop.html">Shop</a>
+            <a href="inventory.html">Inventory</a>
+            <a href="trade.html" class="active">Trade</a>
+            <a href="about.html">About</a>
+            <a href="terms.html">Terms &amp; Conditions</a>
+            <a href="news.html">News</a>
+        </nav>
+
+        <main>
+            <div class="trade-container">
+                <!-- Create Trade Offer -->
+                <div class="trade-panel">
+                    <h2 style="margin-top:0">📤 Create Trade Offer</h2>
+                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Select items you want to trade, then generate a code to share with another player</p>
+                    
+                    <div id="yourOfferPreview" class="trade-items" style="min-height:60px;background:var(--glass);border-radius:8px;padding:12px;margin-bottom:16px">
+                        <p style="color:var(--muted);font-size:13px;margin:0">No items selected</p>
+                    </div>
+
+                    <button id="selectItemsBtn" style="width:100%;margin-bottom:12px">Select Items to Trade</button>
+                    <button id="generateCodeBtn" style="width:100%;background:#10b981" disabled>Generate Trade Code</button>
+
+                    <div id="tradeCodeDisplay" style="display:none;margin-top:16px;padding:16px;background:var(--glass);border-radius:8px;border:2px solid var(--accent)">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                            <strong style="color:var(--accent)">Your Trade Code:</strong>
+                            <button id="copyCodeBtn" class="small" style="padding:6px 12px">Copy</button>
+                        </div>
+                        <input id="tradeCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid var(--accent);border-radius:6px;color:#10b981;font-weight:700;font-size:16px;text-align:center;font-family:monospace" />
+                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Share this code with the other player. Code expires in 10 minutes.</p>
+                    </div>
+                </div>
+
+                <!-- Redeem Trade Code -->
+                <div class="trade-panel">
+                    <h2 style="margin-top:0">💰 Join a Trade</h2>
+                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Enter a trade code from another player to view their offer</p>
+                    
+                    <div style="margin-bottom:16px">
+                        <input id="redeemCodeInput" type="text" placeholder="Enter trade code (BTF-XXXXXX)" style="width:100%;padding:12px;border-radius:6px;background:var(--glass);border:1px solid rgba(255,255,255,0.08);color:#e6eef8;font-family:monospace;text-transform:uppercase" maxlength="10" />
+                    </div>
+                    <button id="redeemCodeBtn" style="width:100%;background:#8b5cf6">View Trade Offer</button>
+
+                    <div id="tradeOfferDisplay" style="display:none;margin-top:16px;padding:16px;background:var(--glass);border-radius:8px;border:2px solid var(--accent)">
+                        <!-- Trade offer details will be populated here -->
+                    </div>
+                </div>
+            </div>
+
+    <!-- Item Selection Modal -->
+    <div id="itemSelectionModal" class="trade-modal">
+        <div class="trade-modal-content">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+                <h2 style="margin:0">Select Items to Trade</h2>
+                <button id="closeItemModal" class="muted" style="padding:6px 12px">✕</button>
+            </div>
+
+            <div class="item-selector" id="yourInventory" style="max-height:400px">
+                <!-- Your items will be populated here -->
+            </div>
+
+            <div style="margin-top:16px;padding-top:16px;border-top:1px solid rgba(255,255,255,0.08)">
+                <h3 style="font-size:16px;margin-bottom:8px">Optional Message</h3>
+                <textarea id="tradeNote" style="width:100%;padding:8px;border-radius:6px;background:var(--glass);border:1px solid rgba(255,255,255,0.04);color:#e6eef8;font-family:inherit;resize:vertical" rows="2" placeholder="e.g., 'Looking for legendary pets or 5000 coins'"></textarea>
+            </div>
+
+            <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:16px">
+                <button id="cancelItemSelection" class="muted">Cancel</button>
+                <button id="confirmItemSelection">Confirm Selection</button>
+            </div>
+        </div>
+    </div>
+
+        </main>
+    </div>
+
+    <script src="trade.js"></script>
+</body>
+</html>
