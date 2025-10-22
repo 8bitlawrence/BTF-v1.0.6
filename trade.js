@@ -130,7 +130,7 @@ function loadTradeCode(code) {
         code = code.replace(/\s+/g, '').trim();
         
         // Remove BTF- prefix
-        if (!code.startsWith('BTF-')) {
+        if (!code.toUpperCase().startsWith('BTF-')) {
             return null;
         }
         
@@ -467,7 +467,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     redeemCodeBtn.addEventListener('click', () => {
-        const code = redeemCodeInput.value.trim().toUpperCase();
+        const code = redeemCodeInput.value.trim();
         if (!code) {
             alert('Please enter a trade code');
             return;
