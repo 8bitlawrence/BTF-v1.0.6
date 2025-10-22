@@ -126,6 +126,9 @@ function generateTradeCode(tradeData) {
 // Decode trade code and extract data
 function loadTradeCode(code) {
     try {
+        // Remove all whitespace and trim
+        code = code.replace(/\s+/g, '').trim();
+        
         // Remove BTF- prefix
         if (!code.startsWith('BTF-')) {
             return null;
