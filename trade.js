@@ -101,74 +101,55 @@ function updateUI() {
     coinsEl.textContent = currentState.coins;
 }
 
-// Generate random trade code
-function generateTradeCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = 'BTF-';
-    for (let i = 0; i < 6; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return code;
-}
-
-// Save trade code
-function saveTradeCode(code, data) {
+// Generate trade code with embedded data (Base64 encoded)
+function generateTradeCode(tradeData) {
     try {
-        const codes = JSON.parse(localStorage.getItem(TRADE_CODES_KEY) || '{}');
-        codes[code] = {
-            data: data,
-            timestamp: Date.now(),
-            expires: Date.now() + CODE_EXPIRY_MS
+        // Create trade package with timestamp
+        const tradePackage = {
+            items: tradeData.items,
+            message: tradeData.message,
+            timestamp: Date.now()
         };
-        localStorage.setItem(TRADE_CODES_KEY, JSON.stringify(codes));
+        
+        // Encode to Base64
+        const jsonString = JSON.stringify(tradePackage);
+        const base64 = btoa(jsonString);
+        
+        // Create code with BTF prefix
+        return 'BTF-' + base64;
     } catch (e) {
-        console.error('Failed to save trade code:', e);
-    }
-}
-
-// Load trade code
-function loadTradeCode(code) {
-    try {
-        const codes = JSON.parse(localStorage.getItem(TRADE_CODES_KEY) || '{}');
-        const trade = codes[code];
-        
-        if (!trade) return null;
-        
-        // Check expiry
-        if (Date.now() > trade.expires) {
-            delete codes[code];
-            localStorage.setItem(TRADE_CODES_KEY, JSON.stringify(codes));
-            return null;
-        }
-        
-        return trade.data;
-    } catch (e) {
-        console.error('Failed to load trade code:', e);
+        console.error('Failed to generate trade code:', e);
         return null;
     }
 }
 
-// Clean expired codes
-function cleanExpiredCodes() {
+// Decode trade code and extract data
+function loadTradeCode(code) {
     try {
-        const codes = JSON.parse(localStorage.getItem(TRADE_CODES_KEY) || '{}');
-        const now = Date.now();
-        let changed = false;
-        
-        for (const [code, trade] of Object.entries(codes)) {
-            if (now > trade.expires) {
-                delete codes[code];
-                changed = true;
-            }
+        // Remove BTF- prefix
+        if (!code.startsWith('BTF-')) {
+            return null;
         }
         
-        if (changed) {
-            localStorage.setItem(TRADE_CODES_KEY, JSON.stringify(codes));
+        const base64 = code.substring(4);
+        
+        // Decode from Base64
+        const jsonString = atob(base64);
+        const tradePackage = JSON.parse(jsonString);
+        
+        // Check expiry (10 minutes)
+        if (Date.now() - tradePackage.timestamp > CODE_EXPIRY_MS) {
+            return null;
         }
+        
+        return tradePackage;
     } catch (e) {
-        console.error('Failed to clean codes:', e);
+        console.error('Failed to decode trade code:', e);
+        return null;
     }
 }
+
+
 
 // Close item selection modal
 function closeItemSelectionModal() {
@@ -404,15 +385,6 @@ function acceptTradeOffer(code) {
     saveState();
     updateUI();
 
-    // Remove the used code
-    try {
-        const codes = JSON.parse(localStorage.getItem(TRADE_CODES_KEY) || '{}');
-        delete codes[code];
-        localStorage.setItem(TRADE_CODES_KEY, JSON.stringify(codes));
-    } catch (e) {
-        console.error('Failed to remove code:', e);
-    }
-
     alert('Trade completed successfully! Items added to your inventory.');
     tradeOfferDisplay.style.display = 'none';
     redeemCodeInput.value = '';
@@ -468,13 +440,16 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     generateCodeBtn.addEventListener('click', () => {
-        const code = generateTradeCode();
         const tradeData = {
             items: selectedItems,
-            message: tradeMessage,
-            timestamp: Date.now()
+            message: tradeMessage
         };
-        saveTradeCode(code, tradeData);
+        
+        const code = generateTradeCode(tradeData);
+        if (!code) {
+            alert('Failed to generate trade code');
+            return;
+        }
 
         tradeCodeInput.value = code;
         tradeCodeDisplay.style.display = 'block';
@@ -539,7 +514,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load initial state
     loadState();
-    cleanExpiredCodes();
     updateUI();
 });
 
