@@ -516,6 +516,3 @@ document.addEventListener('DOMContentLoaded', () => {
     loadState();
     updateUI();
 });
-
-// Clean expired codes every minute
-setInterval(cleanExpiredCodes, 60000);

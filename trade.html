@@ -161,7 +161,7 @@
                             <strong style="color:var(--accent)">Your Trade Code:</strong>
                             <button id="copyCodeBtn" class="small" style="padding:6px 12px">Copy</button>
                         </div>
-                        <input id="tradeCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid var(--accent);border-radius:6px;color:#10b981;font-weight:700;font-size:16px;text-align:center;font-family:monospace" />
+                        <textarea id="tradeCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid var(--accent);border-radius:6px;color:#10b981;font-weight:700;font-size:12px;font-family:monospace;resize:vertical;min-height:100px;word-break:break-all" rows="4"></textarea>
                         <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Share this code with the other player. Code expires in 10 minutes.</p>
                     </div>
                 </div>
@@ -172,7 +172,7 @@
                     <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Enter a trade code from another player to view their offer</p>
                     
                     <div style="margin-bottom:16px">
-                        <input id="redeemCodeInput" type="text" placeholder="Enter trade code (BTF-XXXXXX)" style="width:100%;padding:12px;border-radius:6px;background:var(--glass);border:1px solid rgba(255,255,255,0.08);color:#e6eef8;font-family:monospace;text-transform:uppercase" maxlength="10" />
+                        <textarea id="redeemCodeInput" placeholder="Paste trade code here..." style="width:100%;padding:12px;border-radius:6px;background:var(--glass);border:1px solid rgba(255,255,255,0.08);color:#e6eef8;font-family:monospace;resize:vertical;min-height:80px" rows="3"></textarea>
                     </div>
                     <button id="redeemCodeBtn" style="width:100%;background:#8b5cf6">View Trade Offer</button>
 
