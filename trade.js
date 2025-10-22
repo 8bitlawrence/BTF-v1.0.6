@@ -256,14 +256,14 @@ function updateSelectedItem(type, id, value, max) {
     } else {
         delete selectedItems[type][id];
     }
-    renderYourOffer();
+    renderOfferPreview();
 }
 window.updateSelectedItem = updateSelectedItem;
 
 // Update selected coins
 function updateSelectedCoins(value) {
     selectedItems.coins = Math.max(0, Math.min(parseInt(value) || 0, currentState.coins));
-    renderYourOffer();
+    renderOfferPreview();
 }
 window.updateSelectedCoins = updateSelectedCoins;
 
