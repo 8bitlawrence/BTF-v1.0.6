@@ -179,6 +179,8 @@
                         <textarea id="tradeCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid var(--accent);border-radius:6px;color:#10b981;font-weight:700;font-size:12px;font-family:monospace;resize:vertical;min-height:100px;word-break:break-all" rows="4"></textarea>
                         <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Share this code with the other player. Code expires in 10 minutes.</p>
                     </div>
+
+                    
                 </div>
 
                 <!-- Redeem Trade Code -->
@@ -193,6 +195,15 @@
 
                     <div id="tradeOfferDisplay" style="display:none;margin-top:16px;padding:16px;background:var(--glass);border-radius:8px;border:2px solid var(--accent)">
                         <!-- Trade offer details will be populated here -->
+                    </div>
+
+                    <div id="completionCodeDisplay" style="display:none;margin-top:16px;padding:16px;background:var(--glass);border-radius:8px;border:2px solid #10b981">
+                        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                            <strong style="color:#10b981">Completion Code (share back to creator):</strong>
+                            <button id="copyCompletionBtn" class="small" style="padding:6px 12px">Copy</button>
+                        </div>
+                        <textarea id="completionCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid #10b981;border-radius:6px;color:#10b981;font-weight:700;font-size:12px;font-family:monospace;resize:vertical;min-height:100px;word-break:break-all" rows="4"></textarea>
+                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Send this code back to the trade creator so their inventory updates.</p>
                     </div>
                 </div>
             </div>
