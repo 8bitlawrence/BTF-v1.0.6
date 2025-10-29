@@ -64,7 +64,7 @@ const PETS = [
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
 	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.08, value: 20000 },
 	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.05, value: 30000 },
-	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 50, value: 1000 },
+	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
@@ -745,7 +745,7 @@ function getPetTotalCount(){
 async function showResults(items){
 	resultArea.innerHTML = '';
 	let discarded = 0;
-	let available = MAX_INVENTORY - getPetTotalCount();
+	let available = getMaxInventory() - getPetTotalCount();
 	for(const it of items){
 		const card = document.createElement('div');
 		card.className = `result-card rarity-${it.rarity}`;
