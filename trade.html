@@ -137,8 +137,9 @@
             <a href="shop.html">Shop</a>
             <a href="inventory.html">Inventory</a>
             <a href="trade.html" class="active">Trade</a>
+            <a href="enchant.html">Enchanting</a>
+            <a href="leaderboard.html">Leaderboard</a>
             <a href="about.html">About</a>
-            <a href="terms.html">Terms &amp; Conditions</a>
             <a href="news.html">News</a>
         </nav>
 
@@ -146,8 +147,8 @@
             <div class="trade-container">
                 <!-- Create Trade Offer -->
                 <div class="trade-panel">
-                    <h2 style="margin-top:0">💰 Create Trade Offer</h2>
-                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Choose what you will give and what you want to receive, then generate a code to share.</p>
+                    <h2 style="margin-top:0">💰 Create Trade</h2>
+                    <p style="color:var(--muted);font-size:14px;margin-bottom:16px">Choose what you will give and what you want to receive, then generate a code to share. Codes can only be claimed once.</p>
                     
                     <div style="background:var(--glass);border-radius:8px;padding:12px;margin-bottom:12px">
                         <div style="display:flex;justify-content:space-between;align-items:center">
@@ -177,7 +178,7 @@
                             <button id="copyCodeBtn" class="small" style="padding:6px 12px">Copy</button>
                         </div>
                         <textarea id="tradeCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid var(--accent);border-radius:6px;color:#10b981;font-weight:700;font-size:12px;font-family:monospace;resize:vertical;min-height:100px;word-break:break-all" rows="4"></textarea>
-                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Share this code with the other player. Code expires in 10 minutes.</p>
+                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Share this code with the other player. Code can only be claimed once.</p>
                     </div>
 
                     
@@ -203,7 +204,7 @@
                             <button id="copyCompletionBtn" class="small" style="padding:6px 12px">Copy</button>
                         </div>
                         <textarea id="completionCodeInput" readonly style="width:100%;padding:12px;background:var(--card);border:1px solid #10b981;border-radius:6px;color:#10b981;font-weight:700;font-size:12px;font-family:monospace;resize:vertical;min-height:100px;word-break:break-all" rows="4"></textarea>
-                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Send this code back to the trade creator so their inventory updates.</p>
+                        <p style="color:var(--muted);font-size:12px;margin:8px 0 0 0">Send this code back to the trade creator to complete the trade.</p>
                     </div>
                 </div>
             </div>

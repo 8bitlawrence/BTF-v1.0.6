@@ -1,11 +1,13 @@
 // Shop functionality
 const STORAGE_KEY = 'mini_gacha_state_v1';
-const POTION_COST = 10000;
+const POTION_COST = 100000;
 const POTION_DURATION = 5 * 60 * 1000; // 5 minutes in ms
 const BENNY_COST = 10000;
 const BENNY_DURATION = 5 * 60 * 1000; // 5 minutes
 const BLESSING_COST = 8000;
 const BLESSING_DURATION = 5 * 60 * 1000; // 5 minutes
+const SLOT_MACHINE_COST = 1000000;
+const SLOT_MACHINE_BONUS = 5;
 
 // DOM elements
 const coinsEl = document.getElementById('coins');
@@ -16,18 +18,24 @@ const buyBennyBtn = document.getElementById('buyBennyBoost');
 const bennyTimerEl = document.getElementById('bennyTimer');
 const buyBlessingBtn = document.getElementById('buyPumpkinBlessing');
 const blessingTimerEl = document.getElementById('blessingTimer');
+const buySlotMachineBtn = document.getElementById('buySlotMachine');
+const slotsPurchasedEl = document.getElementById('slotsPurchased');
 
 // State
 let state = {
     coins: 0,
     potionActive: false,
     potionEndsAt: 0,
+    luckStacks: 0,
     bennyActive: false,
     bennyEndsAt: 0,
     blessingActive: false,
     blessingEndsAt: 0,
-    purchasedItems: []
+    purchasedItems: [],
+    bonusInventorySlots: 0
 };
+
+
 
 // Load state
 function loadState() {
@@ -38,11 +46,13 @@ function loadState() {
             state.coins = parsed.coins ?? 0;
             state.potionActive = parsed.potionActive ?? false;
             state.potionEndsAt = parsed.potionEndsAt ?? 0;
+            state.luckStacks = parsed.luckStacks ?? 0;
             state.bennyActive = parsed.bennyActive ?? false;
             state.bennyEndsAt = parsed.bennyEndsAt ?? 0;
             state.blessingActive = parsed.blessingActive ?? false;
             state.blessingEndsAt = parsed.blessingEndsAt ?? 0;
             state.purchasedItems = parsed.purchasedItems ?? [];
+            state.bonusInventorySlots = parsed.bonusInventorySlots ?? 0;
         }
     } catch (e) { console.warn('load failed', e) }
     updateUI();
@@ -57,11 +67,13 @@ function saveState() {
             coins: state.coins,
             potionActive: state.potionActive,
             potionEndsAt: state.potionEndsAt,
+            luckStacks: state.luckStacks,
             bennyActive: state.bennyActive,
             bennyEndsAt: state.bennyEndsAt,
             blessingActive: state.blessingActive,
             blessingEndsAt: state.blessingEndsAt,
-            purchasedItems: state.purchasedItems
+            purchasedItems: state.purchasedItems,
+            bonusInventorySlots: state.bonusInventorySlots
         }));
     } catch (e) { console.warn(e) }
 }
@@ -73,7 +85,7 @@ function updateUI() {
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        luckMultiplierEl.textContent = isActive ? "3x" : "1x";
+        luckMultiplierEl.textContent = isActive ? `${1 + state.luckStacks * 2}x` : "1x";
     }
     // Benny UI
     if(bennyTimerEl){
@@ -111,6 +123,7 @@ function updateUI() {
         if (remaining <= 0) {
             state.potionActive = false;
             state.potionEndsAt = 0;
+            state.luckStacks = 0;
             saveState();
             timerEl.style.display = 'none';
             buyBtn.disabled = state.coins < POTION_COST;
@@ -123,14 +136,39 @@ function updateUI() {
     } else {
         timerEl.style.display = 'none';
     }
+    
+    // Slot Machine UI (one-time purchase)
+    if(buySlotMachineBtn){
+        const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        buySlotMachineBtn.disabled = (state.coins < SLOT_MACHINE_COST) || purchased;
+        buySlotMachineBtn.textContent = purchased ? 'Purchased' : 'Buy Slot Machine';
+    }
+    if(slotsPurchasedEl){
+        const base = 20;
+        const totalSlots = base + (state.bonusInventorySlots || 0);
+        const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        if(purchased){
+            slotsPurchasedEl.textContent = `Current capacity: ${totalSlots} slots (Slot Machine owned)`;
+        } else {
+            slotsPurchasedEl.textContent = `Current capacity: ${base} slots (base)`;
+        }
+    }
 }
 
-// Buy potion
+// Buy potion (stackable - extends duration)
 buyBtn.addEventListener('click', () => {
-    if (state.coins >= POTION_COST && !state.potionActive) {
+    if (state.coins >= POTION_COST) {
         state.coins -= POTION_COST;
-        state.potionActive = true;
-        state.potionEndsAt = Date.now() + POTION_DURATION;
+        if (state.potionActive && state.potionEndsAt > Date.now()) {
+            // Already active: increment stacks, reset timer
+            state.luckStacks += 1;
+            state.potionEndsAt = Date.now() + POTION_DURATION;
+        } else {
+            // Not active or expired: start new effect
+            state.potionActive = true;
+            state.luckStacks = 1;
+            state.potionEndsAt = Date.now() + POTION_DURATION;
+        }
         // Add to purchased items if not already there
         if (!state.purchasedItems.some(item => item.name === 'Potion of Luck')) {
             state.purchasedItems.push({
@@ -172,6 +210,27 @@ if(buyBlessingBtn){
             }
             saveState();
             updateUI();
+        }
+    });
+}
+
+// Buy Slot Machine
+if(buySlotMachineBtn){
+    buySlotMachineBtn.addEventListener('click', ()=>{
+        const alreadyBought = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        if(alreadyBought){
+            alert('You already own the Slot Machine.');
+            return;
+        }
+        if(state.coins >= SLOT_MACHINE_COST){
+            state.coins -= SLOT_MACHINE_COST;
+            state.bonusInventorySlots = SLOT_MACHINE_BONUS; // one-time purchase
+            if(!state.purchasedItems.some(i=>i.name==='Slot Machine')){
+                state.purchasedItems.push({ name: 'Slot Machine', icon: '🎰', description: `Adds +5 pet inventory slots permanently` });
+            }
+            saveState();
+            updateUI();
+            alert(`Purchased! Your pet inventory capacity is now ${20 + state.bonusInventorySlots} slots.`);
         }
     });
 }

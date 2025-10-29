@@ -1,7 +1,7 @@
 // BTF Trading Client - Offline Code-Based System
 const STORAGE_KEY = 'mini_gacha_state_v1';
 const TRADE_CODES_KEY = 'btf_trade_codes';
-const CODE_EXPIRY_MS = 10 * 60 * 1000; // 10 minutes
+const CLAIMED_CODES_KEY = 'btf_claimed_codes';
 
 // Pet and Fruit data for name lookups
 const PETS = [
@@ -131,6 +131,27 @@ function generateTradeCode(tradeData) {
     }
 }
 
+// Check if a code has been claimed
+function isCodeClaimed(code) {
+    try {
+        const claimed = JSON.parse(localStorage.getItem(CLAIMED_CODES_KEY) || '{}');
+        return !!claimed[code];
+    } catch (e) {
+        return false;
+    }
+}
+
+// Mark a code as claimed
+function markCodeClaimed(code) {
+    try {
+        const claimed = JSON.parse(localStorage.getItem(CLAIMED_CODES_KEY) || '{}');
+        claimed[code] = Date.now();
+        localStorage.setItem(CLAIMED_CODES_KEY, JSON.stringify(claimed));
+    } catch (e) {
+        console.error('Failed to mark code as claimed:', e);
+    }
+}
+
 // Generate a completion code after joiner accepts, so creator can finalize
 function generateCompletionCode(tradeData) {
     try {
@@ -166,8 +187,8 @@ function loadTradeCode(code) {
         const jsonString = decodeURIComponent(atob(base64));
         const tradePackage = JSON.parse(jsonString);
         
-        // Check expiry (10 minutes)
-        if (Date.now() - tradePackage.timestamp > CODE_EXPIRY_MS) {
+        // Check if code has been claimed
+        if (isCodeClaimed(code)) {
             return null;
         }
         
@@ -531,7 +552,7 @@ function renderTradeOffer(tradeData, code) {
 function acceptTradeOffer(code) {
     let tradeData = loadTradeCode(code);
     if (!tradeData) {
-        showAlert('Trade offer has expired');
+        showAlert('This trade code is invalid or has already been claimed');
         return;
     }
     // Backward compatibility
@@ -579,6 +600,9 @@ function acceptTradeOffer(code) {
     saveState();
     updateUI();
 
+    // Mark this trade code as claimed to prevent reuse
+    markCodeClaimed(code);
+
     // Generate completion code for creator to finalize their side
     const completionCode = generateCompletionCode(tradeData);
     if (completionCode && completionCodeInput && completionCodeDisplay) {
@@ -603,7 +627,7 @@ window.declineTradeOffer = declineTradeOffer;
 function counterOffer(code) {
     let tradeData = loadTradeCode(code);
     if (!tradeData) {
-        showAlert('That trade code expired. Ask the other player to resend.');
+        showAlert('This trade code is invalid or has already been claimed');
         return;
     }
     if (tradeData.items && !tradeData.offer) {
@@ -771,7 +795,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let tradeData = loadTradeCode(code);
         if (!tradeData) {
-            showAlert('Invalid or expired trade code');
+            showAlert('This trade code is invalid or has already been claimed');
             return;
         }
 

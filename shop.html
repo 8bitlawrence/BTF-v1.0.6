@@ -71,8 +71,9 @@
             <a href="shop.html" class="active">Shop</a>
             <a href="inventory.html">Inventory</a>
             <a href="trade.html">Trade</a>
+            <a href="enchant.html">Enchanting</a>
+            <a href="leaderboard.html">Leaderboard</a>
             <a href="about.html">About</a>
-            <a href="terms.html">Terms &amp; Conditions</a>
             <a href="news.html">News</a>
         </nav>
 
@@ -82,7 +83,7 @@
                 <div class="item-details">
                     <h3>Potion of Luck</h3>
                     <p>Give 3x luck for 5 minutes</p>
-                    <p style="margin-top:4px">Cost: 10000c</p>
+                    <p style="margin-top:4px">Cost: 100000c</p>
                 </div>
                 <button id="buyLuckPotion" class="buy-btn">Buy Potion</button>
                 <span id="potionTimer" class="timer" style="display:none"></span>
@@ -91,7 +92,7 @@
                     <div class="item-icon">😃</div>
                     <div class="item-details">
                         <h3>Happy Powder</h3>
-                        <p>Gives all your pets +5% coin generation for 5 minutes (thx for the idea benny)</p>
+                        <p>Gives all your pets +5% coin generation for 5 minutes (thx for the idea benny)</p>``
                         <p style="margin-top:4px">Cost: 8000c</p>
                     </div>
                     <button id="buyBennyBoost" class="buy-btn">Buy Happy Powder</button>
@@ -106,6 +107,26 @@
                     </div>
                     <button id="buyPumpkinBlessing" class="buy-btn">Buy Blessing</button>
                     <span id="blessingTimer" class="timer" style="display:none"></span>
+                </section>
+                <section class="shop-item">
+                    <div class="item-icon">💧</div>
+                    <div class="item-details">
+                        <h3>Potion of Chaos</h3>
+                        <p></p>
+                        <p style="margin-top:4px">Cost: 15000c</p>
+                    </div>
+                    <button id="buyChaosPotion" class="buy-btn">Buy Potion</button>
+                    <span id="chaosTimer" class="timer" style="display:none"></span>
+                </section>
+                <section class="shop-item">
+                    <div class="item-icon">🎰</div>
+                    <div class="item-details">
+                        <h3>Slot Machine</h3>
+                        <p>Permanently adds 5 pet inventory slots</p>
+                        <p style="margin-top:4px">Cost: 1000000c</p>
+                        <p id="slotsPurchased" style="margin-top:4px;color:var(--accent);font-size:12px;"></p>
+                    </div>
+                    <button id="buySlotMachine" class="buy-btn">Buy Slot Machine</button>
                 </section>
         </main>
 

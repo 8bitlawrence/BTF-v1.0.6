@@ -1,6 +1,57 @@
 
 // Mini Gacha Game
 
+// Enchantment definitions for modal display
+const ENCHANTMENTS = [
+	{ id: 'swift_1', name: 'Swift I', tier: 1, description: '+2% Coins per Second' },
+	{ id: 'lucky_1', name: 'Lucky I', tier: 1, description: '3% chance to double coins on sells' },
+	{ id: 'strong_1', name: 'Strong I', tier: 1, description: 'Sell Pets +5% coins' },
+	{ id: 'resilient_1', name: 'Resilient I', tier: 1, description: 'Sell Fruits +5% coins' },
+	{ id: 'wealthy_1', name: 'Wealthy I', tier: 1, description: '+10% to all coin gains' },
+	{ id: 'scavenger_1', name: 'Scavenger I', tier: 1, description: 'Capsule price -5%' },
+	{ id: 'efficient_1', name: 'Efficient I', tier: 1, description: 'Pet roll price -5%' },
+	{ id: 'durable_1', name: 'Durable I', tier: 1, description: '+10% Coins per Second' },
+	{ id: 'swift_2', name: 'Swift II', tier: 2, description: '+5% Coins per Second' },
+	{ id: 'lucky_2', name: 'Lucky II', tier: 2, description: '8% chance to double coins on sells' },
+	{ id: 'strong_2', name: 'Strong II', tier: 2, description: 'Sell Pets +12% coins' },
+	{ id: 'resilient_2', name: 'Resilient II', tier: 2, description: 'Sell Fruits +12% coins' },
+	{ id: 'wealthy_2', name: 'Wealthy II', tier: 2, description: '+25% to all coin gains' },
+	{ id: 'scavenger_2', name: 'Scavenger II', tier: 2, description: 'Capsule price -12%' },
+	{ id: 'efficient_2', name: 'Efficient II', tier: 2, description: 'Pet roll price -12%' },
+	{ id: 'durable_2', name: 'Durable II', tier: 2, description: '+25% Coins per Second' },
+	{ id: 'critical_2', name: 'Critical II', tier: 2, description: '+10% extra double-sell chance' },
+	{ id: 'vampiric_2', name: 'Vampiric II', tier: 2, description: 'Refund 5% of roll/capsule costs' },
+	{ id: 'swift_3', name: 'Swift III', tier: 3, description: '+10% Coins per Second' },
+	{ id: 'lucky_3', name: 'Lucky III', tier: 3, description: '15% chance to double coins on sells' },
+	{ id: 'strong_3', name: 'Strong III', tier: 3, description: 'Sell Pets +25% coins' },
+	{ id: 'resilient_3', name: 'Resilient III', tier: 3, description: 'Sell Fruits +25% coins' },
+	{ id: 'wealthy_3', name: 'Wealthy III', tier: 3, description: '+50% to all coin gains' },
+	{ id: 'scavenger_3', name: 'Scavenger III', tier: 3, description: 'Capsule price -20%' },
+	{ id: 'efficient_3', name: 'Efficient III', tier: 3, description: 'Pet roll price -20%' },
+	{ id: 'durable_3', name: 'Durable III', tier: 3, description: '+50% Coins per Second' },
+	{ id: 'critical_3', name: 'Critical III', tier: 3, description: '+20% extra double-sell chance' },
+	{ id: 'vampiric_3', name: 'Vampiric III', tier: 3, description: 'Refund 12% of roll/capsule costs' },
+	{ id: 'legendary_3', name: 'Legendary III', tier: 3, description: '+10% all coin gains & CPS; -10% roll/capsule cost; +5% double-sell chance' },
+	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' }
+];
+
+// Configure rarity of enchant tiers (relative weights). Higher means more common.
+// Goal: Tier 2 and 3 should be rarer than Tier 1.
+const ENCHANT_TIER_WEIGHTS = {
+	1: 1.0,   // Tier 1 baseline
+	2: 0.4,   // Tier 2 ~2.5x rarer than T1
+	3: 0.15   // Tier 3 ~6.6x rarer than T1
+};
+
+// Annotate enchantments with a weight property based on tier so they can be used
+// with the generic weightedPick() selector.
+ENCHANTMENTS.forEach(e => { e.weight = ENCHANT_TIER_WEIGHTS[e.tier] ?? 1.0; });
+
+// Helper to roll an enchantment using the tier weights above.
+function rollEnchantment(){
+	return weightedPick(ENCHANTMENTS);
+}
+
 // Data model: pets with rarities and weights
 const PETS = [
 	{ id: 'pet_c_1', name: 'Dirt Fox', rarity: 'common', weight: 50, value: 20 },
@@ -11,6 +62,9 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
+	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.08, value: 20000 },
+	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.05, value: 30000 },
+	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 50, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
@@ -23,7 +77,10 @@ const PRICE_SINGLE = 100;
 const PRICE_TEN = 900; // discount
 
 // Inventory limits
-const MAX_INVENTORY = 20;
+const BASE_INVENTORY = 20;
+function getMaxInventory(){
+	return BASE_INVENTORY + (state.bonusInventorySlots || 0);
+}
 
 // Config: show admin button and starting coins
 const SHOW_ADMIN_BUTTON = false; // set to false to hide admin button
@@ -32,6 +89,13 @@ const START_WITH_MILLION = false; // if true, default starting coins = 1,000,000
 // Capsule prices for fruits
 const CAP_PRICE_SINGLE = 20;
 const CAP_PRICE_TEN = 180;
+
+// Enchanting/EP tuning: make enchanting effectively more expensive by slowing EP income
+const EP_GAIN_SINGLE_MIN = 1;
+const EP_GAIN_SINGLE_MAX = 1; // was up to 3
+const EP_GAIN_TEN_MIN = 5;
+const EP_GAIN_TEN_MAX = 10; // was 10-20
+const EP_PER_SEC_PER_SPECIAL = 0.5; // was 1.0 per special pet per second
 
 // Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
 const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
@@ -51,6 +115,8 @@ const FRUITS = [
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
 	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
+	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 60, value: 4000 }
+	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 50, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 
 
@@ -61,17 +127,35 @@ const FRUITS = [
 // State
 let state = {
 	coins: 2000,
+	enchantPoints: 0,
 	inventory: {}, // pets id -> count
 	fruits: {}, // fruits id -> count
+	petEnchantments: {}, // pet enchantments
+	petNames: {}, // custom pet names { petId_index: 'name' }
 	potionActive: false,
 	potionEndsAt: 0,
 	bennyActive: false,
-	bennyEndsAt: 0
+	bennyEndsAt: 0,
+	bonusInventorySlots: 0 // extra slots from Slot Machine purchases
+};
+
+// Rarity ranks for sell confirmations (legendary or higher triggers prompt)
+const RARITY_RANK = {
+	common: 1,
+	rare: 2,
+	epic: 3,
+	special: 4,
+	legendary: 5,
+	spooky: 6,
+	chromatic: 7,
+	unique: 8
 };
 
 // DOM
 const coinsEl = document.getElementById('coins');
 const cpsEl = document.getElementById('cps');
+const epDisplayEl = document.getElementById('epDisplay');
+const epsEl = document.getElementById('eps');
 const luckMultiplierEl = document.getElementById('luckMultiplier');
 const singleBtn = document.getElementById('singleRoll');
 const tenBtn = document.getElementById('tenRoll');
@@ -95,21 +179,28 @@ function loadState(){
 			// merge with defaults to ensure keys exist (older saves may miss fields)
 			state = {
 				coins: parsed.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
+				enchantPoints: parsed.enchantPoints ?? 0,
 				inventory: parsed.inventory ?? {},
 				fruits: parsed.fruits ?? {},
+				petEnchantments: parsed.petEnchantments ?? {},
+				petNames: parsed.petNames ?? {},
 				potionActive: parsed.potionActive ?? false,
 				potionEndsAt: parsed.potionEndsAt ?? 0,
 				bennyActive: parsed.bennyActive ?? false,
 				bennyEndsAt: parsed.bennyEndsAt ?? 0,
 				blessingActive: parsed.blessingActive ?? false,
-				blessingEndsAt: parsed.blessingEndsAt ?? 0
+				blessingEndsAt: parsed.blessingEndsAt ?? 0,
+				bonusInventorySlots: parsed.bonusInventorySlots ?? 0
 			};
 		} else {
 			// No save data found, start fresh
 			state = {
 				coins: START_WITH_MILLION ? 1000000 : 2000,
+				enchantPoints: 0,
 				inventory: {},
-				fruits: {}
+				fruits: {},
+				petEnchantments: {},
+				petNames: {}
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
@@ -127,7 +218,23 @@ function weightedPick(items){
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
 	const pool = items.filter(i => !(i.rarity === 'spooky' && !halloweenStillOn));
-	const useItems = pool.length ? pool : items;
+
+	// Exclude already-owned unique items so they cannot be obtained twice
+	let filtered = pool;
+	try{
+		const isPets = items === PETS;
+		const isFruits = items === FRUITS;
+		filtered = pool.filter(i => {
+			if(i.rarity !== 'unique') return true;
+			if(isPets){ return (state.inventory[i.id] || 0) < 1; }
+			if(isFruits){ return (state.fruits[i.id] || 0) < 1; }
+			return true;
+		});
+	}catch(e){ filtered = pool; }
+
+	// Prefer filtered list; if empty, prefer non-unique; else fallback to original
+	let useItems = filtered.length ? filtered : pool.filter(i=>i.rarity !== 'unique');
+	if(!useItems.length) useItems = items;
 
 	// Blessing effect: when active, spooky items are 2/3 as likely (weights * 2/3)
 	const blessingActive = state.blessingActive && state.blessingEndsAt > Date.now();
@@ -155,10 +262,106 @@ const RARITY_CPS = {
 	common: 1,
 	rare: 3,
 	epic: 8,
+	special: 12,
 	legendary: 20,
 	spooky: 30,
 	chromatic: 80,
+	unique: 60,
 };
+
+// Aggregate coin-related effects from pet enchantments
+function computeEnchantEffects(){
+	const effects = {
+		coinGainMult: 1,     // applies to all coin gains
+		cpsMult: 1,          // passive income multiplier
+		sellPetMult: 1,      // pet sell value multiplier
+		sellFruitMult: 1,    // fruit sell value multiplier
+		rollDiscount: 0,     // percent off pet roll prices
+		capDiscount: 0,      // percent off capsule prices
+		doubleSellChance: 0, // chance to double coins on sells
+		spendRefundPercent: 0 // percent refund on roll/capsule spend
+	};
+	const ench = state.petEnchantments || {};
+	for(const list of Object.values(ench)){
+		for(const id of list){
+			switch(id){
+				case 'wealthy_1': effects.coinGainMult *= 1.10; break;
+				case 'wealthy_2': effects.coinGainMult *= 1.25; break;
+				case 'wealthy_3': effects.coinGainMult *= 1.50; break;
+
+				case 'swift_1': effects.cpsMult *= 1.02; break;
+				case 'swift_2': effects.cpsMult *= 1.05; break;
+				case 'swift_3': effects.cpsMult *= 1.10; break;
+
+				case 'durable_1': effects.cpsMult *= 1.10; break;
+				case 'durable_2': effects.cpsMult *= 1.25; break;
+				case 'durable_3': effects.cpsMult *= 1.50; break;
+
+				case 'strong_1': effects.sellPetMult *= 1.05; break;
+				case 'strong_2': effects.sellPetMult *= 1.12; break;
+				case 'strong_3': effects.sellPetMult *= 1.25; break;
+
+				case 'resilient_1': effects.sellFruitMult *= 1.05; break;
+				case 'resilient_2': effects.sellFruitMult *= 1.12; break;
+				case 'resilient_3': effects.sellFruitMult *= 1.25; break;
+
+				case 'efficient_1': effects.rollDiscount += 0.05; break;
+				case 'efficient_2': effects.rollDiscount += 0.12; break;
+				case 'efficient_3': effects.rollDiscount += 0.20; break;
+
+				case 'scavenger_1': effects.capDiscount += 0.05; break;
+				case 'scavenger_2': effects.capDiscount += 0.12; break;
+				case 'scavenger_3': effects.capDiscount += 0.20; break;
+
+				case 'lucky_1': effects.doubleSellChance += 0.03; break;
+				case 'lucky_2': effects.doubleSellChance += 0.08; break;
+				case 'lucky_3': effects.doubleSellChance += 0.15; break;
+
+				case 'critical_2': effects.doubleSellChance += 0.10; break;
+				case 'critical_3': effects.doubleSellChance += 0.20; break;
+
+				case 'vampiric_2': effects.spendRefundPercent += 0.05; break;
+				case 'vampiric_3': effects.spendRefundPercent += 0.12; break;
+
+				case 'legendary_3':
+					effects.coinGainMult *= 1.10;
+					effects.cpsMult *= 1.10;
+					effects.sellPetMult *= 1.10;
+					effects.sellFruitMult *= 1.10;
+					effects.rollDiscount += 0.10;
+					effects.capDiscount += 0.10;
+					effects.doubleSellChance += 0.05;
+					effects.spendRefundPercent += 0.05;
+					break;
+
+				case 'ultimate_3':
+					effects.coinGainMult *= 1.05;
+					effects.rollDiscount += 0.05;
+					effects.capDiscount += 0.05;
+					effects.doubleSellChance += 0.05;
+					break;
+				default:
+					// other combat-ish enchants are cosmetic here
+			}
+		}
+	}
+	// caps
+	effects.rollDiscount = Math.min(0.5, effects.rollDiscount);
+	effects.capDiscount = Math.min(0.5, effects.capDiscount);
+	effects.doubleSellChance = Math.min(0.9, effects.doubleSellChance);
+	return effects;
+}
+
+function getCurrentCosts(){
+	const ef = computeEnchantEffects();
+	return {
+		priceSingle: Math.max(1, Math.ceil(PRICE_SINGLE * (1 - ef.rollDiscount))),
+		priceTen: Math.max(1, Math.ceil(PRICE_TEN * (1 - ef.rollDiscount))),
+		capSingle: Math.max(1, Math.ceil(CAP_PRICE_SINGLE * (1 - ef.capDiscount))),
+		capTen: Math.max(1, Math.ceil(CAP_PRICE_TEN * (1 - ef.capDiscount))),
+		_effects: ef
+	};
+}
 
 function computeTotalCPS(){
 	let total = 0;
@@ -186,7 +389,7 @@ function rollTen(){
 	}else{
 		// include spooky in the guaranteed pool during Halloween window
 		const spookyActive = Date.now() < HALLOWEEN_END;
-		const rarePool = PETS.filter(p=>['rare','legendary','epic','chromatic'].concat(spookyActive?['spooky']:[]).includes(p.rarity));
+		const rarePool = PETS.filter(p=>['rare','legendary','epic','special','chromatic'].concat(spookyActive?['spooky']:[]).includes(p.rarity));
 		results.push(weightedPick(rarePool));
 	}
 	return results;
@@ -209,11 +412,37 @@ function updateUI(){
 		cpsEl.textContent = `(+${totalCps}/s)`;
 	}
     
+    // Update EP display
+    if(epDisplayEl){
+        epDisplayEl.textContent = state.enchantPoints;
+    }
+    
+	// Update EPS display (reflect tuned EP rate)
+	if(epsEl){
+		let specialCount = 0;
+		for(const [id, count] of Object.entries(state.inventory)){
+			const p = PETS.find(x=>x.id===id);
+			if(p && p.rarity === 'special') specialCount += count;
+		}
+		const epsVal = specialCount * EP_PER_SEC_PER_SPECIAL;
+		const fmt = Number.isInteger(epsVal) ? epsVal : epsVal.toFixed(1);
+		epsEl.textContent = `(+${fmt}/s)`;
+	}
+    
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
         luckMultiplierEl.textContent = isActive ? "3x" : "1x";
     }
+
+	// Update button price labels based on enchantment discounts
+	if(singleBtn && tenBtn && capSingle && capTen){
+		const costs = getCurrentCosts();
+		singleBtn.textContent = `Open x1 (${costs.priceSingle}c)`;
+		tenBtn.textContent = `Open x10 (${costs.priceTen}c)`;
+		capSingle.textContent = `Open Capsule x1 (${costs.capSingle}c)`;
+		capTen.textContent = `Open Capsule x10 (${costs.capTen}c)`;
+	}
 
 	// Pets inventory
 	inventoryList.innerHTML = '';
@@ -225,10 +454,15 @@ function updateUI(){
 				const p = PETS.find(x=>x.id===id) || {name:id, rarity:'common', value:5};
 				const el = document.createElement('div');
 				el.className = 'inventory-item';
+				el.style.cursor = 'pointer';
 				// apply benny glow to pet inventory items only
 				if(state.bennyActive && state.bennyEndsAt > Date.now()){
 					el.classList.add('benny-glow');
 				}
+				// Add rarity shimmer classes
+				if(p.rarity === 'chromatic') el.classList.add('chromatic');
+				else if(p.rarity === 'spooky') el.classList.add('spooky');
+				else if(p.rarity === 'unique') el.classList.add('unique');
 				const badge = document.createElement('div');
 				badge.className = `badge ${p.rarity}`;
 				badge.textContent = p.rarity.toUpperCase();
@@ -245,11 +479,11 @@ function updateUI(){
 				const sell = document.createElement('button');
 				sell.className = 'sell-btn small';
 				sell.textContent = 'Sell x1';
-				sell.addEventListener('click', ()=>{ sellPet(id,1); });
+				sell.addEventListener('click', async (e)=>{ e.stopPropagation(); await sellPet(id,1); });
 				const sellAll = document.createElement('button');
 				sellAll.className = 'sell-btn small';
 				sellAll.textContent = 'Sell All';
-				sellAll.addEventListener('click', ()=>{ sellPet(id, state.inventory[id]); });
+				sellAll.addEventListener('click', async (e)=>{ e.stopPropagation(); await sellPet(id, state.inventory[id]); });
 				const right = document.createElement('div');
 				right.style.marginLeft = 'auto';
 				right.appendChild(sell);
@@ -258,6 +492,10 @@ function updateUI(){
 				el.appendChild(badge);
 				el.appendChild(name);
 				el.appendChild(right);
+				
+				// Click to select which instance to view
+				el.addEventListener('click', ()=> showPetSelector(id, count));
+				
 				inventoryList.appendChild(el);
 			}
 	}
@@ -280,6 +518,10 @@ function updateUI(){
 			if(state.bennyActive && state.bennyEndsAt > Date.now()){
 				el.classList.add('benny-glow');
 			}
+			// Add rarity shimmer classes
+			if(f.rarity === 'chromatic') el.classList.add('chromatic');
+			else if(f.rarity === 'spooky') el.classList.add('spooky');
+			else if(f.rarity === 'unique') el.classList.add('unique');
 			const badge = document.createElement('div');
 			badge.className = `badge ${f.rarity}`;
 			badge.textContent = f.rarity.toUpperCase();
@@ -288,11 +530,11 @@ function updateUI(){
 			const sell = document.createElement('button');
 			sell.className = 'sell-btn small';
 			sell.textContent = 'Sell x1';
-			sell.addEventListener('click', ()=>{ sellFruit(id,1); });
+			sell.addEventListener('click', async ()=>{ await sellFruit(id,1); });
 			const sellAll = document.createElement('button');
 			sellAll.className = 'sell-btn small';
 			sellAll.textContent = 'Sell All';
-			sellAll.addEventListener('click', ()=>{ sellFruit(id, state.fruits[id]); });
+			sellAll.addEventListener('click', async ()=>{ await sellFruit(id, state.fruits[id]); });
 			const right = document.createElement('div');
 			right.style.marginLeft = 'auto';
 			right.appendChild(sell);
@@ -332,12 +574,15 @@ function animateRoll(makeItemsCallback, revealCallback){
 					card.classList.add('benny-glow');
 				}
 				const ic = document.createElement('div'); ic.style.fontSize='28px';
-				// placeholder icons reused from showResults
-				if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
-				else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
-				else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
-				else if(it.rarity==='rare'){ ic.textContent='⭐'; }
-				else { ic.textContent='●'; }
+		// placeholder icons reused from showResults
+		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
+		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
+		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
+		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
+		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
+		else if(it.rarity==='rare'){ ic.textContent='⭐'; }
+		else { ic.textContent='●'; }
 				const nm = document.createElement('div'); nm.className='pet-name'; nm.textContent = it.name;
 				card.appendChild(ic); card.appendChild(nm);
 				if(revealCallback === showResults) resultArea.appendChild(card);
@@ -509,7 +754,9 @@ async function showResults(items){
 		// placeholder icons reused from showResults
 		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
+		else if(it.rarity==='unique'){ ic.textContent='💠'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
+		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
 		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
 		else if(it.rarity==='rare'){ ic.textContent='⭐'; }
 		else { ic.textContent='●'; }
@@ -544,6 +791,9 @@ function showCapsuleResults(items){
 		}else if(it.rarity==='spooky'){
 			ic.textContent = '🎃';
 			card.classList.add('spooky');
+		}else if(it.rarity==='unique'){
+			ic.textContent = '💠';
+			card.classList.add('unique');
 		}else if(it.rarity==='epic'){
 			ic.textContent = '✨';
 			card.classList.add('epic');
@@ -568,12 +818,24 @@ function showCapsuleResults(items){
 }
 
 // Selling
-function sellFruit(id, count){
+async function sellFruit(id, count){
 	const have = state.fruits[id] || 0;
 	if(!have) return;
 	const sellCount = Math.min(have, count);
 	const f = FRUITS.find(x=>x.id===id) || {value:1};
-	const gained = f.value * sellCount;
+	// Confirm if legendary or higher
+	const rank = RARITY_RANK[f.rarity] ?? 0;
+	const threshold = RARITY_RANK.legendary;
+	if(rank >= threshold){
+		const ok = await showConfirm(`Sell ${sellCount} ${f.name}${sellCount>1?'s':''}? This item is ${f.rarity.toUpperCase()}.`);
+		if(!ok) return;
+	}
+	let gained = (f.value || 1) * sellCount;
+	const ef = computeEnchantEffects();
+	// chance to double coins on sell
+	if(Math.random() < ef.doubleSellChance){ gained *= 2; }
+	// apply multipliers
+	gained = Math.floor(gained * ef.sellFruitMult * ef.coinGainMult);
 	state.fruits[id] = have - sellCount;
 	if(state.fruits[id] <= 0) delete state.fruits[id];
 	state.coins += gained;
@@ -582,12 +844,24 @@ function sellFruit(id, count){
 }
 
 // Sell pets
-function sellPet(id, count){
+async function sellPet(id, count){
 	const have = state.inventory[id] || 0;
 	if(!have) return;
 	const sellCount = Math.min(have, count);
 	const p = PETS.find(x=>x.id===id) || {value:1};
-	const gained = (p.value || 1) * sellCount;
+	// Confirm if legendary or higher
+	const rank = RARITY_RANK[p.rarity] ?? 0;
+	const threshold = RARITY_RANK.legendary;
+	if(rank >= threshold){
+		const ok = await showConfirm(`Sell ${sellCount} ${p.name}${sellCount>1?'s':''}? This pet is ${p.rarity.toUpperCase()}.`);
+		if(!ok) return;
+	}
+	let gained = (p.value || 1) * sellCount;
+	const ef = computeEnchantEffects();
+	// chance to double coins on sell
+	if(Math.random() < ef.doubleSellChance){ gained *= 2; }
+	// apply multipliers
+	gained = Math.floor(gained * ef.sellPetMult * ef.coinGainMult);
 	state.inventory[id] = have - sellCount;
 	if(state.inventory[id] <= 0) delete state.inventory[id];
 	state.coins += gained;
@@ -597,43 +871,77 @@ function sellPet(id, count){
 
 // Button handlers
 singleBtn.addEventListener('click', async ()=>{
-	if(state.coins < PRICE_SINGLE){ alert('Not enough coins for a single roll.'); return; }
+	const costs = getCurrentCosts();
+	if(state.coins < costs.priceSingle){ alert('Not enough coins for a single roll.'); return; }
 	// prevent rolling if inventory full
-	if(getPetTotalCount() >= MAX_INVENTORY){
-		await showAlert('Your pet inventory is full (20). Sell some pets before rolling.');
+	const maxInv = getMaxInventory();
+	if(getPetTotalCount() >= maxInv){
+		await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
 		return;
 	}
-	state.coins -= PRICE_SINGLE;
+	state.coins -= costs.priceSingle;
+	// Cashback from enchants
+	const ef = costs._effects;
+	if(ef.spendRefundPercent > 0){
+		const refund = Math.floor(costs.priceSingle * ef.spendRefundPercent * ef.coinGainMult);
+		state.coins += refund;
+	}
+	// Grant Enchantment Points (tuned lower)
+	const epGain = EP_GAIN_SINGLE_MIN + Math.floor(Math.random() * (EP_GAIN_SINGLE_MAX - EP_GAIN_SINGLE_MIN + 1));
+	state.enchantPoints = (state.enchantPoints || 0) + epGain;
 	// animate then reveal
 	animateRoll(()=>[rollOnce()], showResults);
 });
 
 tenBtn.addEventListener('click', async ()=>{
-	if(state.coins < PRICE_TEN){ alert('Not enough coins for a ten-roll.'); return; }
+	const costs = getCurrentCosts();
+	if(state.coins < costs.priceTen){ alert('Not enough coins for a ten-roll.'); return; }
 	// check available slots
 	const need = 10;
-	const avail = MAX_INVENTORY - getPetTotalCount();
+	const maxInv = getMaxInventory();
+	const avail = maxInv - getPetTotalCount();
 	if(avail <= 0){
-		await showAlert('Your pet inventory is full (20). Sell some pets before rolling.');
+		await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
 		return;
 	}
 	if(avail < need){
 		const cont = await showConfirm(`You only have space for ${avail} more pet(s). Rolling x10 may discard the extra ${need-avail} pet(s). Continue?`);
 		if(!cont) return;
 	}
-	state.coins -= PRICE_TEN;
+	state.coins -= costs.priceTen;
+	// Cashback from enchants
+	const ef = costs._effects;
+	if(ef.spendRefundPercent > 0){
+		const refund = Math.floor(costs.priceTen * ef.spendRefundPercent * ef.coinGainMult);
+		state.coins += refund;
+	}
+	// Grant Enchantment Points (tuned lower)
+	const epGain = EP_GAIN_TEN_MIN + Math.floor(Math.random() * (EP_GAIN_TEN_MAX - EP_GAIN_TEN_MIN + 1));
+	state.enchantPoints = (state.enchantPoints || 0) + epGain;
 	animateRoll(()=>rollTen(), showResults);
 });
 
 capSingle.addEventListener('click', ()=>{
-	if(state.coins < CAP_PRICE_SINGLE){ alert('Not enough coins for capsule roll.'); return; }
-	state.coins -= CAP_PRICE_SINGLE;
+	const costs = getCurrentCosts();
+	if(state.coins < costs.capSingle){ alert('Not enough coins for capsule roll.'); return; }
+	state.coins -= costs.capSingle;
+	const ef = costs._effects;
+	if(ef.spendRefundPercent > 0){
+		const refund = Math.floor(costs.capSingle * ef.spendRefundPercent * ef.coinGainMult);
+		state.coins += refund;
+	}
 	animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
 });
 
 capTen.addEventListener('click', ()=>{
-	if(state.coins < CAP_PRICE_TEN){ alert('Not enough coins for capsule x10.'); return; }
-	state.coins -= CAP_PRICE_TEN;
+	const costs = getCurrentCosts();
+	if(state.coins < costs.capTen){ alert('Not enough coins for capsule x10.'); return; }
+	state.coins -= costs.capTen;
+	const ef = costs._effects;
+	if(ef.spendRefundPercent > 0){
+		const refund = Math.floor(costs.capTen * ef.spendRefundPercent * ef.coinGainMult);
+		state.coins += refund;
+	}
 	animateRoll(()=>rollFruitTen(), showCapsuleResults);
 });
 
@@ -650,6 +958,131 @@ clearFruits.addEventListener('click', async ()=>{
 	saveState();
 	updateUI();
 });
+
+// Pet selector modal
+function showPetSelector(petId, count){
+	const p = PETS.find(x=>x.id===petId);
+	if(!p) return;
+	
+	const modal = document.getElementById('petSelectorModal');
+	const titleEl = document.getElementById('petSelectorTitle');
+	const listEl = document.getElementById('petSelectorList');
+	
+	titleEl.textContent = `Select ${p.name} to View`;
+	listEl.innerHTML = '';
+	
+	for(let i = 0; i < count; i++){
+		const petKey = `${petId}_${i}`;
+		const customName = state.petNames[petKey];
+		const enchants = state.petEnchantments[petKey] || [];
+		
+		const item = document.createElement('div');
+		item.className = 'pet-selector-item';
+		item.style.cursor = 'pointer';
+		item.style.padding = '12px';
+		item.style.background = 'var(--glass)';
+		item.style.borderRadius = '8px';
+		item.style.border = '1px solid rgba(255,255,255,0.08)';
+		item.style.transition = 'all 0.2s';
+		
+		const displayName = customName || `${p.name} #${i + 1}`;
+		let enchantText = '';
+		if(enchants.length > 0){
+			const enchantNames = enchants.map(eid => {
+				const ench = ENCHANTMENTS.find(e => e.id === eid);
+				return ench ? ench.name : eid;
+			}).join(', ');
+			enchantText = `<div style="font-size:12px;color:#a855f7;margin-top:4px">💎 ${enchantNames}</div>`;
+		}
+		
+		item.innerHTML = `
+			<div style="font-weight:700;font-size:15px;margin-bottom:4px">${displayName}</div>
+			<div style="font-size:13px;color:var(--muted)">${enchants.length} enchantment${enchants.length !== 1 ? 's' : ''}</div>
+			${enchantText}
+		`;
+		
+		item.addEventListener('mouseenter', ()=>{
+			item.style.borderColor = 'var(--accent)';
+			item.style.transform = 'translateX(4px)';
+		});
+		item.addEventListener('mouseleave', ()=>{
+			item.style.borderColor = 'rgba(255,255,255,0.08)';
+			item.style.transform = 'translateX(0)';
+		});
+		
+		item.addEventListener('click', ()=>{
+			modal.style.display = 'none';
+			showPetInfo(petId, i);
+		});
+		
+		listEl.appendChild(item);
+	}
+	
+	modal.style.display = 'flex';
+}
+
+// Pet info modal
+function showPetInfo(petId, instanceIndex){
+	const p = PETS.find(x=>x.id===petId);
+	if(!p) return;
+	const petKey = `${petId}_${instanceIndex}`;
+	const enchants = state.petEnchantments[petKey] || [];
+	const customName = state.petNames[petKey];
+	
+	const modal = document.getElementById('petInfoModal');
+	const nameEl = document.getElementById('petInfoName');
+	const detailsEl = document.getElementById('petInfoDetails');
+	const enchantsEl = document.getElementById('petInfoEnchants');
+	const renameInput = document.getElementById('petRenameInput');
+	const renameBtn = document.getElementById('petRenameBtn');
+	
+	const displayName = customName || `${p.name} #${instanceIndex + 1}`;
+	nameEl.textContent = displayName;
+	
+	const cps = RARITY_CPS[p.rarity] || 0;
+	detailsEl.innerHTML = `
+		<div class="badge ${p.rarity}">${p.rarity.toUpperCase()}</div>
+		<p style="margin:8px 0 4px 0"><strong>Coins per Second:</strong> ${cps}</p>
+		<p style="margin:4px 0"><strong>Sell Value:</strong> ${p.value} coins</p>
+		<p style="margin:4px 0;font-size:12px;color:var(--muted)">Instance: #${instanceIndex + 1}</p>
+	`;
+	
+	enchantsEl.innerHTML = '';
+	if(enchants.length === 0){
+		enchantsEl.innerHTML = '<p style="color:var(--muted);font-size:13px">No enchantments yet. Visit the Enchanting page to add enchantments!</p>';
+	} else {
+		enchants.forEach(enchantId => {
+			const enchant = ENCHANTMENTS.find(e => e.id === enchantId);
+			if(enchant){
+				const badge = document.createElement('div');
+				badge.className = `enchant-badge enchant-tier-${enchant.tier}`;
+				badge.innerHTML = `<div style="font-weight:700">${enchant.name}</div><div style="font-size:11px;opacity:0.9">${enchant.description}</div>`;
+				enchantsEl.appendChild(badge);
+			}
+		});
+	}
+	
+	// Set up rename input
+	renameInput.value = customName || '';
+	renameInput.placeholder = `${p.name} #${instanceIndex + 1}`;
+	
+	// Clear old listeners and add new one
+	const newRenameBtn = renameBtn.cloneNode(true);
+	renameBtn.parentNode.replaceChild(newRenameBtn, renameBtn);
+	newRenameBtn.addEventListener('click', ()=>{
+		const newName = renameInput.value.trim();
+		if(newName){
+			state.petNames[petKey] = newName;
+		} else {
+			delete state.petNames[petKey];
+		}
+		saveState();
+		updateUI();
+		showPetInfo(petId, instanceIndex); // Refresh modal
+	});
+	
+	modal.style.display = 'flex';
+}
 
 // Init
 loadState();
@@ -732,25 +1165,80 @@ if(halloweenUpdateModal && closeHalloweenUpdate){
     });
 }
 
+// Pet info modal close
+const closePetInfo = document.getElementById('closePetInfo');
+const petInfoModal = document.getElementById('petInfoModal');
+if(closePetInfo && petInfoModal){
+	closePetInfo.addEventListener('click', ()=>{
+		petInfoModal.style.display = 'none';
+	});
+	petInfoModal.addEventListener('click', (e)=>{
+		if(e.target === petInfoModal) petInfoModal.style.display = 'none';
+	});
+}
+
+// Pet selector modal close
+const closePetSelector = document.getElementById('closePetSelector');
+const petSelectorModal = document.getElementById('petSelectorModal');
+if(closePetSelector && petSelectorModal){
+	closePetSelector.addEventListener('click', ()=>{
+		petSelectorModal.style.display = 'none';
+	});
+	petSelectorModal.addEventListener('click', (e)=>{
+		if(e.target === petSelectorModal) petSelectorModal.style.display = 'none';
+	});
+}
+
 // Passive income: add coins every second based on total CPS
+let __epOverflow = 0; // fractional EP accumulator for per-second generation
 setInterval(()=>{
-    const total = computeTotalCPS();
-    if(total > 0){
-        state.coins += total;
-        saveState();
-        updateUI();
-        // show coin pop animation
-        const pop = document.createElement('div');
-		pop.className = 'coin-pop';
-        pop.textContent = '+' + total;
-        document.querySelector('.wallet').appendChild(pop);
-		// if Benny Boost active, add purple variant
-		if(state.bennyActive && state.bennyEndsAt > Date.now()){
-			pop.classList.add('benny');
-		}
-        // remove after animation
-        pop.addEventListener('animationend', ()=>pop.remove());
+    const base = computeTotalCPS();
+    if(base > 0){
+        const ef = computeEnchantEffects();
+        const coinsAdd = Math.floor(base * ef.cpsMult * ef.coinGainMult);
+        if(coinsAdd > 0){
+            state.coins += coinsAdd;
+            saveState();
+            updateUI();
+            // show coin pop animation
+            const pop = document.createElement('div');
+            pop.className = 'coin-pop';
+            pop.textContent = '+' + coinsAdd;
+            document.querySelector('.wallet').appendChild(pop);
+            // if Benny Boost active, add purple variant
+            if(state.bennyActive && state.bennyEndsAt > Date.now()){
+                pop.classList.add('benny');
+            }
+            // remove after animation
+            pop.addEventListener('animationend', ()=>pop.remove());
+        }
     }
+	// Generate Enchantment Points from special rarity pets (tuned rate)
+	let specialCount = 0;
+	for(const [id, count] of Object.entries(state.inventory)){
+		const p = PETS.find(x=>x.id===id);
+		if(p && p.rarity === 'special') specialCount += count;
+	}
+	if(specialCount > 0){
+		__epOverflow += specialCount * EP_PER_SEC_PER_SPECIAL;
+		const gained = Math.floor(__epOverflow);
+		if(gained > 0){
+			__epOverflow -= gained;
+			state.enchantPoints = (state.enchantPoints || 0) + gained;
+			saveState();
+			updateUI();
+			// show EP pop animation
+			const epPop = document.createElement('div');
+			epPop.className = 'ep-pop';
+			epPop.textContent = '+' + gained;
+			const epDisplayContainer = document.querySelector('.ep-display');
+			if(epDisplayContainer){
+				epDisplayContainer.appendChild(epPop);
+				// remove after animation
+				epPop.addEventListener('animationend', ()=>epPop.remove());
+			}
+		}
+	}
 }, 1000);
 
 // Periodic check to clear expired effects
