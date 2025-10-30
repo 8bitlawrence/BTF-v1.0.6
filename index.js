@@ -67,7 +67,7 @@ const PETS = [
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
-	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 80, value: 5000 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 }
 	
 ];
