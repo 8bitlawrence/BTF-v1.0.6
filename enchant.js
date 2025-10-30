@@ -59,7 +59,8 @@ let currentState = {
     coins: 0,
     enchantPoints: 0,
     inventory: {},
-    petEnchantments: {} // { petId_index: [enchantmentId1, enchantmentId2, ...] }
+    petEnchantments: {}, // { petId_index: [enchantmentId1, enchantmentId2, ...] }
+    petRerollsUsed: {} // { petId_index: rerollCount }
 };
 
 let selectedPetKey = null;
@@ -80,7 +81,8 @@ function loadState() {
                 coins: parsed.coins || 0,
                 enchantPoints: parsed.enchantPoints || 0,
                 inventory: parsed.inventory || {},
-                petEnchantments: parsed.petEnchantments || {}
+                petEnchantments: parsed.petEnchantments || {},
+                petRerollsUsed: parsed.petRerollsUsed || {}
             };
         }
     } catch (e) {
@@ -97,7 +99,8 @@ function saveState() {
             ...current,
             coins: currentState.coins,
             enchantPoints: currentState.enchantPoints,
-            petEnchantments: currentState.petEnchantments
+            petEnchantments: currentState.petEnchantments,
+            petRerollsUsed: currentState.petRerollsUsed
         }));
     } catch (e) {
         console.error('Failed to save state:', e);
@@ -241,6 +244,32 @@ function generateEnchantOptions() {
     renderEnchantOptions();
 }
 
+// Handle reroll with cost logic
+function handleReroll(isFree, cost) {
+    if (!selectedPetKey) {
+        showAlert('Please select a pet first');
+        return;
+    }
+    
+    if (!isFree) {
+        if (currentState.enchantPoints < cost) {
+            showAlert(`Not enough Enchantment Points! You need ${cost} EP but only have ${currentState.enchantPoints} EP.`);
+            return;
+        }
+        currentState.enchantPoints -= cost;
+    }
+    
+    // Track reroll usage
+    if (!currentState.petRerollsUsed[selectedPetKey]) {
+        currentState.petRerollsUsed[selectedPetKey] = 0;
+    }
+    currentState.petRerollsUsed[selectedPetKey]++;
+    
+    saveState();
+    updateUI();
+    generateEnchantOptions();
+}
+
 // Render enchantment options
 function renderEnchantOptions() {
     enchantOptionsEl.innerHTML = '';
@@ -267,13 +296,27 @@ function renderEnchantOptions() {
         enchantOptionsEl.appendChild(option);
     });
     
-    // Add reroll button
+    // Add reroll button with cost logic
+    const rerollsUsed = currentState.petRerollsUsed[selectedPetKey] || 0;
+    const rerollCost = 20;
+    const isFree = rerollsUsed === 0;
+    
     const rerollBtn = document.createElement('button');
-    rerollBtn.textContent = '🔄 Reroll Options (Free)';
+    if (isFree) {
+        rerollBtn.textContent = '🔄 Reroll Options (1 Free Reroll)';
+        rerollBtn.className = 'muted';
+    } else {
+        rerollBtn.textContent = `🔄 Reroll Options (${rerollCost} EP)`;
+        rerollBtn.className = 'muted';
+        if (currentState.enchantPoints < rerollCost) {
+            rerollBtn.disabled = true;
+            rerollBtn.style.opacity = '0.5';
+            rerollBtn.style.cursor = 'not-allowed';
+        }
+    }
     rerollBtn.style.width = '100%';
     rerollBtn.style.marginTop = '12px';
-    rerollBtn.className = 'muted';
-    rerollBtn.addEventListener('click', generateEnchantOptions);
+    rerollBtn.addEventListener('click', () => handleReroll(isFree, rerollCost));
     enchantOptionsEl.appendChild(rerollBtn);
 }
 
