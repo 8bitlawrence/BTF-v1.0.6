@@ -116,7 +116,8 @@ function updateUI() {
         }
     }
     
-    buyBtn.disabled = state.coins < POTION_COST || state.potionActive;
+    // Allow buying potions even when active (for stacking)
+    buyBtn.disabled = state.coins < POTION_COST;
     
     if (state.potionActive) {
         const remaining = Math.ceil((state.potionEndsAt - Date.now()) / 1000);
