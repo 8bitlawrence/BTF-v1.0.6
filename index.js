@@ -67,7 +67,7 @@ const PETS = [
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
-	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 80, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 }
 	
 ];
@@ -134,6 +134,7 @@ let state = {
 	petNames: {}, // custom pet names { petId_index: 'name' }
 	potionActive: false,
 	potionEndsAt: 0,
+	luckStacks: 0,
 	bennyActive: false,
 	bennyEndsAt: 0,
 	bonusInventorySlots: 0 // extra slots from Slot Machine purchases
@@ -186,6 +187,7 @@ function loadState(){
 				petNames: parsed.petNames ?? {},
 				potionActive: parsed.potionActive ?? false,
 				potionEndsAt: parsed.potionEndsAt ?? 0,
+				luckStacks: parsed.luckStacks ?? 0,
 				bennyActive: parsed.bennyActive ?? false,
 				bennyEndsAt: parsed.bennyEndsAt ?? 0,
 				blessingActive: parsed.blessingActive ?? false,
@@ -213,7 +215,7 @@ function saveState(){
 function weightedPick(items){
 	// Check if luck potion is active
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
-	const multiplier = potionActive ? 3 : 1;
+	const multiplier = potionActive ? (1 + state.luckStacks * 2) : 1;
 
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
@@ -432,7 +434,7 @@ function updateUI(){
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        luckMultiplierEl.textContent = isActive ? "3x" : "1x";
+        luckMultiplierEl.textContent = isActive ? `${1 + state.luckStacks * 2}x` : "1x";
     }
 
 	// Update button price labels based on enchantment discounts
@@ -1244,7 +1246,7 @@ setInterval(()=>{
 // Periodic check to clear expired effects
 setInterval(()=>{
 	let dirty = false;
-	if(state.potionActive && state.potionEndsAt <= Date.now()){ state.potionActive = false; dirty = true; }
+	if(state.potionActive && state.potionEndsAt <= Date.now()){ state.potionActive = false; state.luckStacks = 0; dirty = true; }
 	if(state.bennyActive && state.bennyEndsAt <= Date.now()){ state.bennyActive = false; dirty = true; }
 	if(state.blessingActive && state.blessingEndsAt <= Date.now()){ state.blessingActive = false; dirty = true; }
 	if(dirty){ saveState(); updateUI(); }
