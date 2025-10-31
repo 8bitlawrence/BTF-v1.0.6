@@ -215,7 +215,8 @@ function saveState(){
 function weightedPick(items){
 	// Check if luck potion is active
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
-	const multiplier = potionActive ? (1 + state.luckStacks * 2) : 1;
+	const cappedStacks = Math.min(state.luckStacks, 100);
+	const multiplier = potionActive ? (1 + cappedStacks * 2) : 1;
 
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
@@ -241,9 +242,26 @@ function weightedPick(items){
 	// Blessing effect: when active, spooky items are 2/3 as likely (weights * 2/3)
 	const blessingActive = state.blessingActive && state.blessingEndsAt > Date.now();
 
-	// Apply luck multiplier and blessing scaling to weights
+	// Apply luck multiplier: multiply weights of rare items more than common
+	// Rarity boost factors - rarer items get bigger multiplier
+	const rarityBoost = {
+		common: 1,
+		rare: 2,
+		epic: 4,
+		special: 3,
+		legendary: 8,
+		spooky: 6,
+		chromatic: 10,
+		unique: 12
+	};
+	
 	const adjustedWeights = useItems.map(i => {
-		let w = i.weight * multiplier;
+		// Base weight boosted by rarity when luck is active
+		let w = i.weight;
+		if(potionActive) {
+			const boost = rarityBoost[i.rarity] || 1;
+			w = i.weight * (1 + (multiplier - 1) * boost);
+		}
 		if(blessingActive && i.rarity === 'spooky') w = w * (2/3);
 		return w;
 	});
@@ -434,7 +452,8 @@ function updateUI(){
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        luckMultiplierEl.textContent = isActive ? `${1 + state.luckStacks * 2}x` : "1x";
+        const cappedStacks = Math.min(state.luckStacks, 100);
+        luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
     }
 
 	// Update button price labels based on enchantment discounts

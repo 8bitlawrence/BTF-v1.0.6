@@ -85,7 +85,8 @@ function updateUI() {
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        luckMultiplierEl.textContent = isActive ? `${1 + state.luckStacks * 2}x` : "1x";
+        const cappedStacks = Math.min(state.luckStacks, 100);
+        luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
     }
     // Benny UI
     if(bennyTimerEl){
@@ -161,8 +162,8 @@ buyBtn.addEventListener('click', () => {
     if (state.coins >= POTION_COST) {
         state.coins -= POTION_COST;
         if (state.potionActive && state.potionEndsAt > Date.now()) {
-            // Already active: increment stacks, reset timer
-            state.luckStacks += 1;
+            // Already active: increment stacks (max 100), reset timer
+            state.luckStacks = Math.min(state.luckStacks + 1, 100);
             state.potionEndsAt = Date.now() + POTION_DURATION;
         } else {
             // Not active or expired: start new effect
