@@ -51,7 +51,11 @@ const PETS = [
     { id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary' },
     { id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky' },
     { id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic' },
-    { id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky' }
+    { id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky' },
+    { id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique' },
+    { id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique' },
+    { id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique' }
+
 ];
 
 // State

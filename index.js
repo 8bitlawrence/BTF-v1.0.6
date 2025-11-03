@@ -1,5 +1,5 @@
 
-// Mini Gacha Game
+
 
 // Enchantment definitions for modal display
 const ENCHANTMENTS = [
@@ -20,7 +20,7 @@ const ENCHANTMENTS = [
 	{ id: 'efficient_2', name: 'Efficient II', tier: 2, description: 'Pet roll price -12%' },
 	{ id: 'durable_2', name: 'Durable II', tier: 2, description: '+25% Coins per Second' },
 	{ id: 'critical_2', name: 'Critical II', tier: 2, description: '+10% extra double-sell chance' },
-	{ id: 'vampiric_2', name: 'Vampiric II', tier: 2, description: 'Refund 5% of roll/capsule costs' },
+	{ id: 'vampiric_2', name: 'Vampiric II', tier: 2,	 description: 'Refund 5% of roll/capsule costs' },
 	{ id: 'swift_3', name: 'Swift III', tier: 3, description: '+10% Coins per Second' },
 	{ id: 'lucky_3', name: 'Lucky III', tier: 3, description: '15% chance to double coins on sells' },
 	{ id: 'strong_3', name: 'Strong III', tier: 3, description: 'Sell Pets +25% coins' },
@@ -33,6 +33,7 @@ const ENCHANTMENTS = [
 	{ id: 'vampiric_3', name: 'Vampiric III', tier: 3, description: 'Refund 12% of roll/capsule costs' },
 	{ id: 'legendary_3', name: 'Legendary III', tier: 3, description: '+10% all coin gains & CPS; -10% roll/capsule cost; +5% double-sell chance' },
 	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' }
+	
 ];
 
 // Configure rarity of enchant tiers (relative weights). Higher means more common.
@@ -62,14 +63,14 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.08, value: 20000 },
-	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.05, value: 30000 },
+	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.01, value: 10000000 },
+	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.01, value: 10000000 },
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
-	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 }
-	
+	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
+	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.5, value: 10000000 }
 ];
 
 // Prices
@@ -286,7 +287,7 @@ const RARITY_CPS = {
 	legendary: 20,
 	spooky: 30,
 	chromatic: 80,
-	unique: 60,
+	unique: 120,
 };
 
 // Aggregate coin-related effects from pet enchantments
