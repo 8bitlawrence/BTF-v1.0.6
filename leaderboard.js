@@ -212,7 +212,7 @@ submitScore.addEventListener('click', async () => {
 	const top100 = filtered.slice(0, 100);
 	
 	if (saveLocalLeaderboard(top100)) {
-		alert('Score submitted successfully!');
+		alert('Score submitted locally! (This device only)');
 		loadLeaderboard();
 	} else {
 		alert('Error submitting score. Please try again.');
@@ -221,14 +221,14 @@ submitScore.addEventListener('click', async () => {
 
 // Load and display leaderboard
 async function loadLeaderboard() {
-	leaderboardList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px">Loading...</p>';
+	leaderboardList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px">Loading local scores…</p>';
 	
 	try {
 		// Use local leaderboard
 		const leaderboard = getLocalLeaderboard();
 		
 		if (leaderboard.length === 0) {
-			leaderboardList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px">No scores yet. Be the first to submit!</p>';
+			leaderboardList.innerHTML = '<p style="text-align:center;color:var(--muted);padding:40px">No local scores on this device yet. Be the first to submit!</p>';
 			return;
 		}
 		

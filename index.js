@@ -117,7 +117,7 @@ const FRUITS = [
 	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
 	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.01, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.01, value: 60000000 }
+	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 60, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 
 
@@ -240,8 +240,6 @@ function weightedPick(items){
 	let useItems = filtered.length ? filtered : pool.filter(i=>i.rarity !== 'unique');
 	if(!useItems.length) useItems = items;
 
-	// Blessing effect: when active, spooky items are 2/3 as likely (weights * 2/3)
-	const blessingActive = state.blessingActive && state.blessingEndsAt > Date.now();
 
 	// Apply luck multiplier: multiply weights of rare items more than common
 	// Rarity boost factors - rarer items get bigger multiplier
@@ -263,7 +261,7 @@ function weightedPick(items){
 			const boost = rarityBoost[i.rarity] || 1;
 			w = i.weight * (1 + (multiplier - 1) * boost);
 		}
-		if(blessingActive && i.rarity === 'spooky') w = w * (2/3);
+		// Blessing removed: no spooky weight reduction
 		return w;
 	});
 
@@ -776,7 +774,7 @@ async function showResults(items){
 		// placeholder icons reused from showResults
 		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
-		else if(it.rarity==='unique'){ ic.textContent='💠'; card.classList.add('unique'); }
+		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
 		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
 		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
@@ -814,7 +812,7 @@ function showCapsuleResults(items){
 			ic.textContent = '🎃';
 			card.classList.add('spooky');
 		}else if(it.rarity==='unique'){
-			ic.textContent = '💠';
+			ic.textContent = '👑';
 			card.classList.add('unique');
 		}else if(it.rarity==='epic'){
 			ic.textContent = '✨';

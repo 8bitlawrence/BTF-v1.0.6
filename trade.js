@@ -1,4 +1,9 @@
-// Trading is temporarily disabled.
+// Trading logic with code-based P2P. Updated to reserve/deduct creator's offered items at code generation
+// and finalize via completion code without double-deducting.
+
+// LocalStorage keys
+const CLAIMED_CODES_KEY = typeof CLAIMED_CODES_KEY !== 'undefined' ? CLAIMED_CODES_KEY : 'btf_claimed_codes_v1';
+const PENDING_TRADE_KEY = 'btf_pending_trade_v1';
 
 function getFruitName(fruitId) {
     const fruit = FRUITS.find(f => f.id === fruitId);
@@ -113,12 +118,13 @@ function markCodeClaimed(code) {
 }
 
 // Generate a completion code after joiner accepts, so creator can finalize
-function generateCompletionCode(tradeData) {
+function generateCompletionCode(tradeData, originCode) {
     try {
         const completionPackage = {
             completed: true,
             offer: tradeData.offer,
             request: tradeData.request,
+            origin: originCode || null,
             timestamp: Date.now()
         };
         const jsonString = JSON.stringify(completionPackage);
@@ -564,7 +570,7 @@ function acceptTradeOffer(code) {
     markCodeClaimed(code);
 
     // Generate completion code for creator to finalize their side
-    const completionCode = generateCompletionCode(tradeData);
+    const completionCode = generateCompletionCode(tradeData, code);
     if (completionCode && completionCodeInput && completionCodeDisplay) {
         completionCodeInput.value = completionCode;
         completionCodeDisplay.style.display = 'block';
@@ -693,15 +699,58 @@ document.addEventListener('DOMContentLoaded', () => {
             request: selectedRequest,
             message: tradeMessage
         };
-        
+
+        // Validate you actually have the offered items/coins right now
+        for (const [petId, count] of Object.entries(tradeData.offer?.pets || {})) {
+            if ((currentState.inventory[petId] || 0) < count) {
+                showAlert(`You don't have enough ${getPetName(petId)} to offer (need ${count}, have ${currentState.inventory[petId] || 0}).`);
+                return;
+            }
+        }
+        for (const [fruitId, count] of Object.entries(tradeData.offer?.fruits || {})) {
+            if ((currentState.fruits[fruitId] || 0) < count) {
+                showAlert(`You don't have enough ${getFruitName(fruitId)} to offer (need ${count}, have ${currentState.fruits[fruitId] || 0}).`);
+                return;
+            }
+        }
+        if ((tradeData.offer?.coins || 0) > currentState.coins) {
+            showAlert(`You don't have enough coins to offer (need ${tradeData.offer.coins}, have ${currentState.coins}).`);
+            return;
+        }
+
         const code = generateTradeCode(tradeData);
         if (!code) {
             showAlert('Failed to generate trade code');
             return;
         }
 
+        // Deduct your offered items immediately (reserve/escrow locally)
+        for (const [petId, count] of Object.entries(tradeData.offer?.pets || {})) {
+            currentState.inventory[petId] = (currentState.inventory[petId] || 0) - count;
+            if (currentState.inventory[petId] <= 0) delete currentState.inventory[petId];
+        }
+        for (const [fruitId, count] of Object.entries(tradeData.offer?.fruits || {})) {
+            currentState.fruits[fruitId] = (currentState.fruits[fruitId] || 0) - count;
+            if (currentState.fruits[fruitId] <= 0) delete currentState.fruits[fruitId];
+        }
+        currentState.coins -= (tradeData.offer?.coins || 0);
+
+        saveState();
+        updateUI();
+
+        // Store pending trade so completion code won't double-deduct
+        try {
+            localStorage.setItem(PENDING_TRADE_KEY, JSON.stringify({
+                code,
+                offer: tradeData.offer,
+                request: tradeData.request,
+                createdAt: Date.now()
+            }));
+        } catch (e) { console.warn('Failed to store pending trade', e); }
+
         tradeCodeInput.value = code;
         tradeCodeDisplay.style.display = 'block';
+        showAlert('Trade code created. Your offered items/coins have been reserved and deducted on this device. Share the code for the other player to accept.');
     });
 
     copyCodeBtn.addEventListener('click', () => {
@@ -764,35 +813,51 @@ document.addEventListener('DOMContentLoaded', () => {
             const offer = tradeData.offer || { pets:{}, fruits:{}, coins:0 };
             const request = tradeData.request || { pets:{}, fruits:{}, coins:0 };
 
-            // Validate creator still has the offered items
-            for (const [petId, count] of Object.entries(offer.pets || {})) {
-                if ((currentState.inventory[petId] || 0) < count) {
-                    showAlert(`Can't complete trade: you no longer have enough ${getPetName(petId)} (need ${count}, have ${currentState.inventory[petId] || 0}).`);
+            // Check for a pending trade reserved at code-generation time
+            let pending = null;
+            try { pending = JSON.parse(localStorage.getItem(PENDING_TRADE_KEY) || 'null'); } catch(e) { pending = null; }
+            const origin = tradeData.origin || null;
+            const deepEqual = (a,b) => JSON.stringify(a||{}) === JSON.stringify(b||{});
+            const matchesPending = pending && (
+                (origin && pending.code === origin) ||
+                (!origin && deepEqual(pending.offer, offer) && deepEqual(pending.request, request))
+            );
+
+            if (!matchesPending) {
+                // Legacy path: validate you still have the offered items, then subtract now
+                for (const [petId, count] of Object.entries(offer.pets || {})) {
+                    if ((currentState.inventory[petId] || 0) < count) {
+                        showAlert(`Can't complete trade: you no longer have enough ${getPetName(petId)} (need ${count}, have ${currentState.inventory[petId] || 0}).`);
+                        return;
+                    }
+                }
+                for (const [fruitId, count] of Object.entries(offer.fruits || {})) {
+                    if ((currentState.fruits[fruitId] || 0) < count) {
+                        showAlert(`Can't complete trade: you no longer have enough ${getFruitName(fruitId)} (need ${count}, have ${currentState.fruits[fruitId] || 0}).`);
+                        return;
+                    }
+                }
+                if ((offer.coins || 0) > currentState.coins) {
+                    showAlert(`Can't complete trade: you don't have enough coins (need ${offer.coins}, have ${currentState.coins}).`);
                     return;
                 }
-            }
-            for (const [fruitId, count] of Object.entries(offer.fruits || {})) {
-                if ((currentState.fruits[fruitId] || 0) < count) {
-                    showAlert(`Can't complete trade: you no longer have enough ${getFruitName(fruitId)} (need ${count}, have ${currentState.fruits[fruitId] || 0}).`);
-                    return;
+
+                // Subtract your offer now
+                for (const [petId, count] of Object.entries(offer.pets || {})) {
+                    currentState.inventory[petId] = (currentState.inventory[petId] || 0) - count;
+                    if (currentState.inventory[petId] <= 0) delete currentState.inventory[petId];
                 }
-            }
-            if ((offer.coins || 0) > currentState.coins) {
-                showAlert(`Can't complete trade: you don't have enough coins (need ${offer.coins}, have ${currentState.coins}).`);
-                return;
+                for (const [fruitId, count] of Object.entries(offer.fruits || {})) {
+                    currentState.fruits[fruitId] = (currentState.fruits[fruitId] || 0) - count;
+                    if (currentState.fruits[fruitId] <= 0) delete currentState.fruits[fruitId];
+                }
+                currentState.coins -= (offer.coins || 0);
+            } else {
+                // We already reserved (deducted) the offer; clear the pending marker
+                try { localStorage.removeItem(PENDING_TRADE_KEY); } catch(e) {}
             }
 
-            // Apply: subtract your offer, add what you requested
-            for (const [petId, count] of Object.entries(offer.pets || {})) {
-                currentState.inventory[petId] = (currentState.inventory[petId] || 0) - count;
-                if (currentState.inventory[petId] <= 0) delete currentState.inventory[petId];
-            }
-            for (const [fruitId, count] of Object.entries(offer.fruits || {})) {
-                currentState.fruits[fruitId] = (currentState.fruits[fruitId] || 0) - count;
-                if (currentState.fruits[fruitId] <= 0) delete currentState.fruits[fruitId];
-            }
-            currentState.coins -= (offer.coins || 0);
-
+            // Add what you requested
             for (const [petId, count] of Object.entries(request.pets || {})) {
                 currentState.inventory[petId] = (currentState.inventory[petId] || 0) + count;
             }

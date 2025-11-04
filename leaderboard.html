@@ -11,7 +11,7 @@
 		<div class="container">
 			<header>
 				<h1 class="halloween-shimmer">BTF Leaderboard</h1>
-				<div class="subtitle">Top Players by Coins</div>
+				<div class="subtitle">Top Players by Coins — Local (this device only)</div>
 			</header>
 
 			<nav class="nav-bar">
@@ -30,8 +30,11 @@
 				<section class="gacha" id="registerSection">
 					<div class="banner">Register Your Account</div>
 					<div style="padding:20px">
-						<p id="registrationStatus" style="margin-bottom:16px;color:var(--muted)">
-							Register a username to appear on the leaderboard and compete with other players!
+						<p id="registrationStatus" style="margin-bottom:8px;color:var(--muted)">
+							Register a username to appear on this device's local leaderboard.
+						</p>
+						<p style="margin:0 0 16px 0;color:var(--muted);font-size:12px">
+							Note: Scores are stored in your browser and are not shared online.
 						</p>
 						<div style="display:flex;gap:10px;margin-bottom:12px">
 							<input 
@@ -53,14 +56,15 @@
 
 				<!-- Leaderboard Table -->
 				<section class="gacha" style="margin-top:20px">
-					<div class="banner">🏆 Top 100 Players</div>
+					<div class="banner">🏆 Top 100 (This Device)</div>
 					<div style="padding:20px">
-						<div style="margin-bottom:16px;display:flex;gap:10px">
+						<div style="margin-bottom:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap">
 							<button id="refreshLeaderboard" style="padding:8px 16px">🔄 Refresh</button>
 							<button id="submitScore" style="padding:8px 16px;background:var(--accent)">📤 Submit My Score</button>
+							<span style="color:var(--muted);font-size:12px">Scores are stored locally in your browser.</span>
 						</div>
 						<div id="leaderboardList" style="max-height:600px;overflow-y:auto">
-							<p style="text-align:center;color:var(--muted);padding:40px">Loading leaderboard...</p>
+							<p style="text-align:center;color:var(--muted);padding:40px">Loading local leaderboard…</p>
 						</div>
 					</div>
 				</section>
