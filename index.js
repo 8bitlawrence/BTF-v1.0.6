@@ -117,7 +117,7 @@ const FRUITS = [
 	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
 	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.01, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 60, value: 60000000 }
+	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.01, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 
 
