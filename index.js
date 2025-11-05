@@ -32,7 +32,10 @@ const ENCHANTMENTS = [
 	{ id: 'critical_3', name: 'Critical III', tier: 3, description: '+20% extra double-sell chance' },
 	{ id: 'vampiric_3', name: 'Vampiric III', tier: 3, description: 'Refund 12% of roll/capsule costs' },
 	{ id: 'legendary_3', name: 'Legendary III', tier: 3, description: '+10% all coin gains & CPS; -10% roll/capsule cost; +5% double-sell chance' },
-	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' }
+	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' },
+	{ id: 'mage_1', name: 'Mage I', tier: 1, description: '+25% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
+	{ id: 'mage_2', name: 'Mage II', tier: 2, description: '+50% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
+	{ id: 'mage_3', name: 'Mage III', tier: 3, description: '+100% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' }
 	
 ];
 
@@ -70,7 +73,8 @@ const PETS = [
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
-	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.5, value: 10000000 }
+	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.5, value: 10000000 },
+	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.001, value: 50000000 }
 ];
 
 // Prices
@@ -119,6 +123,7 @@ const FRUITS = [
 	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.01, value: 60000000 }
 	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.01, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
+	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.001, value: 100000000 }
 
 
 
@@ -150,7 +155,8 @@ const RARITY_RANK = {
 	legendary: 5,
 	spooky: 6,
 	chromatic: 7,
-	unique: 8
+	unique: 8,
+	godly: 9
 };
 
 // DOM
@@ -223,22 +229,8 @@ function weightedPick(items){
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
 	const pool = items.filter(i => !(i.rarity === 'spooky' && !halloweenStillOn));
 
-	// Exclude already-owned unique items so they cannot be obtained twice
-	let filtered = pool;
-	try{
-		const isPets = items === PETS;
-		const isFruits = items === FRUITS;
-		filtered = pool.filter(i => {
-			if(i.rarity !== 'unique') return true;
-			if(isPets){ return (state.inventory[i.id] || 0) < 1; }
-			if(isFruits){ return (state.fruits[i.id] || 0) < 1; }
-			return true;
-		});
-	}catch(e){ filtered = pool; }
-
-	// Prefer filtered list; if empty, prefer non-unique; else fallback to original
-	let useItems = filtered.length ? filtered : pool.filter(i=>i.rarity !== 'unique');
-	if(!useItems.length) useItems = items;
+	// All rarities can now be obtained multiple times (no unique filter)
+	let useItems = pool;
 
 
 	// Apply luck multiplier: multiply weights of rare items more than common
@@ -251,7 +243,8 @@ function weightedPick(items){
 		legendary: 8,
 		spooky: 6,
 		chromatic: 10,
-		unique: 12
+		unique: 12,
+		godly: 15
 	};
 	
 	const adjustedWeights = useItems.map(i => {
@@ -286,6 +279,7 @@ const RARITY_CPS = {
 	spooky: 30,
 	chromatic: 80,
 	unique: 120,
+	godly: 200,
 };
 
 // Aggregate coin-related effects from pet enchantments
@@ -298,10 +292,18 @@ function computeEnchantEffects(){
 		rollDiscount: 0,     // percent off pet roll prices
 		capDiscount: 0,      // percent off capsule prices
 		doubleSellChance: 0, // chance to double coins on sells
-		spendRefundPercent: 0 // percent refund on roll/capsule spend
+		spendRefundPercent: 0, // percent refund on roll/capsule spend
+		epGenerationMult: 1  // EP generation multiplier for special pets
 	};
 	const ench = state.petEnchantments || {};
-	for(const list of Object.values(ench)){
+	// Only process enchantments for pets that still exist in inventory
+	for(const [petKey, list] of Object.entries(ench)){
+		// Extract pet ID from key (format: petId_index)
+		const petId = petKey.split('_').slice(0, -1).join('_');
+		const instanceIndex = parseInt(petKey.split('_').pop());
+		// Skip if this pet type is no longer in inventory or if instance index exceeds current count
+		if(!state.inventory[petId] || instanceIndex >= state.inventory[petId]) continue;
+		
 		for(const id of list){
 			switch(id){
 				case 'wealthy_1': effects.coinGainMult *= 1.10; break;
@@ -359,6 +361,11 @@ function computeEnchantEffects(){
 					effects.capDiscount += 0.05;
 					effects.doubleSellChance += 0.05;
 					break;
+
+				case 'mage_1': effects.epGenerationMult *= 1.25; break;
+				case 'mage_2': effects.epGenerationMult *= 1.50; break;
+				case 'mage_3': effects.epGenerationMult *= 2.00; break;
+
 				default:
 					// other combat-ish enchants are cosmetic here
 			}
@@ -390,6 +397,10 @@ function computeTotalCPS(){
 		const per = RARITY_CPS[p.rarity] || 0;
 		total += per * count;
 	}
+	// Apply enchantment CPS multiplier
+	const ef = computeEnchantEffects();
+	total = Math.floor(total * ef.cpsMult);
+	
 	// Apply Benny Boost (+5% CPS) if active
 	if(state.bennyActive && state.bennyEndsAt > Date.now()){
 		return Math.floor(total * 1.05);
@@ -443,7 +454,8 @@ function updateUI(){
 			const p = PETS.find(x=>x.id===id);
 			if(p && p.rarity === 'special') specialCount += count;
 		}
-		const epsVal = specialCount * EP_PER_SEC_PER_SPECIAL;
+		const ef = computeEnchantEffects();
+		const epsVal = specialCount * EP_PER_SEC_PER_SPECIAL * ef.epGenerationMult;
 		const fmt = Number.isInteger(epsVal) ? epsVal : epsVal.toFixed(1);
 		epsEl.textContent = `(+${fmt}/s)`;
 	}
@@ -483,6 +495,7 @@ function updateUI(){
 				if(p.rarity === 'chromatic') el.classList.add('chromatic');
 				else if(p.rarity === 'spooky') el.classList.add('spooky');
 				else if(p.rarity === 'unique') el.classList.add('unique');
+				else if(p.rarity === 'godly') el.classList.add('godly');
 				const badge = document.createElement('div');
 				badge.className = `badge ${p.rarity}`;
 				badge.textContent = p.rarity.toUpperCase();
@@ -595,7 +608,7 @@ function animateRoll(makeItemsCallback, revealCallback){
 				}
 				const ic = document.createElement('div'); ic.style.fontSize='28px';
 		// placeholder icons reused from showResults
-		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
@@ -772,7 +785,8 @@ async function showResults(items){
 		const ic = document.createElement('div');
 		ic.style.fontSize = '28px';
 		// placeholder icons reused from showResults
-		if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
+		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
+		else if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
@@ -805,7 +819,10 @@ function showCapsuleResults(items){
 		const ic = document.createElement('div');
 		ic.style.fontSize = '28px';
 		// icon mapping for fruits
-		if(it.rarity==='chromatic'){
+		if(it.rarity==='godly'){
+			ic.textContent = '⚡';
+			card.classList.add('godly');
+		}else if(it.rarity==='chromatic'){
 			ic.textContent = '🌈';
 			card.classList.add('chromatic');
 		}else if(it.rarity==='spooky'){
@@ -863,10 +880,17 @@ async function sellFruit(id, count){
 	updateUI();
 }
 
-// Sell pets
+// Sell pets - with instance selection for multiples
 async function sellPet(id, count){
 	const have = state.inventory[id] || 0;
 	if(!have) return;
+	
+	// If selling 1 pet and have multiple, show selection modal
+	if(count === 1 && have > 1){
+		showSellPetSelector(id);
+		return;
+	}
+	
 	const sellCount = Math.min(have, count);
 	const p = PETS.find(x=>x.id===id) || {value:1};
 	// Confirm if legendary or higher
@@ -884,9 +908,77 @@ async function sellPet(id, count){
 	gained = Math.floor(gained * ef.sellPetMult * ef.coinGainMult);
 	state.inventory[id] = have - sellCount;
 	if(state.inventory[id] <= 0) delete state.inventory[id];
+	
+	// When selling all, clean up all associated data for this pet ID
+	if(state.inventory[id] === undefined || state.inventory[id] <= 0){
+		// Remove all enchantments and names for this pet type
+		for(let i = 0; i < have; i++){
+			const petKey = `${id}_${i}`;
+			delete state.petEnchantments[petKey];
+			delete state.petNames[petKey];
+		}
+	}
+	
 	state.coins += gained;
 	saveState();
 	updateUI();
+}
+
+// Sell a specific pet instance by index
+async function sellPetInstance(id, instanceIndex){
+	const have = state.inventory[id] || 0;
+	if(!have || instanceIndex >= have) return;
+	
+	const p = PETS.find(x=>x.id===id) || {value:1};
+	// Confirm if legendary or higher
+	const rank = RARITY_RANK[p.rarity] ?? 0;
+	const threshold = RARITY_RANK.legendary;
+	if(rank >= threshold){
+		const petKey = `${id}_${instanceIndex}`;
+		const customName = state.petNames[petKey];
+		const displayName = customName || `${p.name} #${instanceIndex + 1}`;
+		const ok = await showConfirm(`Sell ${displayName}? This pet is ${p.rarity.toUpperCase()}.`);
+		if(!ok) return;
+	}
+	
+	let gained = p.value || 1;
+	const ef = computeEnchantEffects();
+	// chance to double coins on sell
+	if(Math.random() < ef.doubleSellChance){ gained *= 2; }
+	// apply multipliers
+	gained = Math.floor(gained * ef.sellPetMult * ef.coinGainMult);
+	
+	// Remove the specific instance data
+	const petKey = `${id}_${instanceIndex}`;
+	delete state.petEnchantments[petKey];
+	delete state.petNames[petKey];
+	
+	// Shift down all higher-indexed instances for this pet type
+	for(let i = instanceIndex + 1; i < have; i++){
+		const oldKey = `${id}_${i}`;
+		const newKey = `${id}_${i-1}`;
+		
+		if(state.petEnchantments[oldKey]){
+			state.petEnchantments[newKey] = state.petEnchantments[oldKey];
+			delete state.petEnchantments[oldKey];
+		}
+		if(state.petNames[oldKey]){
+			state.petNames[newKey] = state.petNames[oldKey];
+			delete state.petNames[oldKey];
+		}
+	}
+	
+	// Decrement inventory count
+	state.inventory[id] = have - 1;
+	if(state.inventory[id] <= 0) delete state.inventory[id];
+	
+	state.coins += gained;
+	saveState();
+	updateUI();
+	
+	// Close the sell modal
+	const modal = document.getElementById('sellPetModal');
+	if(modal) modal.style.display = 'none';
 }
 
 // Button handlers
@@ -978,6 +1070,78 @@ clearFruits.addEventListener('click', async ()=>{
 	saveState();
 	updateUI();
 });
+
+// Sell pet selector modal
+function showSellPetSelector(petId){
+	const have = state.inventory[petId] || 0;
+	if(have <= 0) return;
+	
+	const p = PETS.find(x=>x.id===petId);
+	if(!p) return;
+	
+	const modal = document.getElementById('sellPetModal');
+	const titleEl = document.getElementById('sellPetTitle');
+	const listEl = document.getElementById('sellPetList');
+	
+	titleEl.textContent = `Select ${p.name} to Sell`;
+	listEl.innerHTML = '';
+	
+	for(let i = 0; i < have; i++){
+		const petKey = `${petId}_${i}`;
+		const customName = state.petNames[petKey];
+		const enchants = state.petEnchantments[petKey] || [];
+		
+		const item = document.createElement('div');
+		item.className = 'pet-selector-item';
+		item.style.cursor = 'pointer';
+		item.style.padding = '14px';
+		item.style.background = 'var(--glass)';
+		item.style.borderRadius = '8px';
+		item.style.border = '2px solid rgba(255,255,255,0.08)';
+		item.style.transition = 'all 0.2s';
+		
+		const displayName = customName || `${p.name} #${i + 1}`;
+		const cps = RARITY_CPS[p.rarity] || 0;
+		let enchantText = '';
+		if(enchants.length > 0){
+			const enchantNames = enchants.map(eid => {
+				const ench = ENCHANTMENTS.find(e => e.id === eid);
+				return ench ? ench.name : eid;
+			}).join(', ');
+			enchantText = `<div style="font-size:12px;color:#a855f7;margin-top:4px">💎 ${enchantNames}</div>`;
+		}
+		
+		item.innerHTML = `
+			<div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:6px">
+				<div style="font-weight:700;font-size:15px">${displayName}</div>
+				<div class="badge ${p.rarity}" style="font-size:10px;padding:3px 8px">${p.rarity.toUpperCase()}</div>
+			</div>
+			<div style="font-size:13px;color:var(--muted);margin-bottom:4px">
+				${enchants.length} enchantment${enchants.length !== 1 ? 's' : ''} • ${cps} CPS • Sell: ${p.value}c
+			</div>
+			${enchantText}
+		`;
+		
+		item.addEventListener('mouseenter', ()=>{
+			item.style.borderColor = '#ef4444';
+			item.style.background = 'rgba(239, 68, 68, 0.1)';
+			item.style.transform = 'translateX(4px)';
+		});
+		item.addEventListener('mouseleave', ()=>{
+			item.style.borderColor = 'rgba(255,255,255,0.08)';
+			item.style.background = 'var(--glass)';
+			item.style.transform = 'translateX(0)';
+		});
+		
+		item.addEventListener('click', ()=>{
+			sellPetInstance(petId, i);
+		});
+		
+		listEl.appendChild(item);
+	}
+	
+	modal.style.display = 'flex';
+}
 
 // Pet selector modal
 function showPetSelector(petId, count){
@@ -1209,6 +1373,18 @@ if(closePetSelector && petSelectorModal){
 	});
 }
 
+// Sell pet modal close
+const closeSellPet = document.getElementById('closeSellPet');
+const sellPetModal = document.getElementById('sellPetModal');
+if(closeSellPet && sellPetModal){
+	closeSellPet.addEventListener('click', ()=>{
+		sellPetModal.style.display = 'none';
+	});
+	sellPetModal.addEventListener('click', (e)=>{
+		if(e.target === sellPetModal) sellPetModal.style.display = 'none';
+	});
+}
+
 // Passive income: add coins every second based on total CPS
 let __epOverflow = 0; // fractional EP accumulator for per-second generation
 setInterval(()=>{
@@ -1240,7 +1416,8 @@ setInterval(()=>{
 		if(p && p.rarity === 'special') specialCount += count;
 	}
 	if(specialCount > 0){
-		__epOverflow += specialCount * EP_PER_SEC_PER_SPECIAL;
+		const ef = computeEnchantEffects();
+		__epOverflow += specialCount * EP_PER_SEC_PER_SPECIAL * ef.epGenerationMult;
 		const gained = Math.floor(__epOverflow);
 		if(gained > 0){
 			__epOverflow -= gained;

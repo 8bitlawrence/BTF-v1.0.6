@@ -37,7 +37,12 @@ const ENCHANTMENTS = [
     { id: 'critical_3', name: 'Critical III', tier: 3, cost: 400, description: '+20% extra double-sell chance' },
     { id: 'vampiric_3', name: 'Vampiric III', tier: 3, cost: 400, description: 'Refund 12% of roll/capsule costs' },
     { id: 'legendary_3', name: 'Legendary III', tier: 3, cost: 500, description: '+10% all coin gains & CPS; -10% roll/capsule cost; +5% double-sell chance' },
-    { id: 'ultimate_3', name: 'Ultimate III', tier: 3, cost: 500, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' }
+    { id: 'ultimate_3', name: 'Ultimate III', tier: 3, cost: 500, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' },
+    
+    // Mage enchantments - Exclusive to Suspicious Creature
+    { id: 'mage_1', name: 'Mage I', tier: 1, cost: 50, description: '+25% EP generation ', exclusiveTo: 'pet_sp_1' },
+    { id: 'mage_2', name: 'Mage II', tier: 2, cost: 150, description: '+50% EP generation ', exclusiveTo: 'pet_sp_1' },
+    { id: 'mage_3', name: 'Mage III', tier: 3, cost: 400, description: '+100% EP generation', exclusiveTo: 'pet_sp_1' }
 ];
 
 const PETS = [
@@ -236,13 +241,24 @@ function selectPet(petKey, petId) {
 // Generate 3 random enchantment options
 function generateEnchantOptions() {
     currentEnchantOptions = [];
-    const availableEnchants = [...ENCHANTMENTS];
+    
+    // Get the pet ID from selectedPetKey (format: petId_index)
+    const petId = selectedPetKey ? selectedPetKey.split('_').slice(0, -1).join('_') : null;
+    
+    // Filter enchantments based on exclusiveTo property
+    const availableEnchants = ENCHANTMENTS.filter(enchant => {
+        // If enchant has no exclusiveTo, it's available for all pets
+        if (!enchant.exclusiveTo) return true;
+        // If enchant is exclusive, only include it if the pet matches
+        return enchant.exclusiveTo === petId;
+    });
     
     // Pick 3 random enchantments
-    for (let i = 0; i < 3 && availableEnchants.length > 0; i++) {
-        const randomIndex = Math.floor(Math.random() * availableEnchants.length);
-        currentEnchantOptions.push(availableEnchants[randomIndex]);
-        availableEnchants.splice(randomIndex, 1);
+    const shuffled = [...availableEnchants];
+    for (let i = 0; i < 3 && shuffled.length > 0; i++) {
+        const randomIndex = Math.floor(Math.random() * shuffled.length);
+        currentEnchantOptions.push(shuffled[randomIndex]);
+        shuffled.splice(randomIndex, 1);
     }
     
     renderEnchantOptions();
