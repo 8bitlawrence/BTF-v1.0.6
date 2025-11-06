@@ -90,6 +90,7 @@ function getMaxInventory(){
 // Gift code system: maps 16-character codes to rewards
 const GIFT_CODES = {
 	"ILIKEET676767676": { pet: "pet_u_3", description: "Free Pet: Max Verstappen (Unique)" },
+	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" }
 	
 };
 
@@ -787,9 +788,11 @@ function redeemGiftCode(code){
 	}
 	
 	if(reward.pet){
-		// Add pet to inventory
-		const petId = reward.pet;
-		state.inventory[petId] = (state.inventory[petId] || 0) + 1;
+		// Add pet(s) to inventory - can be a single pet ID or an array
+		const pets = Array.isArray(reward.pet) ? reward.pet : [reward.pet];
+		pets.forEach(petId => {
+			state.inventory[petId] = (state.inventory[petId] || 0) + 1;
+		});
 	}
 	
 	if(reward.item === "luck_potion"){
