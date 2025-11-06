@@ -87,6 +87,12 @@ function getMaxInventory(){
 	return BASE_INVENTORY + (state.bonusInventorySlots || 0);
 }
 
+// Gift code system: maps 16-character codes to rewards
+const GIFT_CODES = {
+	"ILIKEET676767676": { pet: "pet_u_3", description: "Free Pet: Max Verstappen (Unique)" },
+	
+};
+
 // Config: show admin button and starting coins
 const SHOW_ADMIN_BUTTON = false; // set to false to hide admin button
 const START_WITH_MILLION = false; // if true, default starting coins = 1,000,000 when no save exists
@@ -178,10 +184,75 @@ const capTen = document.getElementById('capTen');
 const capsuleResultArea = document.getElementById('capsuleResultArea');
 
 // Persistence
-const STORAGE_KEY = 'mini_gacha_state_v1';
+const STORAGE_KEY = 'btf_state_v1';
+const STORAGE_HASH_KEY = STORAGE_KEY + '_hash';
+
+// Build a deterministic JSON string from an object (keys sorted),
+// so the same logical state yields the same string across runs.
+function stableStringify(value){
+	if(value === null || typeof value !== 'object'){
+		return JSON.stringify(value);
+	}
+	if(Array.isArray(value)){
+		return '[' + value.map(v => stableStringify(v)).join(',') + ']';
+	}
+	const keys = Object.keys(value).sort();
+	const parts = keys.map(k => JSON.stringify(k) + ':' + stableStringify(value[k]));
+	return '{' + parts.join(',') + '}';
+}
+
+// Lightweight 64-bit FNV-1a hash (BigInt) -> hex string
+function fnv1a64(str){
+	let h = 0xcbf29ce484222325n; // FNV offset basis
+	const prime = 0x100000001b3n; // FNV prime
+	for(let i=0;i<str.length;i++){
+		h ^= BigInt(str.charCodeAt(i) & 0xff);
+		h = (h * prime) & 0xffffffffffffffffn; // keep 64-bit
+	}
+	let hex = h.toString(16);
+	while(hex.length < 16) hex = '0' + hex;
+	return hex;
+}
+
+// Extract only meaningful state to hash (avoid cosmetic/ephemeral fields)
+function snapshotMeaningfulState(s){
+	return {
+		coins: s.coins || 0,
+		enchantPoints: s.enchantPoints || 0,
+		inventory: s.inventory || {},
+		fruits: s.fruits || {},
+		petEnchantments: s.petEnchantments || {},
+		petNames: s.petNames || {},
+		bonusInventorySlots: s.bonusInventorySlots || 0,
+		redeemedGiftCodes: s.redeemedGiftCodes || []
+	};
+}
+
+function computeStateHash(s){
+	const snap = snapshotMeaningfulState(s);
+	const str = stableStringify(snap);
+	return fnv1a64(str);
+}
 function loadState(){
 	try{
+		// Migrate from previous storage key if present
+		if(!localStorage.getItem(STORAGE_KEY)){
+			const OLD_KEYS = ['mini_gacha_state_v1'];
+			for(const oldKey of OLD_KEYS){
+				const oldRaw = localStorage.getItem(oldKey);
+				if(oldRaw){
+					try{ localStorage.setItem(STORAGE_KEY, oldRaw); }catch(e){ console.warn(e); }
+					const oldHash = localStorage.getItem(oldKey + '_hash');
+					if(oldHash){
+						try{ localStorage.setItem(STORAGE_HASH_KEY, oldHash); }catch(e){ console.warn(e); }
+					}
+					break;
+				}
+			}
+		}
+
 		const raw = localStorage.getItem(STORAGE_KEY);
+		const storedHash = localStorage.getItem(STORAGE_HASH_KEY);
 		if(raw){
 			const parsed = JSON.parse(raw);
 			// merge with defaults to ensure keys exist (older saves may miss fields)
@@ -199,8 +270,35 @@ function loadState(){
 				bennyEndsAt: parsed.bennyEndsAt ?? 0,
 				blessingActive: parsed.blessingActive ?? false,
 				blessingEndsAt: parsed.blessingEndsAt ?? 0,
-				bonusInventorySlots: parsed.bonusInventorySlots ?? 0
+				bonusInventorySlots: parsed.bonusInventorySlots ?? 0,
+				redeemedGiftCodes: parsed.redeemedGiftCodes ?? []
 			};
+
+			// Verify integrity if a hash exists; if not, backfill one for legacy saves
+			const recalculated = computeStateHash(state);
+			if(storedHash && storedHash !== recalculated){
+				// Tampered or corrupted — reset to safe defaults
+				console.warn('Save integrity check failed. Resetting save.');
+				localStorage.setItem('btf_save_tampered', '1');
+				state = {
+					coins: START_WITH_MILLION ? 1000000 : 2000,
+					enchantPoints: 0,
+					inventory: {},
+					fruits: {},
+					petEnchantments: {},
+					petNames: {},
+					bonusInventorySlots: 0,
+					redeemedGiftCodes: []
+				};
+				// Persist a clean save and hash right away
+				try{
+					localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+					localStorage.setItem(STORAGE_HASH_KEY, computeStateHash(state));
+				}catch(e){ console.warn(e); }
+			} else if(!storedHash){
+				// Legacy save without hash: create one
+				try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
+			}
 		} else {
 			// No save data found, start fresh
 			state = {
@@ -209,13 +307,20 @@ function loadState(){
 				inventory: {},
 				fruits: {},
 				petEnchantments: {},
-				petNames: {}
+				petNames: {},
+				bonusInventorySlots: 0,
+				redeemedGiftCodes: []
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
 }
 function saveState(){
-	try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){ console.warn(e) }
+	try{
+		const json = JSON.stringify(state);
+		localStorage.setItem(STORAGE_KEY, json);
+		const hash = computeStateHash(state);
+		localStorage.setItem(STORAGE_HASH_KEY, hash);
+	}catch(e){ console.warn(e) }
 }
 
 // Helpers: weighted pick
@@ -435,7 +540,7 @@ function rollFruitTen(){
 
 // UI
 function updateUI(){
-	coinsEl.textContent = state.coins;
+	if(coinsEl) coinsEl.textContent = state.coins;
 	// update CPS display if element exists
 	if(cpsEl){
 		const totalCps = computeTotalCPS();
@@ -477,8 +582,9 @@ function updateUI(){
 	}
 
 	// Pets inventory
-	inventoryList.innerHTML = '';
-	const entries = Object.entries(state.inventory).sort((a,b)=>b[1]-a[1]);
+	if(inventoryList){
+		inventoryList.innerHTML = '';
+		const entries = Object.entries(state.inventory).sort((a,b)=>b[1]-a[1]);
 	if(entries.length===0){
 		inventoryList.innerHTML = '<div style="color:var(--muted)">No pets yet. Roll to get some!</div>';
 	} else {
@@ -531,11 +637,13 @@ function updateUI(){
 				
 				inventoryList.appendChild(el);
 			}
+		}
 	}
 
 	// Fruits inventory
-	inventoryListFruits.innerHTML = '';
-	const fentries = Object.entries(state.fruits).sort((a,b)=>b[1]-a[1]);
+	if(inventoryListFruits){
+		inventoryListFruits.innerHTML = '';
+		const fentries = Object.entries(state.fruits).sort((a,b)=>b[1]-a[1]);
 	if(fentries.length===0){
 		inventoryListFruits.innerHTML = '<div style="color:var(--muted)">No fruits yet. Roll capsules to collect fruits.</div>';
 	} else {
@@ -578,15 +686,20 @@ function updateUI(){
 			inventoryListFruits.appendChild(el);
 		}
 	}
+	}
 }
 
 // Animation helper: run a pre-roll animation then reveal items
 function animateRoll(makeItemsCallback, revealCallback){
-	// disable controls
-	singleBtn.disabled = true; tenBtn.disabled = true; capSingle.disabled = true; capTen.disabled = true;
-	singleBtn.classList.add('anim-pulse'); tenBtn.classList.add('anim-pulse');
-	resultArea.classList.add('animating');
-	capsuleResultArea.classList.add('animating');
+	// disable controls (only if they exist)
+	if(singleBtn) singleBtn.disabled = true;
+	if(tenBtn) tenBtn.disabled = true;
+	if(capSingle) capSingle.disabled = true;
+	if(capTen) capTen.disabled = true;
+	if(singleBtn) singleBtn.classList.add('anim-pulse');
+	if(tenBtn) tenBtn.classList.add('anim-pulse');
+	if(resultArea) resultArea.classList.add('animating');
+	if(capsuleResultArea) capsuleResultArea.classList.add('animating');
 
 	// small pre-roll delay
 	setTimeout(()=>{
@@ -628,12 +741,75 @@ function animateRoll(makeItemsCallback, revealCallback){
 		// after all revealed, finalize: call revealCallback to add to inventory/state properly
 		setTimeout(async ()=>{
 			await revealCallback(items);
-			// re-enable
-			singleBtn.disabled = false; tenBtn.disabled = false; capSingle.disabled = false; capTen.disabled = false;
-			singleBtn.classList.remove('anim-pulse'); tenBtn.classList.remove('anim-pulse');
-			resultArea.classList.remove('animating'); capsuleResultArea.classList.remove('animating');
+			// re-enable (only if they exist)
+			if(singleBtn) singleBtn.disabled = false;
+			if(tenBtn) tenBtn.disabled = false;
+			if(capSingle) capSingle.disabled = false;
+			if(capTen) capTen.disabled = false;
+			if(singleBtn) singleBtn.classList.remove('anim-pulse');
+			if(tenBtn) tenBtn.classList.remove('anim-pulse');
+			if(resultArea) resultArea.classList.remove('animating');
+			if(capsuleResultArea) capsuleResultArea.classList.remove('animating');
 		}, items.length*revealDelay + 220);
 	}, 220);
+}
+
+// Gift code redemption function
+function redeemGiftCode(code){
+	// Normalize code
+	const normalizedCode = code.trim().toUpperCase();
+	
+	// Validate length
+	if(normalizedCode.length !== 16){
+		return { success: false, message: "Gift code must be exactly 16 characters." };
+	}
+	
+	// Check if code exists
+	if(!GIFT_CODES[normalizedCode]){
+		return { success: false, message: "Invalid gift code." };
+	}
+	
+	// Check if already redeemed
+	if(state.redeemedGiftCodes && state.redeemedGiftCodes.includes(normalizedCode)){
+		return { success: false, message: "This gift code has already been redeemed." };
+	}
+	
+	// Get reward details
+	const reward = GIFT_CODES[normalizedCode];
+	
+	// Grant rewards
+	if(reward.coins){
+		state.coins = (state.coins || 0) + reward.coins;
+	}
+	
+	if(reward.enchantPoints){
+		state.enchantPoints = (state.enchantPoints || 0) + reward.enchantPoints;
+	}
+	
+	if(reward.pet){
+		// Add pet to inventory
+		const petId = reward.pet;
+		state.inventory[petId] = (state.inventory[petId] || 0) + 1;
+	}
+	
+	if(reward.item === "luck_potion"){
+		// Activate luck potion
+		state.potionActive = true;
+		state.potionEndsAt = Date.now() + 5 * 60 * 1000; // 5 minutes
+		state.luckStacks = Math.min((state.luckStacks || 0) + 1, 100);
+	}
+	
+	// Mark code as redeemed
+	if(!state.redeemedGiftCodes) state.redeemedGiftCodes = [];
+	state.redeemedGiftCodes.push(normalizedCode);
+	
+	// Save state
+	saveState();
+	
+	return { 
+		success: true, 
+		message: reward.description || "Gift code redeemed successfully!" 
+	};
 }
 
 // Custom alert modal (created dynamically). Returns a Promise that resolves when the user closes it.
@@ -981,31 +1157,34 @@ async function sellPetInstance(id, instanceIndex){
 	if(modal) modal.style.display = 'none';
 }
 
-// Button handlers
-singleBtn.addEventListener('click', async ()=>{
-	const costs = getCurrentCosts();
-	if(state.coins < costs.priceSingle){ alert('Not enough coins for a single roll.'); return; }
-	// prevent rolling if inventory full
-	const maxInv = getMaxInventory();
-	if(getPetTotalCount() >= maxInv){
-		await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
-		return;
-	}
-	state.coins -= costs.priceSingle;
-	// Cashback from enchants
-	const ef = costs._effects;
-	if(ef.spendRefundPercent > 0){
-		const refund = Math.floor(costs.priceSingle * ef.spendRefundPercent * ef.coinGainMult);
-		state.coins += refund;
-	}
-	// Grant Enchantment Points (tuned lower)
-	const epGain = EP_GAIN_SINGLE_MIN + Math.floor(Math.random() * (EP_GAIN_SINGLE_MAX - EP_GAIN_SINGLE_MIN + 1));
-	state.enchantPoints = (state.enchantPoints || 0) + epGain;
-	// animate then reveal
-	animateRoll(()=>[rollOnce()], showResults);
-});
+// Button handlers (only attach if elements exist - for pages that load index.js)
+if(singleBtn){
+	singleBtn.addEventListener('click', async ()=>{
+		const costs = getCurrentCosts();
+		if(state.coins < costs.priceSingle){ alert('Not enough coins for a single roll.'); return; }
+		// prevent rolling if inventory full
+		const maxInv = getMaxInventory();
+		if(getPetTotalCount() >= maxInv){
+			await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
+			return;
+		}
+		state.coins -= costs.priceSingle;
+		// Cashback from enchants
+		const ef = costs._effects;
+		if(ef.spendRefundPercent > 0){
+			const refund = Math.floor(costs.priceSingle * ef.spendRefundPercent * ef.coinGainMult);
+			state.coins += refund;
+		}
+		// Grant Enchantment Points (tuned lower)
+		const epGain = EP_GAIN_SINGLE_MIN + Math.floor(Math.random() * (EP_GAIN_SINGLE_MAX - EP_GAIN_SINGLE_MIN + 1));
+		state.enchantPoints = (state.enchantPoints || 0) + epGain;
+		// animate then reveal
+		animateRoll(()=>[rollOnce()], showResults);
+	});
+}
 
-tenBtn.addEventListener('click', async ()=>{
+if(tenBtn){
+	tenBtn.addEventListener('click', async ()=>{
 	const costs = getCurrentCosts();
 	if(state.coins < costs.priceTen){ alert('Not enough coins for a ten-roll.'); return; }
 	// check available slots
@@ -1031,45 +1210,54 @@ tenBtn.addEventListener('click', async ()=>{
 	const epGain = EP_GAIN_TEN_MIN + Math.floor(Math.random() * (EP_GAIN_TEN_MAX - EP_GAIN_TEN_MIN + 1));
 	state.enchantPoints = (state.enchantPoints || 0) + epGain;
 	animateRoll(()=>rollTen(), showResults);
-});
+	});
+}
 
-capSingle.addEventListener('click', ()=>{
-	const costs = getCurrentCosts();
-	if(state.coins < costs.capSingle){ alert('Not enough coins for capsule roll.'); return; }
-	state.coins -= costs.capSingle;
-	const ef = costs._effects;
-	if(ef.spendRefundPercent > 0){
-		const refund = Math.floor(costs.capSingle * ef.spendRefundPercent * ef.coinGainMult);
-		state.coins += refund;
-	}
-	animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
-});
+if(capSingle){
+	capSingle.addEventListener('click', ()=>{
+		const costs = getCurrentCosts();
+		if(state.coins < costs.capSingle){ alert('Not enough coins for capsule roll.'); return; }
+		state.coins -= costs.capSingle;
+		const ef = costs._effects;
+		if(ef.spendRefundPercent > 0){
+			const refund = Math.floor(costs.capSingle * ef.spendRefundPercent * ef.coinGainMult);
+			state.coins += refund;
+		}
+		animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
+	});
+}
 
-capTen.addEventListener('click', ()=>{
-	const costs = getCurrentCosts();
-	if(state.coins < costs.capTen){ alert('Not enough coins for capsule x10.'); return; }
-	state.coins -= costs.capTen;
-	const ef = costs._effects;
-	if(ef.spendRefundPercent > 0){
-		const refund = Math.floor(costs.capTen * ef.spendRefundPercent * ef.coinGainMult);
-		state.coins += refund;
-	}
-	animateRoll(()=>rollFruitTen(), showCapsuleResults);
-});
+if(capTen){
+	capTen.addEventListener('click', ()=>{
+		const costs = getCurrentCosts();
+		if(state.coins < costs.capTen){ alert('Not enough coins for capsule x10.'); return; }
+		state.coins -= costs.capTen;
+		const ef = costs._effects;
+		if(ef.spendRefundPercent > 0){
+			const refund = Math.floor(costs.capTen * ef.spendRefundPercent * ef.coinGainMult);
+			state.coins += refund;
+		}
+		animateRoll(()=>rollFruitTen(), showCapsuleResults);
+	});
+}
 
-clearInv.addEventListener('click', async ()=>{
-	if(!await showConfirm('Clear your inventory?')) return;
-	state.inventory = {};
-	saveState();
-	updateUI();
-});
+if(clearInv){
+	clearInv.addEventListener('click', async ()=>{
+		if(!await showConfirm('Clear your inventory?')) return;
+		state.inventory = {};
+		saveState();
+		updateUI();
+	});
+}
 
-clearFruits.addEventListener('click', async ()=>{
-	if(!await showConfirm('Clear fruits inventory?')) return;
-	state.fruits = {};
-	saveState();
-	updateUI();
-});
+if(clearFruits){
+	clearFruits.addEventListener('click', async ()=>{
+		if(!await showConfirm('Clear fruits inventory?')) return;
+		state.fruits = {};
+		saveState();
+		updateUI();
+	});
+}
 
 // Sell pet selector modal
 function showSellPetSelector(petId){
@@ -1276,6 +1464,15 @@ state.fruits = state.fruits || {};
 
 updateUI();
 saveState();
+
+// If a tampered save was detected during load, notify the player once
+const __tamperedFlag = localStorage.getItem('btf_save_tampered');
+if(__tamperedFlag === '1'){
+	localStorage.removeItem('btf_save_tampered');
+	setTimeout(()=>{
+		try{ showAlert('Tampering detected! Your save was reset to defaults.'); }catch(_){ /* fallback */ alert('Tampering detected! Your save was reset to defaults.'); }
+	}, 0);
+}
 
 // Toggle Halloween visuals based on HALLOWEEN_END
 function updateHalloweenVisuals(){

@@ -1,5 +1,5 @@
 // Shop functionality
-const STORAGE_KEY = 'mini_gacha_state_v1';
+// STORAGE_KEY is now defined in index.js
 const POTION_COST = 100000;
 const POTION_DURATION = 5 * 60 * 1000; // 5 minutes in ms
 const BENNY_COST = 10000;
@@ -9,9 +9,7 @@ const BLESSING_DURATION = 5 * 60 * 1000; // 5 minutes
 const SLOT_MACHINE_COST = 1000000;
 const SLOT_MACHINE_BONUS = 5;
 
-// DOM elements
-const coinsEl = document.getElementById('coins');
-const luckMultiplierEl = document.getElementById('luckMultiplier');
+// DOM elements (coinsEl and luckMultiplierEl are defined in index.js)
 const buyBtn = document.getElementById('buyLuckPotion');
 const timerEl = document.getElementById('potionTimer');
 const buyBennyBtn = document.getElementById('buyBennyBoost');
@@ -21,25 +19,15 @@ const blessingTimerEl = document.getElementById('blessingTimer');
 const buySlotMachineBtn = document.getElementById('buySlotMachine');
 const slotsPurchasedEl = document.getElementById('slotsPurchased');
 
-// State
-let state = {
-    coins: 0,
-    potionActive: false,
-    potionEndsAt: 0,
-    luckStacks: 0,
-    bennyActive: false,
-    bennyEndsAt: 0,
-    blessingActive: false,
-    blessingEndsAt: 0,
-    purchasedItems: [],
-    bonusInventorySlots: 0
-};
+// State is now defined in index.js - use the global state
+// Local state object removed to avoid duplicate declaration
 
 
 
 // Load state
 function loadState() {
     try {
+        const STORAGE_KEY = 'btf_state_v1'; // Use local constant for shop page
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
@@ -58,25 +46,7 @@ function loadState() {
     updateUI();
 }
 
-// Save state
-function saveState() {
-    try {
-        const current = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
-        localStorage.setItem(STORAGE_KEY, JSON.stringify({
-            ...current,
-            coins: state.coins,
-            potionActive: state.potionActive,
-            potionEndsAt: state.potionEndsAt,
-            luckStacks: state.luckStacks,
-            bennyActive: state.bennyActive,
-            bennyEndsAt: state.bennyEndsAt,
-            blessingActive: state.blessingActive,
-            blessingEndsAt: state.blessingEndsAt,
-            purchasedItems: state.purchasedItems,
-            bonusInventorySlots: state.bonusInventorySlots
-        }));
-    } catch (e) { console.warn(e) }
-}
+// saveState() is now provided by index.js with hash integrity
 
 // Update UI
 function updateUI() {
@@ -233,6 +203,61 @@ if(buySlotMachineBtn){
             saveState();
             updateUI();
             alert(`Purchased! Your pet inventory capacity is now ${20 + state.bonusInventorySlots} slots.`);
+        }
+    });
+}
+
+// Gift Code redemption handler
+const giftCodeInput = document.getElementById('giftCodeInput');
+const redeemGiftCodeBtn = document.getElementById('redeemGiftCode');
+
+if(redeemGiftCodeBtn && giftCodeInput){
+    redeemGiftCodeBtn.addEventListener('click', async ()=>{
+        const code = giftCodeInput.value.trim().toUpperCase();
+        
+        if(!code){
+            if(typeof showAlert === 'function'){
+                await showAlert('Please enter a gift code.');
+            } else {
+                alert('Please enter a gift code.');
+            }
+            return;
+        }
+        
+        // Call redemption logic from index.js if available
+        if(typeof redeemGiftCode === 'function'){
+            const result = redeemGiftCode(code);
+            
+            if(result.success){
+                // Refresh state from localStorage to get updated values
+                loadState();
+                updateUI();
+                if(typeof showAlert === 'function'){
+                    await showAlert('✅ ' + result.message);
+                } else {
+                    alert('✅ ' + result.message);
+                }
+                giftCodeInput.value = ''; // Clear input
+            } else {
+                if(typeof showAlert === 'function'){
+                    await showAlert('❌ ' + result.message);
+                } else {
+                    alert('❌ ' + result.message);
+                }
+            }
+        } else {
+            if(typeof showAlert === 'function'){
+                await showAlert('Gift code system not available. Please ensure you are on the correct page.');
+            } else {
+                alert('Gift code system not available. Please ensure you are on the correct page.');
+            }
+        }
+    });
+    
+    // Allow Enter key to redeem
+    giftCodeInput.addEventListener('keypress', (e)=>{
+        if(e.key === 'Enter'){
+            redeemGiftCodeBtn.click();
         }
     });
 }

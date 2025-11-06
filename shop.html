@@ -115,10 +115,20 @@
                 <div class="item-icon">👑</div>
                 <div class="item-details">
                     <h3>BTF+</h3>
-                    <p>Includes a random potion and 10000 coins</p>
+                    <p><strong>Not functional yet</strong></p>
                     <p style="margin-top:4px">Cost: 50000c</p>
                 </div>
                 <button id="buyWizardsBundle" class="buy-btn">Buy Bundle</button>
+            </section>
+
+            <section class="shop-item">
+                <div class="item-icon">🎁</div>
+                <div class="item-details">
+                    <h3>Gift Code</h3>
+                    <p>Enter gift code to get rewards</p>
+                    <input type="text" id="giftCodeInput" placeholder="Enter code" maxlength="16" style="margin-top:8px;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:var(--card);color:var(--fg);font-size:14px;width:220px;font-family:inherit;" />
+                </div>
+                <button id="redeemGiftCode" class="buy-btn">Redeem</button>
             </section>
 
         </main>
@@ -127,6 +137,7 @@
             <a href="index.html" style="color:var(--muted);">Back to game</a>
         </footer>
     </div>
+    <script src="index.js"></script>
     <script src="shop.js"></script>
 </body>
 </html>

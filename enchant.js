@@ -12,6 +12,10 @@ const ENCHANTMENTS = [
     { id: 'scavenger_1', name: 'Scavenger I', tier: 1, cost: 50, description: 'Capsule price -5%' },
     { id: 'efficient_1', name: 'Efficient I', tier: 1, cost: 50, description: 'Pet roll price -5%' },
     { id: 'durable_1', name: 'Durable I', tier: 1, cost: 50, description: '+10% Coins per Second' },
+    {id: 'critical_1', name: 'Critical I', tier: 1, cost: 50, description: '+5% extra double-sell chance' },
+    {id: 'vampiric_1', name: 'Vampiric I', tier: 1, cost: 50, description: 'Refund 2% of roll/capsule costs' },
+    {id: 'legendary_1', name: 'Legendary I', tier: 1, cost: 75, description: '+5% all coin gains & CPS; -5% roll/capsule cost; +2% double-sell chance' },
+    {id: 'ultimate_1', name: 'Ultimate I', tier: 1, cost: 75, description: '+2% all coin gains; -2% roll/capsule cost; +2% double-sell chance' },
     
     // Tier 2 - Advanced
     { id: 'swift_2', name: 'Swift II', tier: 2, cost: 150, description: '+5% Coins per Second' },
