@@ -66,15 +66,15 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.01, value: 10000000 },
-	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.01, value: 10000000 },
+	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.005, value: 10000000 },
+	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.005, value: 10000000 },
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
-	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.01, value: 10000000 },
-	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.001, value: 50000000 }
+	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.005, value: 10000000 },
+	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.0005, value: 50000000 }
 ];
 
 // Prices
@@ -127,10 +127,10 @@ const FRUITS = [
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
 	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
-	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.01, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.01, value: 60000000 }
+	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.005, value: 60000000 }
+	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
-	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.001, value: 100000000 }
+	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.0005, value: 100000000 }
 
 
 
