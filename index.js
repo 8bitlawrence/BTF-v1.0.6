@@ -87,7 +87,8 @@ function getMaxInventory(){
 // Gift code system: maps 16-character codes to rewards
 const GIFT_CODES = {
 	"ILIKEET676767676": { pet: "pet_u_3", description: "Free Pet: Max Verstappen (Unique)" },
-	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" }
+	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" },
+	"COOKIES676767676": { pet: ["pet_u_2", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1"], description: "Free Fruit: Cookiefruit (Unique)" }
 	
 };
 
