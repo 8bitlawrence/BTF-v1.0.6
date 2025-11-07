@@ -1,6 +1,3 @@
-
-
-
 // Enchantment definitions for modal display
 const ENCHANTMENTS = [
 	{ id: 'swift_1', name: 'Swift I', tier: 1, description: '+2% Coins per Second' },
@@ -68,7 +65,7 @@ const PETS = [
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
 	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.005, value: 10000000 },
 	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.005, value: 10000000 },
-	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 10, value: 1000 },
+	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 1, value: 1000 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
@@ -125,7 +122,7 @@ const FRUITS = [
 	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
 	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic', weight: 0.25, value: 1200 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.25, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
 	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.005, value: 60000000 }
 	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
@@ -150,7 +147,9 @@ let state = {
 	luckStacks: 0,
 	bennyActive: false,
 	bennyEndsAt: 0,
-	bonusInventorySlots: 0 // extra slots from Slot Machine purchases
+	bonusInventorySlots: 0, // extra slots from Slot Machine purchases
+	redeemedGiftCodes: [], // track used gift codes
+	petRerollsUsed: {} // track pet enchant rerolls { petId_index: count }
 };
 
 // Rarity ranks for sell confirmations (legendary or higher triggers prompt)
@@ -225,7 +224,8 @@ function snapshotMeaningfulState(s){
 		petEnchantments: s.petEnchantments || {},
 		petNames: s.petNames || {},
 		bonusInventorySlots: s.bonusInventorySlots || 0,
-		redeemedGiftCodes: s.redeemedGiftCodes || []
+		redeemedGiftCodes: s.redeemedGiftCodes || [],
+		petRerollsUsed: s.petRerollsUsed || {}
 	};
 }
 
@@ -664,6 +664,7 @@ function updateUI(){
 			if(f.rarity === 'chromatic') el.classList.add('chromatic');
 			else if(f.rarity === 'spooky') el.classList.add('spooky');
 			else if(f.rarity === 'unique') el.classList.add('unique');
+			else if(f.rarity === 'godly') el.classList.add('godly');
 			const badge = document.createElement('div');
 			badge.className = `badge ${f.rarity}`;
 			badge.textContent = f.rarity.toUpperCase();
@@ -727,6 +728,7 @@ function animateRoll(makeItemsCallback, revealCallback){
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
 		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
+		else if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='legendary'){ ic.textContent='🔱'; }
 		else if(it.rarity==='rare'){ ic.textContent='⭐'; }
 		else { ic.textContent='●'; }
