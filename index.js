@@ -89,7 +89,7 @@ function getMaxInventory(){
 }
 
 // Gift code system: maps 16-character codes to rewards
-const GIFT_CODES = {
+const GIFT_CODES = { 
 	"ILIKEET676767676": { pet: "pet_u_3", description: "Free Pet: Max Verstappen (Unique)" },
 	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" },
 	"COOKIES676767676": { pet: ["pet_u_2", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1"], description: "Free Fruit: Cookiefruit (Unique)" }
@@ -261,6 +261,9 @@ function loadState(){
 		const storedHash = localStorage.getItem(STORAGE_HASH_KEY);
 		if(raw){
 			const parsed = JSON.parse(raw);
+			// Track which newer keys were absent in the persisted JSON for schema upgrade tolerance
+			const hadRerollsKey = Object.prototype.hasOwnProperty.call(parsed,'petRerollsUsed');
+			const hadRedeemedCodesKey = Object.prototype.hasOwnProperty.call(parsed,'redeemedGiftCodes');
 			// merge with defaults to ensure keys exist (older saves may miss fields)
 			state = {
 				coins: parsed.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
@@ -269,6 +272,7 @@ function loadState(){
 				fruits: parsed.fruits ?? {},
 				petEnchantments: parsed.petEnchantments ?? {},
 				petNames: parsed.petNames ?? {},
+				petRerollsUsed: parsed.petRerollsUsed ?? {},
 				potionActive: parsed.potionActive ?? false,
 				potionEndsAt: parsed.potionEndsAt ?? 0,
 				luckStacks: parsed.luckStacks ?? 0,
@@ -283,24 +287,31 @@ function loadState(){
 			// Verify integrity if a hash exists; if not, backfill one for legacy saves
 			const recalculated = computeStateHash(state);
 			if(storedHash && storedHash !== recalculated){
-				// Tampered or corrupted — reset to safe defaults
-				console.warn('Save integrity check failed. Resetting save.');
-				localStorage.setItem('btf_save_tampered', '1');
-				state = {
-					coins: START_WITH_MILLION ? 1000000 : 2000,
-					enchantPoints: 0,
-					inventory: {},
-					fruits: {},
-					petEnchantments: {},
-					petNames: {},
-					bonusInventorySlots: 0,
-					redeemedGiftCodes: []
-				};
-				// Persist a clean save and hash right away
-				try{
-					localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-					localStorage.setItem(STORAGE_HASH_KEY, computeStateHash(state));
-				}catch(e){ console.warn(e); }
+				// If mismatch is solely due to newly introduced keys (schema evolution), upgrade silently
+				if(!hadRerollsKey || !hadRedeemedCodesKey){
+					console.info('Save hash mismatch due to schema upgrade; backfilling new fields without reset.');
+					try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
+				} else {
+					// Tampered or corrupted — reset to safe defaults
+					console.warn('Save integrity check failed. Resetting save.');
+					localStorage.setItem('btf_save_tampered', '1');
+					state = {
+						coins: START_WITH_MILLION ? 1000000 : 2000,
+						enchantPoints: 0,
+						inventory: {},
+						fruits: {},
+						petEnchantments: {},
+						petNames: {},
+						petRerollsUsed: {},
+						bonusInventorySlots: 0,
+						redeemedGiftCodes: []
+					};
+					// Persist a clean save and hash right away
+					try{
+						localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+						localStorage.setItem(STORAGE_HASH_KEY, computeStateHash(state));
+					}catch(e){ console.warn(e); }
+				}
 			} else if(!storedHash){
 				// Legacy save without hash: create one
 				try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
@@ -314,6 +325,7 @@ function loadState(){
 				fruits: {},
 				petEnchantments: {},
 				petNames: {},
+				petRerollsUsed: {},
 				bonusInventorySlots: 0,
 				redeemedGiftCodes: []
 			};
