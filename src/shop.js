@@ -219,9 +219,30 @@ async function brewPotion(potency, cost){
     selectedFruits.forEach(fid=>{ if(state.fruits[fid]>0){ state.fruits[fid] -= 1; if(state.fruits[fid]===0) delete state.fruits[fid]; } });
     // consume tears
     state.tears = Math.max(0, (state.tears||0) - cost);
+    
+    // Determine potion name based on potency
+    let potionName = 'Luck Potion';
+    if (potency <= 3) {
+        potionName = 'Buns Luck Potion';
+    } else if (potency <= 8) {
+        potionName = 'Weak Luck Potion';
+    } else if (potency <= 15) {
+        potionName = 'Basic Luck Potion';
+    } else if (potency <= 25) {
+        potionName = 'Better Luck Potion';
+    } else if (potency <= 40) {
+        potionName = 'Superior Luck Potion';
+    } else if (potency <= 60) {
+        potionName = 'Mega Superior Luck Potion';
+    } else if (potency <= 80) {
+        potionName = 'Mega Mega Superior Luck Potion';
+    } else {
+        potionName = 'Godly Luck Potion';
+    }
+    
     // add potion to inventory
     if(!Array.isArray(state.potionInventory)) state.potionInventory = [];
-    state.potionInventory.push({ type:'luck', name:'Brewed Luck Potion', potency, durationMs: BREW_DURATION, createdAt: Date.now() });
+    state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
     console.log('After push', {newInventory: state.potionInventory, stateKeys: Object.keys(state)});
     // reset selection
     selectedFruits = [];
@@ -230,9 +251,9 @@ async function brewPotion(potency, cost){
     updateUI();
     renderBrewableFruits();
     if(typeof showAlert === 'function'){
-        await showAlert(`✅ Potion brewed successfully! Check your Inventory to use it.`);
+        await showAlert(`✅ ${potionName} brewed successfully! Check your Inventory to use it.`);
     } else {
-        alert('Potion brewed! Check your Inventory to use it.');
+        alert(`${potionName} brewed! Check your Inventory to use it.`);
     }
 }
 

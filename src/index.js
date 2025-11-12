@@ -1,3 +1,11 @@
+// Import all page-specific modules (they will execute conditionally based on DOM elements)
+import './shop.js';
+import './inventory-use-potion.js';
+import './inventory.js';
+import './enchant.js';
+import './leaderboard.js';
+import './trade.js';
+
 // Enchantment definitions for modal display
 const ENCHANTMENTS = [
 	{ id: 'swift_1', name: 'Swift I', tier: 1, cost: 50, description: '+2% Coins per Second' },
@@ -93,7 +101,9 @@ function getMaxInventory(){
 const GIFT_CODES = { 
 	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" },
 	
-	"OBLIVIOUS6767676": { pet: ["pet_u_3", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_2", "pet_u_3", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_u_2", "pet_u_1", "pet_s_1", "pet_1" ], description: "5,000 Tears" }
+	"OBLIVIOUS6767676": { pet: ["pet_u_3", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_2", "pet_u_3", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_u_2", "pet_u_1", "pet_s_1", "pet_1" ], description: "5,000 Tears" },
+
+	"MYNAMEISDYLANKIM": { pet: ["pet_u_3", "pet_u_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", ], coins: 10000000000, description: "Your welcome Dylan Thomas Kim son of Edna and Thomas" }
 };
 
 // Config: show admin button and starting coins
@@ -1726,24 +1736,6 @@ if (typeof window !== 'undefined') {
 	window.showConfirm = showConfirm;
 	window.redeemGiftCode = redeemGiftCode;
 	window.CLAIMED_CODES_KEY = 'btf_claimed_codes_v1';
-}
-
-// Conditionally load page-specific modules
-if (typeof window !== 'undefined' && window.location) {
-	const pathname = window.location.pathname;
-	
-	if (pathname.includes('shop.html')) {
-		import('./shop.js').catch(err => console.warn('Failed to load shop module:', err));
-	} else if (pathname.includes('inventory.html')) {
-		Promise.all([
-			import('./inventory-use-potion.js'),
-			import('./inventory.js')
-		]).catch(err => console.warn('Failed to load inventory modules:', err));
-	} else if (pathname.includes('enchant.html')) {
-		import('./enchant.js').catch(err => console.warn('Failed to load enchant module:', err));
-	} else if (pathname.includes('leaderboard.html')) {
-		import('./leaderboard.js').catch(err => console.warn('Failed to load leaderboard module:', err));
-	} else if (pathname.includes('trade.html')) {
-		import('./trade.js').catch(err => console.warn('Failed to load trade module:', err));
-	}
+	window.getPetName = getPetName;
+	window.getPetRarity = getPetRarity;
 }
