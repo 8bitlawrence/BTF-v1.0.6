@@ -57,7 +57,7 @@ header h1{margin:0;font-size:20px}
 	margin-top:4px;
 }
 .ep-display::before{
-	content: '💎';
+	content: '';
 	display: inline-block;
 	margin-right: 6px;
 	font-size: 16px;
@@ -375,6 +375,24 @@ footer{padding:12px;text-align:center;color:var(--muted)}
     pointer-events: none;
     animation: epPop 1.2s ease-out forwards;
     text-shadow: 0 0 8px rgba(168,85,247,0.8), 0 0 16px rgba(168,85,247,0.4);
+}
+
+/* Tears pop animation (blue) */
+@keyframes tearPop {
+	0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+	15% { opacity: 1; transform: translate(0, -2px) scale(1.1); }
+	70% { opacity: 1; transform: translate(0, -20px) scale(1); }
+	100% { opacity: 0; transform: translate(0, -28px) scale(0.9); }
+}
+
+.tear-pop {
+	position: absolute;
+	color: #60a5fa; /* blue-400 */
+	font-weight: 700;
+	font-size: 15px;
+	pointer-events: none;
+	animation: tearPop 1.2s ease-out forwards;
+	text-shadow: 0 0 8px rgba(96,165,250,0.9), 0 0 18px rgba(96,165,250,0.5);
 }
 
 /* Roll animations */

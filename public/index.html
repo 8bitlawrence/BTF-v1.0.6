@@ -1,0 +1,165 @@
+
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width,initial-scale=1" />
+		<title>Super Hard Math Problems</title>
+		<link rel="stylesheet" href="../index.css" />
+		<link rel="icon" type="image/x-icon" href="../btflogo.png" />
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5036397256035929"
+     crossorigin="anonymous"></script>
+	</head>
+	<body>
+		<div class="container">
+			<header>
+				<h1>BTF &middot; Vibe Edition</h1>
+				<div style="display:flex;align-items:center;gap:10px">
+                    <div style="text-align:right">
+                        <div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
+                        <div class="ep-display" style="position:relative">ENP: <span id="epDisplay">0</span> <small id="eps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
+						<div class="ep-display" style="position:relative;margin-top:4px">💧 <span id="tearsDisplayMain">0</span></div>
+                        <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
+                    </div>
+				</div>
+			</header>
+
+        <nav class="nav-bar">
+            <a href="index.html" class="active">Game</a>
+            <a href="shop.html">Shop</a>
+            <a href="inventory.html">Inventory</a>
+            <a href="trade.html">Trade</a>
+            <a href="enchant.html">Enchanting</a>
+            <a href="leaderboard.html">Leaderboard</a>
+            <a href="about.html">About</a>
+            <a href="news.html">News</a>
+        </nav>			<main>
+				<section class="gacha">
+					<div class="banner">Pet Capsules</div>
+					<div class="controls">
+						<button id="singleRoll">Open x1 (100c)</button>
+						<button id="tenRoll">Open x10 (900c)</button>
+					</div>
+					<div id="resultArea" class="result-area"></div>
+				</section>
+
+				<section class="capsule">
+					<div class="banner">Fruit Capsules</div>
+					<div class="controls">
+						<button id="capSingle">Open Capsule x1 (20c)</button>
+						<button id="capTen">Open Capsule x10 (180c)</button>
+					</div>
+					<div id="capsuleResultArea" class="result-area"></div>
+				</section>
+
+				<section class="inventory">
+					<h2>Your Pets</h2>
+					<div id="inventoryListPets" class="inventory-list"></div>
+					<button id="clearInv" class="muted">Clear Pet Inventory</button>
+
+					<hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)" />
+
+					<h2>Your Fruits</h2>
+					<div id="inventoryListFruits" class="inventory-list"></div>
+					<button id="clearFruits" class="muted">Clear Fruit Inventory</button>
+				</section>
+			</main>
+
+			<footer>
+				<small>Made by the Cookiemonster and the Eightbit Games Team</small><br>
+				<small>© 2025 Eightbit Games | Contact: lawrencetong1030@gmail.com</small>
+			</footer>
+		</div>
+
+		<!-- About moved to its own page: about.html -->
+
+		<!-- Welcome/Update modal -->
+		<div id="welcomeModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3>Welcome to BTF v1.0.6!</h3>
+					<button id="closeWelcome" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<!-- text for update here -->
+					<p>Welcome to the new season of BTF! I know its been a while, but we're back with tons of new features. Now, you can enjoy collecting pets, fruits and so much more! Enjoy the vibes and happy collecting!</p>
+					<p>As always, thank you for playing and supporting BTF. If you have any feedback or questions, feel free to reach out to the Eightbit Games Team.</p>
+					<p>Happy gaming!</p>
+				</div>
+			</div>
+		</div>
+
+		<!-- Halloween Update modal -->
+		<div id="halloweenUpdateModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3>🎃 Halloween Update Is Here!</h3>
+					<button id="closeHalloweenUpdate" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<p>Hello Players! The Halloween Update is finally out! The new Spooky rarity is now obtainable ONLY DURING THE HALLOWEEN EVENT! Happy Halloween and as always, happy gaming!</p><br>
+					<p>Exclusive Halloween Event items:</p><br>
+					<ul>
+						<li>Spooky - Cursed Pumpkin</li>
+						<li>Spooky - Nightmare Skeleton</li>
+						<li>Spooky - Spooky Ghost</li>
+                        
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<!-- Pet Info Modal -->
+		<div id="petInfoModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3 id="petInfoName">Pet Info</h3>
+					<button id="closePetInfo" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<div id="petInfoDetails" style="margin-bottom:12px"></div>
+					<h4 style="margin:12px 0 8px 0">Custom Name</h4>
+					<div style="display:flex;gap:8px;margin-bottom:16px">
+						<input type="text" id="petRenameInput" placeholder="Pet name" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:var(--glass);color:white" />
+						<button id="petRenameBtn" style="padding:8px 16px">Save</button>
+					</div>
+					<h4 style="margin:12px 0 8px 0">Enchantments</h4>
+					<div id="petInfoEnchants" sty```le="display:flex;flex-direction:column;gap:8px"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Pet Selector Modal -->
+		<div id="petSelectorModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3 id="petSelectorTitle">Select Pet</h3>
+					<button id="closePetSelector" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<div id="petSelectorList" style="display:flex;flex-direction:column;gap:10px"></div>
+				</div>
+			</div>
+		</div>
+
+		<!-- Sell Pet Selection Modal -->
+		<div id="sellPetModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3 id="sellPetTitle">Select Pet to Sell</h3>
+					<button id="closeSellPet" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<div id="sellPetList" style="display:flex;flex-direction:column;gap:10px;max-height:500px;overflow-y:auto"></div>
+				</div>
+			</div>
+		</div>
+
+		<script src="bundle.js"></script>
+	</body>
+</html>
