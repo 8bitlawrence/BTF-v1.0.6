@@ -1,0 +1,473 @@
+
+:root{
+	--bg:#0f1724;
+	--card:#0b1220;
+	--accent:#7c3aed;
+	--muted:#94a3b8;
+	--glass: rgba(255,255,255,0.04);
+}
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+	margin:0;
+	font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial;
+	background:linear-gradient(180deg,#071028 0%, #081226 100%);
+	color:#e6eef8;
+}
+.container{max-width:980px;margin:28px auto;padding:20px}
+header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+header h1{margin:0;font-size:20px}
+.halloween-shimmer{
+	display:inline-block;
+	background: linear-gradient(90deg,#ff7a18 0%, #8e2de2 50%, #ff7a18 100%);
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: halloweenShift 3s linear infinite;
+	font-weight:800;
+}
+.subtitle{
+	font-size:12px;
+	color:#ffd86b;
+	font-weight:700;
+	margin-top:4px;
+	text-shadow: 0 1px 0 rgba(0,0,0,0.6);
+}
+
+@keyframes halloweenShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+.wallet{font-weight:600;color:var(--muted)}
+.wallet::before{
+	content: '';
+	display: inline-block;
+	width: 18px;
+	height: 18px;
+	margin-right: 6px;
+	background: url('coin.png') no-repeat center / contain;
+	vertical-align: -3px;
+}
+
+.ep-display{
+	font-weight:600;
+	color:var(--muted);
+	font-size:14px;
+	margin-top:4px;
+}
+.ep-display::before{
+	content: '';
+	display: inline-block;
+	margin-right: 6px;
+	font-size: 16px;
+	vertical-align: -1px;
+}
+.ep-display #epDisplay{
+	color:#a855f7;
+	font-weight:600;
+}
+
+.nav-bar {
+    background: var(--card);
+    padding: 12px 18px;
+    border-radius: 12px;
+    display: flex;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+.nav-bar a {
+    text-decoration: none;
+    color: var(--muted);
+    font-weight: 600;
+}
+.nav-bar a.active {
+    color: var(--accent);
+}
+
+main{display:grid;grid-template-columns:1fr 360px;gap:18px;padding:12px}
+.gacha{background:var(--card);padding:18px;border-radius:12px;box-shadow:0 6px 18px rgba(0,0,0,0.5)}
+.banner{font-weight:700;color:var(--accent);margin-bottom:12px}
+.controls{display:flex;gap:10px}
+button{background:var(--accent);border:0;padding:10px 14px;border-radius:10px;color:white;font-weight:600;cursor:pointer}
+button:active{transform:translateY(1px)}
+button.muted{background:#1f2937;color:var(--muted)}
+
+.result-area{margin-top:16px;display:flex;gap:10px;flex-wrap:wrap;min-height:86px}
+.result-card{width:100px;height:120px;border-radius:8px;background:var(--glass);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:8px;border:1px solid rgba(255,255,255,0.04)}
+.rarity-common{border-color:rgba(255,255,255,0.02)}
+.rarity-rare{border-color:#3b82f6;box-shadow:0 6px 18px rgba(59,130,246,0.12)}
+.rarity-legendary{border-color:#f97316;box-shadow:0 8px 24px rgba(249,115,22,0.14)}
+.rarity-epic{border-color:#8b5cf6;box-shadow:0 8px 24px rgba(139,92,246,0.12)}
+.rarity-special{border-color:#a855f7;box-shadow:0 8px 28px rgba(168,85,247,0.25)}
+.rarity-chromatic{border-color:transparent;box-shadow:0 10px 30px rgba(255,255,255,0.06);position:relative;overflow:hidden}
+.pet-name{margin-top:6px;font-size:13px;text-align:center}
+
+.inventory{background:var(--card);padding:18px;border-radius:12px}
+.inventory-list{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;max-height:420px;overflow:auto;padding-top:8px}
+.inventory-item{display:flex;align-items:center;gap:10px;padding:8px;border-radius:8px;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);border:1px solid rgba(255,255,255,0.02)}
+.badge{display:inline-block;padding:6px 12px;border-radius:18px;font-size:11px;font-weight:700;white-space:nowrap}
+.badge.common{background:#849090;color:#000000}
+.badge.rare{background:#0062ff;color:#05224b}
+.badge.legendary{background:linear-gradient(90deg,#ff9800,#ffd700,#ffeb3b,#ffd700,#ff9800);background-size:200% 100%;color:#331204;position:relative;overflow:hidden;animation:goldShimmer 2.5s linear infinite}
+.badge.epic{background:linear-gradient(90deg,#7c3aed,#06b6d4);color:white}
+.badge.chromatic{background:linear-gradient(90deg,#ff5bd1,#ffd800,#39ff14,#00e0ff,#ff5bd1);color:#111}
+.badge.special{background:linear-gradient(90deg,#7300ff,#e72fff, #9900ff);color:white;position:relative;overflow:hidden}
+.badge.unique{background:linear-gradient(90deg,#050a1f 0%, #0d1b3a 10%, #1a3366 20%, #2952a3 30%, #00bfff 40%, #4dd0ff 50%, #00bfff 60%, #2952a3 70%, #1a3366 80%, #0d1b3a 90%, #050a1f 100%);background-size:200% 100%;color:#ffffff;position:relative;overflow:hidden;animation:goldShimmer 2.5s linear infinite;font-weight:800;text-shadow:0 0 15px rgba(0,191,255,0.95), 0 0 25px rgba(77,208,255,0.7), 0 0 35px rgba(41,82,163,0.5)}
+.badge.godly{background:linear-gradient(90deg,#ff2d2d,#ff6a00,#ffae00,#ffd700,#fff0a6,#ffd700,#ff6a00,#ff2d2d);background-size:200% 100%;color:#ffffff;position:relative;overflow:hidden;animation:godlyShift 4s linear infinite;font-weight:900;text-shadow:0 0 10px rgba(255,244,214,0.9), 0 0 20px rgba(255,215,0,0.7), 0 0 30px rgba(255,165,0,0.5)}
+.badge.new{background:#10b981;color:white;box-shadow:0 0 0 1px rgba(255,255,255,0.06) inset}
+
+/* Spooky rarity (Halloween) */
+.badge.spooky{background: linear-gradient(90deg,#ff7a18,#8e2de2); color: white}
+.rarity-spooky{ border-color: transparent; box-shadow: 0 8px 30px rgba(255,122,24,0.18); position: relative; overflow: hidden }
+.rarity-unique{ border-color:#00bfff; box-shadow: 0 0 20px rgba(0,191,255,0.8), 0 0 40px rgba(77,208,255,0.5), 0 0 60px rgba(41,82,163,0.3); position:relative; overflow:hidden; animation:uniqueGlow 2s ease-in-out infinite }
+
+.inventory-item.spooky{ position: relative; overflow: hidden; }
+.inventory-item.spooky::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,#ff7a18, #8e2de2, #ff7a18);
+	mix-blend-mode: screen; opacity: 0.7;
+	filter: blur(10px) saturate(1.1);
+	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
+
+.rarity-spooky::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,#ff7a18, #8e2de2, #ff7a18);
+	mix-blend-mode: screen; opacity: 0.7;
+	filter: blur(10px) saturate(1.1);
+	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
+
+/* rainbow shimmer animation for chromatic */
+/* shimmering rainbow overlay used by chromatic elements */
+.inventory-item.chromatic{ position: relative; overflow: hidden; }
+.inventory-item.chromatic::after{
+	content: '';
+	position: absolute;
+	left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,
+		#ff5bd1 0%, #ffd800 20%, #39ff14 40%, #00e0ff 60%, #ff5bd1 80%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	pointer-events: none;
+	filter: blur(12px) saturate(1.1);
+	transform: translateZ(0);
+	animation: chromaShift 3s linear infinite;
+}
+
+.inventory-item.godly{ position: relative; overflow: hidden; background:linear-gradient(90deg,#ff2d2d,#ff6a00,#ffae00,#ffd700,#fff0a6,#ffd700,#ff6a00,#ff2d2d); color:#ffffff; border:1px solid rgba(255,215,0,0.28) }
+.inventory-item.godly::after{
+	content: '';
+	position: absolute;
+	left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,
+		#ff2d2d 0%, #ff6a00 16%, #ffae00 32%, #ffd700 48%, #fff0a6 64%, #ffd700 80%, #ff6a00 90%, #ff2d2d 100%);
+	background-size: 200% 100%;
+	opacity: 0.75;
+	mix-blend-mode: screen;
+	pointer-events: none;
+	filter: blur(14px) saturate(1.3);
+	transform: translateZ(0);
+	animation: godlyShift 4s linear infinite;
+}
+
+/* make badges and result-cards display a subtler shimmer */
+.badge.chromatic{ position: relative; overflow: hidden; }
+.badge.chromatic::after{
+	content: '';
+	position: absolute; left: -10%; top: -10%; right: -10%; bottom: -10%;
+	background: linear-gradient(90deg, #ff5bd1 0%, #ffd800 25%, #39ff14 50%, #00e0ff 75%, #ff5bd1 100%);
+	background-size: 200% 100%;
+	opacity: 0.85;
+	mix-blend-mode: overlay;
+	filter: blur(6px);
+	animation: chromaShift 3.2s linear infinite;
+	pointer-events:none;
+}
+
+.badge.godly{ position: relative; overflow: hidden; }
+.badge.godly::after{
+	content: '';
+	position: absolute; left: -10%; top: -10%; right: -10%; bottom: -10%;
+	background: linear-gradient(90deg, #ff2d2d 0%, #ff6a00 16%, #ffae00 32%, #ffd700 48%, #fff0a6 64%, #ffd700 80%, #ff6a00 90%, #ff2d2d 100%);
+	background-size: 200% 100%;
+	opacity: 0.9;
+	mix-blend-mode: overlay;
+	filter: blur(7px);
+	animation: godlyShift 4s linear infinite;
+	pointer-events:none;
+}
+
+.result-card.chromatic{ position: relative; overflow: hidden; }
+.result-card.chromatic::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg, #ff5bd1 0%, #ffd800 20%, #39ff14 40%, #00e0ff 60%, #ff5bd1 80%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(14px) saturate(1.1);
+	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
+
+.result-card.godly{ position: relative; overflow: hidden; will-change: transform, filter; }
+.result-card.godly::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg, #ff2d2d 0%, #ff6a00 16%, #ffae00 32%, #ffd700 48%, #fff0a6 64%, #ffd700 80%, #ff6a00 90%, #ff2d2d 100%);
+	background-size: 200% 100%;
+	opacity: 0.75;
+	mix-blend-mode: screen;
+	filter: blur(15px) saturate(1.3);
+	animation: godlyShift 4s linear infinite;
+	pointer-events:none;
+}
+
+/* Unique rarity shimmer */
+.inventory-item.unique{ position: relative; overflow: hidden; }
+.inventory-item.unique::after{
+	content: '';
+	position: absolute; left: -20%; top: -20%; right: -20%; bottom: -20%;
+	background: linear-gradient(90deg, #050a1f 0%, #1a3366 20%, #2952a3 35%, #00bfff 50%, #2952a3 65%, #1a3366 80%, #050a1f 100%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(12px);
+	animation: goldShimmer 3s linear infinite;
+	pointer-events:none;
+}
+
+.rarity-unique::after{
+	content: '';
+	position: absolute; left: -20%; top: -20%; right: -20%; bottom: -20%;
+	background: linear-gradient(90deg, #050a1f 0%, #1a3366 20%, #2952a3 35%, #00bfff 50%, #2952a3 65%, #1a3366 80%, #050a1f 100%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(12px);
+	animation: goldShimmer 3s linear infinite;
+	pointer-events:none;
+}
+
+.result-card.unique{ position: relative; overflow: hidden; }
+.result-card.unique::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg, #050a1f 0%, #1a3366 20%, #2952a3 35%, #00bfff 50%, #2952a3 65%, #1a3366 80%, #050a1f 100%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(14px) saturate(1.2);
+	animation: goldShimmer 2.5s linear infinite;
+	pointer-events:none;
+}
+
+@keyframes chromaShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+@keyframes goldShimmer{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+@keyframes godlyShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+@keyframes uniqueGlow{
+	0%{ box-shadow: 0 0 15px rgba(135,206,235,0.5), 0 0 30px rgba(255,255,255,0.3), 0 0 45px rgba(135,206,235,0.2); }
+	50%{ box-shadow: 0 0 25px rgba(135,206,235,0.9), 0 0 50px rgba(255,255,255,0.5), 0 0 75px rgba(135,206,235,0.3); }
+	100%{ box-shadow: 0 0 15px rgba(135,206,235,0.5), 0 0 30px rgba(255,255,255,0.3), 0 0 45px rgba(135,206,235,0.2); }
+}
+
+@keyframes uniqueReveal{
+	0%{ transform: scale(0.3) rotate(-20deg); opacity: 0; filter: blur(10px) brightness(0); }
+	30%{ transform: scale(1.15) rotate(5deg); opacity: 1; filter: blur(0) brightness(2); }
+	50%{ transform: scale(0.95) rotate(-3deg); filter: brightness(1.5); }
+	70%{ transform: scale(1.05) rotate(2deg); }
+	100%{ transform: scale(1) rotate(0); opacity: 1; filter: blur(0) brightness(1); }
+}
+
+@keyframes godlyReveal{
+	0%{ transform: scale(0.2) rotate(0deg); opacity: 0; filter: blur(12px) brightness(0) hue-rotate(0deg); }
+	60%{ transform: scale(1.06) rotate(216deg); opacity: 1; filter: blur(0) brightness(1.2) hue-rotate(180deg); }
+	100%{ transform: scale(1) rotate(360deg); opacity: 1; filter: blur(0) brightness(1) hue-rotate(360deg); }
+}
+
+
+footer{padding:12px;text-align:center;color:var(--muted)}
+
+/* make small inline disclaimers use the same muted color as the footer */
+#disclaimer{ color: var(--muted); font-size: 13px; }
+
+/* small responsive */
+@media(max-width:880px){
+	main{grid-template-columns:1fr}
+	.inventory{order:2}
+}
+
+/* Capsule & sell button styles */
+.capsule{background:linear-gradient(180deg, rgba(255,255,255,0.015), transparent);padding:18px;border-radius:12px}
+.sell-btn{background:#10b981;border-radius:8px;padding:6px 8px;font-weight:700;color:white;border:0}
+.small{padding:6px 8px;border-radius:8px;font-size:13px}
+/* add spacing between adjacent small sell buttons (Sell x1 and Sell All) */
+.sell-btn.small + .sell-btn.small{margin-left:12px}
+/* make the action container (right-side in inventory items) use flex and gap for reliable spacing */
+.inventory-item > div:last-child{ margin-left: auto; display: flex; gap: 12px; align-items: center; }
+
+/* Modal: Rarities & Info */
+.modal{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;z-index:60}
+.modal-backdrop{position:absolute;inset:0;background:rgba(2,6,23,0.6)}
+.modal-panel{position:relative;z-index:61;width:min(720px,92%);background:var(--card);border-radius:12px;padding:14px;border:1px solid rgba(255,255,255,0.04);box-shadow:0 16px 60px rgba(2,6,23,0.6)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.modal-body{min-height:160px}
+
+/* Coin pop animation */
+@keyframes coinPop {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+    15% { opacity: 1; transform: translate(0, -2px) scale(1.1); }
+    70% { opacity: 1; transform: translate(0, -20px) scale(1); }
+    100% { opacity: 0; transform: translate(0, -28px) scale(0.9); }
+}
+
+.coin-pop {
+    position: absolute;
+    color: #fbbf24;
+    font-weight: 700;
+    font-size: 15px;
+    pointer-events: none;
+    animation: coinPop 1.2s ease-out forwards;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.5);
+}
+
+/* Benny Boost coin pop variant (neon purple) */
+.coin-pop.benny{
+	color: #9b59ff;
+	text-shadow: 0 0 8px rgba(155,89,255,0.95), 0 0 20px rgba(155,89,255,0.6);
+}
+
+/* EP pop animation */
+@keyframes epPop {
+    0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+    15% { opacity: 1; transform: translate(0, -2px) scale(1.1); }
+    70% { opacity: 1; transform: translate(0, -20px) scale(1); }
+    100% { opacity: 0; transform: translate(0, -28px) scale(0.9); }
+}
+
+.ep-pop {
+    position: absolute;
+    color: #a855f7;
+    font-weight: 700;
+    font-size: 15px;
+    pointer-events: none;
+    animation: epPop 1.2s ease-out forwards;
+    text-shadow: 0 0 8px rgba(168,85,247,0.8), 0 0 16px rgba(168,85,247,0.4);
+}
+
+/* Tears pop animation (blue) */
+@keyframes tearPop {
+	0% { opacity: 0; transform: translate(0, 0) scale(0.8); }
+	15% { opacity: 1; transform: translate(0, -2px) scale(1.1); }
+	70% { opacity: 1; transform: translate(0, -20px) scale(1); }
+	100% { opacity: 0; transform: translate(0, -28px) scale(0.9); }
+}
+
+.tear-pop {
+	position: absolute;
+	color: #60a5fa; /* blue-400 */
+	font-weight: 700;
+	font-size: 15px;
+	pointer-events: none;
+	animation: tearPop 1.2s ease-out forwards;
+	text-shadow: 0 0 8px rgba(96,165,250,0.9), 0 0 18px rgba(96,165,250,0.5);
+}
+
+/* Roll animations */
+@keyframes btnPulse{ 0%{ transform:scale(1) } 50%{ transform:scale(1.04) } 100%{ transform:scale(1) } }
+@keyframes popIn{ 0%{ transform: scale(0.6) rotate(-6deg); opacity:0 } 60%{ transform: scale(1.05) rotate(4deg); opacity:1 } 100%{ transform: scale(1) rotate(0) } }
+@keyframes revealGlow{ 0%{ box-shadow:0 0 0 rgba(255,255,255,0) } 50%{ box-shadow:0 16px 40px rgba(124,58,237,0.14) } 100%{ box-shadow:0 0 0 rgba(255,255,255,0) } }
+
+@keyframes uniqueGlow{
+	0%{ box-shadow: 0 0 15px rgba(135,206,235,0.5), 0 0 30px rgba(255,255,255,0.3), 0 0 45px rgba(135,206,235,0.2); }
+	50%{ box-shadow: 0 0 25px rgba(135,206,235,0.9), 0 0 50px rgba(255,255,255,0.5), 0 0 75px rgba(135,206,235,0.3); }
+	100%{ box-shadow: 0 0 15px rgba(135,206,235,0.5), 0 0 30px rgba(255,255,255,0.3), 0 0 45px rgba(135,206,235,0.2); }
+}
+
+@keyframes uniqueReveal{
+	0%{ transform: scale(0.3) rotate(-20deg); opacity: 0; filter: blur(10px) brightness(0); }
+	30%{ transform: scale(1.15) rotate(5deg); opacity: 1; filter: blur(0) brightness(2); }
+	50%{ transform: scale(0.95) rotate(-3deg); filter: brightness(1.5); }
+	70%{ transform: scale(1.05) rotate(2deg); }
+	100%{ transform: scale(1) rotate(0); opacity: 1; filter: blur(0) brightness(1); }
+}
+
+.controls button.anim-pulse{ animation: btnPulse 420ms ease-in-out }
+.result-area.animating{ pointer-events:none; opacity:0.6 }
+.result-card.pop{ animation: popIn 420ms cubic-bezier(.2,.8,.2,1); transform-origin:center; }
+.result-card.chromatic.pop{ animation: popIn 520ms cubic-bezier(.2,.9,.2,1), chromaShift 3s linear infinite }
+.result-card.godly.pop{ animation: godlyReveal 1.5s linear both, godlyShift 4s linear infinite; transform-origin:center; }
+.result-card.unique.pop{ animation: uniqueReveal 1.2s cubic-bezier(.2,.9,.2,1); transform-origin:center; }
+.result-card.reveal-glow{ animation: revealGlow 700ms ease-in-out }
+
+/* Benny Boost glow for pets (result cards and inventory items) */
+.result-card.benny-glow, .inventory-item.benny-glow{
+	box-shadow: 0 0 12px rgba(155,89,255,0.9), 0 0 28px rgba(155,89,255,0.45) !important;
+	border: 1px solid rgba(155,89,255,0.6) !important;
+}
+
+#idk {
+	font-weight: bold;
+}
+
+#idk2 {
+	font-weight: bold;
+}
+
+/* Enchantment badge styles for pet info modal */
+.enchant-badge {
+	background: var(--glass);
+	border-radius: 8px;
+	padding: 10px 12px;
+	border-left: 3px solid var(--accent);
+}
+.enchant-tier-1 {
+	border-left-color: #10b981;
+}
+.enchant-tier-2 {
+	border-left-color: #3b82f6;
+}
+.enchant-tier-3 {
+	border-left-color: #a855f7;
+}
+
+/* Enchantment badge styles for pet info modal */
+.enchant-badge {
+	background: var(--glass);
+	border-radius: 8px;
+	padding: 10px 12px;
+	border-left: 3px solid var(--accent);
+}
+.enchant-tier-1 {
+	border-left-color: #10b981;
+}
+.enchant-tier-2 {
+	border-left-color: #3b82f6;
+}
+.enchant-tier-3 {
+	border-left-color: #a855f7;
+}
+
+

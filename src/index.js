@@ -154,7 +154,7 @@ let state = {
 	bennyEndsAt: 0,
 	bonusInventorySlots: 0, // extra slots from Slot Machine purchases
 	redeemedGiftCodes: [], // track used gift codes
-	petRerollsUsed: {}, // track pet enchant rerolls { petId_index: count }
+	petRerollsUsed: {}, // track pet enchant rerolls { 	petId_index: count }
 	tears: 0, // new currency for brewing
 	potionInventory: [] // brewed potions stored for later use
 };
