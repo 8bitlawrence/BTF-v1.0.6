@@ -70,7 +70,7 @@ const PETS = [
 	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.005, value: 10000000 },
 	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.005, value: 10000000 },
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 1, value: 1000 },
-	{ id: 'pet_sp_2', name: 'Weeping Spirit', rarity: 'special', weight: 80, value: 1200 },
+	{ id: 'pet_sp_2', name: 'Weeping Spirit', rarity: 'special', weight: 1, value: 1200 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
