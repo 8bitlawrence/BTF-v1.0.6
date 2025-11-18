@@ -1,11 +1,3 @@
-// Import all page-specific modules (they will execute conditionally based on DOM elements)
-import './shop.js';
-import './inventory-use-potion.js';
-import './inventory.js';
-import './enchant.js';
-import './leaderboard.js';
-import './trade.js';
-
 // Enchantment definitions for modal display
 const ENCHANTMENTS = [
 	{ id: 'swift_1', name: 'Swift I', tier: 1, cost: 50, description: '+2% Coins per Second' },
@@ -123,6 +115,7 @@ const EP_PER_SEC_PER_SPECIAL = 0.5; // was 1.0 per special pet per second
 
 // Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
 const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
+const THANKSGIVING_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 11, 1).getTime(); })();
 
 // FRUITS: capsule pool
 const FRUITS = [
@@ -143,6 +136,7 @@ const FRUITS = [
 	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.0005, value: 100000000 }
+	
 
 
 
@@ -374,6 +368,8 @@ function weightedPick(items){
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
 	const pool = items.filter(i => !(i.rarity === 'spooky' && !halloweenStillOn));
+	const thanksgivingStillOn = Date.now() < THANKSGIVING_END;
+	const finalPool = pool.filter(i => !(i.rarity === 'thanksgiving' && !thanksgivingStillOn));
 
 	// All rarities can now be obtained multiple times (no unique filter)
 	let useItems = pool;
@@ -1721,6 +1717,18 @@ if(openTermsBtn){
 	});
 }
 
+function getPetName(petId) {
+	const pet = PETS.find(p => p.id === petId);
+	return pet ? pet.name : "Undefined";
+}
+
+function getPetRarity(petId) {
+	const pet = PETS.find(p => p.id === petId);
+	return pet ? pet.rarity : "Undefined";
+}
+
+
+
 // Export globals for other modules to use
 if (typeof window !== 'undefined') {
 	window.STORAGE_KEY = STORAGE_KEY;
@@ -1738,4 +1746,421 @@ if (typeof window !== 'undefined') {
 	window.CLAIMED_CODES_KEY = 'btf_claimed_codes_v1';
 	window.getPetName = getPetName;
 	window.getPetRarity = getPetRarity;
+	
+	// Export useBrewedPotion function for inventory page
+	window.useBrewedPotion = function(index){
+		const inv = Array.isArray(state.potionInventory) ? state.potionInventory : [];
+		const p = inv[index]; 
+		if(!p) return;
+		
+		// apply effect but do not stack beyond 100
+		if(state.potionActive && state.potionEndsAt > Date.now()){
+			state.luckStacks = Math.min(100, (state.luckStacks||0) + (p.potency||0));
+			state.potionEndsAt = Date.now() + (p.durationMs||0);
+		} else {
+			state.potionActive = true;
+			state.luckStacks = Math.min(100, p.potency||0);
+			state.potionEndsAt = Date.now() + (p.durationMs||0);
+		}
+		
+  
+
+		// remove from inventory
+		inv.splice(index,1);
+		state.potionInventory = inv;
+		
+		saveState();
+		updateUI();
+	};
+}
+
+// ==================== SHOP PAGE CODE ====================
+// Only executes if shop page elements exist
+if (document.getElementById('buyLuckPotion')) {
+	const POTION_COST = 100000;
+	const POTION_DURATION = 5 * 60 * 1000;
+	const BENNY_COST = 10000;
+	const BENNY_DURATION = 5 * 60 * 1000;
+	const BLESSING_COST = 8000;
+	const BLESSING_DURATION = 5 * 60 * 1000;
+	const SLOT_MACHINE_COST = 1000000;
+	const SLOT_MACHINE_BONUS = 5;
+
+	const buyBtn = document.getElementById('buyLuckPotion');
+	const timerEl = document.getElementById('potionTimer');
+	const buyBennyBtn = document.getElementById('buyBennyBoost');
+	const bennyTimerEl = document.getElementById('bennyTimer');
+	const buyBlessingBtn = document.getElementById('buyPumpkinBlessing');
+	const blessingTimerEl = document.getElementById('blessingTimer');
+	const buySlotMachineBtn = document.getElementById('buySlotMachine');
+	const slotsPurchasedEl = document.getElementById('slotsPurchased');
+	const tearsDisplayEl = document.getElementById('tearsDisplay');
+	const brewFruitListEl = document.getElementById('brewFruitList');
+	const brewSelectionEl = document.getElementById('brewSelection');
+	const brewPreviewEl = document.getElementById('brewPreview');
+	const brewPotionBtn = document.getElementById('brewPotionBtn');
+
+	const RARITY_POTENCY = {
+		common: 1, rare: 2, epic: 4, special: 5, legendary: 6,
+		spooky: 8, chromatic: 10, unique: 15, godly: 20
+	};
+	const RARITY_TEARS_COST = {
+		common: 5, rare: 20, epic: 60, special: 80, legendary: 150,
+		spooky: 200, chromatic: 300, unique: 1000, godly: 5000
+	};
+	const BREW_DURATION = 5 * 60 * 1000;
+
+	function getFruitDef(fid){ return FRUITS.find(f=>f.id===fid); }
+	let selectedFruits = [];
+
+	function renderBrewableFruits(){
+		if(!brewFruitListEl) return;
+		brewFruitListEl.innerHTML = '';
+		const entries = Object.entries(state.fruits||{}).filter(([,cnt])=>cnt>0);
+		if(entries.length===0){
+			brewFruitListEl.innerHTML = '<div style="color:var(--muted)">No fruits available.</div>';
+			return;
+		}
+		entries.forEach(([fid, cnt])=>{
+			const def = getFruitDef(fid);
+			const btn = document.createElement('button');
+			btn.className = 'small';
+			btn.textContent = `${def?def.name:fid} x${cnt}`;
+			btn.addEventListener('click', ()=>toggleSelectedFruit(fid));
+			brewFruitListEl.appendChild(btn);
+		});
+	}
+
+	function toggleSelectedFruit(fid){
+		const idx = selectedFruits.indexOf(fid);
+		if(idx>=0) selectedFruits.splice(idx,1); else if(selectedFruits.length<3) selectedFruits.push(fid);
+		updateBrewPreview();
+	}
+
+	function updateBrewPreview(){
+		if(!brewSelectionEl || !brewPreviewEl || !brewPotionBtn) return;
+		if(selectedFruits.length===0){
+			brewSelectionEl.textContent = 'No fruits selected.';
+			brewPreviewEl.textContent = '';
+			brewPotionBtn.disabled = true;
+			return;
+		}
+		const names = selectedFruits.map(fid=>{ const d=getFruitDef(fid); return d?d.name:fid; }).join(', ');
+		brewSelectionEl.textContent = `Selected: ${names}`;
+		let potency = 0; let cost = 0;
+		selectedFruits.forEach(fid=>{
+			const d = getFruitDef(fid);
+			if(d){ potency += (RARITY_POTENCY[d.rarity]||0); cost += (RARITY_TEARS_COST[d.rarity]||0); }
+		});
+		potency = Math.min(potency, 100);
+		brewPreviewEl.textContent = `Cost: ${cost} Tears`;
+		const canAfford = (state.tears||0) >= cost;
+		const haveAll = selectedFruits.every(fid => (state.fruits[fid]||0) > 0);
+		brewPotionBtn.disabled = !(canAfford && haveAll);
+		brewPotionBtn.onclick = ()=>brewPotion(potency, cost);
+	}
+
+	async function brewPotion(potency, cost){
+		selectedFruits.forEach(fid=>{ if(state.fruits[fid]>0){ state.fruits[fid] -= 1; if(state.fruits[fid]===0) delete state.fruits[fid]; } });
+		state.tears = Math.max(0, (state.tears||0) - cost);
+		
+		let potionName = 'Luck Potion';
+		if (potency <= 3) potionName = 'Buns Luck Potion';
+		else if (potency <= 8) potionName = 'Weak Luck Potion';
+		else if (potency <= 15) potionName = 'Basic Luck Potion';
+		else if (potency <= 25) potionName = 'Better Luck Potion';
+		else if (potency <= 40) potionName = 'Superior Luck Potion';
+		else if (potency <= 60) potionName = 'Mega Superior Luck Potion';
+		else if (potency <= 80) potionName = 'Mega Mega Superior Luck Potion';
+		else potionName = 'Godly Luck Potion';
+		
+		if(!Array.isArray(state.potionInventory)) state.potionInventory = [];
+		state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
+		selectedFruits = [];
+		saveState();
+		updateShopUI();
+		renderBrewableFruits();
+		await showAlert(` ${potionName} brewed successfully! Check your Inventory to use it.`);
+	}
+
+	function updateShopUI() {
+		coinsEl.textContent = state.coins;
+		if(tearsDisplayEl){ tearsDisplayEl.textContent = Math.floor(state.tears || 0); }
+		
+		if(luckMultiplierEl){
+			const isActive = state.potionActive && state.potionEndsAt > Date.now();
+			const cappedStacks = Math.min(state.luckStacks, 100);
+			luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
+		}
+		
+		if(bennyTimerEl){
+			const bActive = state.bennyActive && state.bennyEndsAt > Date.now();
+			buyBennyBtn.disabled = state.coins < BENNY_COST || bActive;
+			if(bActive){
+				const remaining = Math.ceil((state.bennyEndsAt - Date.now())/1000);
+				const minutes = Math.floor(remaining/60);
+				const seconds = remaining%60;
+				bennyTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} remaining`;
+				bennyTimerEl.style.display = 'inline';
+			} else {
+				bennyTimerEl.style.display = 'none';
+			}
+		}
+		
+		buyBtn.disabled = state.coins < POTION_COST;
+		if (state.potionActive) {
+			const remaining = Math.ceil((state.potionEndsAt - Date.now()) / 1000);
+			if (remaining <= 0) {
+				state.potionActive = false;
+				state.potionEndsAt = 0;
+				state.luckStacks = 0;
+				saveState();
+				timerEl.style.display = 'none';
+				buyBtn.disabled = state.coins < POTION_COST;
+			} else {
+				const minutes = Math.floor(remaining / 60);
+				const seconds = remaining % 60;
+				timerEl.textContent = `${minutes}:${seconds.toString().padStart(2, '0')} remaining`;
+				timerEl.style.display = 'inline';
+			}
+		} else {
+			timerEl.style.display = 'none';
+		}
+		
+		if(buySlotMachineBtn){
+			const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+			buySlotMachineBtn.disabled = (state.coins < SLOT_MACHINE_COST) || purchased;
+			buySlotMachineBtn.textContent = purchased ? 'Purchased' : 'Buy Slot Machine';
+		}
+		if(slotsPurchasedEl){
+			const base = 20;
+			const totalSlots = base + (state.bonusInventorySlots || 0);
+			const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+			if(purchased){
+				slotsPurchasedEl.textContent = `Current capacity: ${totalSlots} slots (Slot Machine owned)`;
+			} else {
+				slotsPurchasedEl.textContent = `Current capacity: ${base} slots (base)`;
+			}
+		}
+	}
+
+	buyBtn.addEventListener('click', () => {
+		if (state.coins >= POTION_COST) {
+			state.coins -= POTION_COST;
+			if (state.potionActive && state.potionEndsAt > Date.now()) {
+				state.luckStacks = Math.min(state.luckStacks + 1, 100);
+				state.potionEndsAt = Date.now() + POTION_DURATION;
+			} else {
+				state.potionActive = true;
+				state.luckStacks = 1;
+				state.potionEndsAt = Date.now() + POTION_DURATION;
+			}
+			if (!state.purchasedItems.some(item => item.name === 'Potion of Luck')) {
+				state.purchasedItems.push({ name: 'Potion of Luck', icon: '', description: 'Makes all items 3x more common for 5 minutes' });
+			}
+			saveState();
+			updateShopUI();
+		}
+	});
+
+	if(buyBennyBtn){
+		buyBennyBtn.addEventListener('click', ()=>{
+			if(state.coins >= BENNY_COST && !state.bennyActive){
+				state.coins -= BENNY_COST;
+				state.bennyActive = true;
+				state.bennyEndsAt = Date.now() + BENNY_DURATION;
+				if(!state.purchasedItems.some(i=>i.name==='Benny Boost')){
+					state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+5% CPS for 5 minutes' });
+				}
+				saveState();
+				updateShopUI();
+			}
+		});
+	}
+
+	if(buySlotMachineBtn){
+		buySlotMachineBtn.addEventListener('click', ()=>{
+			const alreadyBought = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+			if(alreadyBought){ alert('You already own the Slot Machine.'); return; }
+			if(state.coins >= SLOT_MACHINE_COST){
+				state.coins -= SLOT_MACHINE_COST;
+				state.bonusInventorySlots = SLOT_MACHINE_BONUS;
+				if(!state.purchasedItems.some(i=>i.name==='Slot Machine')){
+					state.purchasedItems.push({ name: 'Slot Machine', icon: '🎰', description: `Adds +5 pet inventory slots permanently` });
+				}
+				saveState();
+				updateShopUI();
+				alert(`Purchased! Your pet inventory capacity is now ${20 + state.bonusInventorySlots} slots.`);
+			}
+		});
+	}
+
+	const giftCodeInput = document.getElementById('giftCodeInput');
+	const redeemGiftCodeBtn = document.getElementById('redeemGiftCode');
+	if(redeemGiftCodeBtn && giftCodeInput){
+		redeemGiftCodeBtn.addEventListener('click', async ()=>{
+			const code = giftCodeInput.value.trim().toUpperCase();
+			if(!code){ await showAlert('Please enter a gift code.'); return; }
+			if(typeof redeemGiftCode === 'function'){
+				const result = redeemGiftCode(code);
+				if(result.success){
+					updateShopUI();
+					await showAlert('✅ ' + result.message);
+					giftCodeInput.value = '';
+				} else {
+					await showAlert('❌ ' + result.message);
+				}
+			}
+		});
+		giftCodeInput.addEventListener('keypress', (e)=>{ if(e.key === 'Enter') redeemGiftCodeBtn.click(); });
+	}
+
+	setInterval(updateShopUI, 1000);
+	renderBrewableFruits();
+	updateBrewPreview();
+}
+
+// ==================== INVENTORY PAGE CODE ====================
+// Only executes if inventory page elements exist
+if (document.getElementById('brewedPotions')) {
+	const activeEffectsEl = document.getElementById('activeEffects');
+	const brewedPotionsEl = document.getElementById('brewedPotions');
+	const purchasedItemsEl = document.getElementById('purchasedItems');
+	const petDetailModal = document.getElementById('petDetailModal');
+	const closePetDetail = document.getElementById('closePetDetail');
+	const petDetailName = document.getElementById('petDetailName');
+	const enchantList = document.getElementById('enchantList');
+
+	function showPetDetail(petKey, petId) {
+		const pet = PETS.find(p => p.id === petId);
+		if (!pet) return;
+		petDetailName.textContent = pet.name;
+		const enchants = state.petEnchantments[petKey] || [];
+		enchantList.innerHTML = '';
+		if (enchants.length === 0) {
+			enchantList.innerHTML = '<p style="color:var(--muted);font-size:13px">No enchantments yet. Visit the Enchanting page to add enchantments!</p>';
+		} else {
+			enchants.forEach(enchantId => {
+				const enchant = ENCHANTMENTS.find(e => e.id === enchantId);
+				if (enchant) {
+					const badge = document.createElement('div');
+					badge.className = `enchant-badge enchant-tier-${enchant.tier}`;
+					badge.innerHTML = `<div style="font-weight:700">${enchant.name}</div><div style="font-size:11px;opacity:0.9">${enchant.description}</div>`;
+					enchantList.appendChild(badge);
+				}
+			});
+		}
+		petDetailModal.classList.add('show');
+	}
+
+	function closePetDetailModal() { petDetailModal.classList.remove('show'); }
+	closePetDetail.addEventListener('click', closePetDetailModal);
+	petDetailModal.addEventListener('click', (e) => { if (e.target === petDetailModal) closePetDetailModal(); });
+
+	function updateInventoryUI() {
+		coinsEl.textContent = state.coins;
+		if(luckMultiplierEl){
+			const isActive = state.potionActive && state.potionEndsAt > Date.now();
+			const cappedStacks = Math.min(state.luckStacks, 100);
+			luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
+		}
+		
+		activeEffectsEl.innerHTML = '';
+		if (state.potionActive && state.potionEndsAt > Date.now()) {
+			const remaining = Math.ceil((state.potionEndsAt - Date.now()) / 1000);
+			const minutes = Math.floor(remaining / 60);
+			const seconds = remaining % 60;
+			const cappedStacks = Math.min(state.luckStacks, 100);
+			const effectEl = document.createElement('div');
+			effectEl.className = 'item-card';
+			effectEl.innerHTML = `
+				<div class="item-icon">🧪</div>
+				<div class="item-info">
+					<h3>Luck Potion</h3>
+					<p class="effect-active">Active - ${minutes}:${seconds.toString().padStart(2, '0')} remaining</p>
+					<p>+${cappedStacks * 2}x luck boost (${cappedStacks} stack${cappedStacks !== 1 ? 's' : ''})</p>
+				</div>
+			`;
+			activeEffectsEl.appendChild(effectEl);
+		} else {
+			activeEffectsEl.innerHTML = '<p style="color:var(--muted)">No active effects</p>';
+		}
+
+		if(brewedPotionsEl){
+			brewedPotionsEl.innerHTML = '';
+			const inv = Array.isArray(state.potionInventory) ? state.potionInventory : [];
+			if(inv.length === 0){
+				brewedPotionsEl.innerHTML = '<p style="color:var(--muted)">No brewed potions. Visit the Shop to brew potions!</p>';
+			} else {
+				inv.forEach((potion, idx) => {
+					const potionEl = document.createElement('div');
+					potionEl.className = 'item-card';
+					potionEl.style.position = 'relative';
+					potionEl.innerHTML = `
+						<div class="item-icon">🧪</div>
+						<div class="item-info">
+							<h3>${potion.name}</h3>
+							<p style="color:#10b981">+${potion.potency} luck stacks</p>
+							<p style="font-size:12px">Duration: ${Math.round(potion.durationMs/60000)} minutes</p>
+						</div>
+					`;
+					const useBtn = document.createElement('button');
+					useBtn.className = 'buy-btn';
+					useBtn.textContent = 'Use';
+					useBtn.style.marginLeft = 'auto';
+					useBtn.addEventListener('click', () => window.useBrewedPotion(idx));
+					potionEl.appendChild(useBtn);
+					brewedPotionsEl.appendChild(potionEl);
+				});
+			}
+		}
+
+		purchasedItemsEl.innerHTML = '';
+		const petEntries = Object.entries(state.inventory || {});
+		if (petEntries.length > 0) {
+			petEntries.forEach(([petId, count]) => {
+				const pet = PETS.find(p => p.id === petId);
+				if (!pet) return;
+				for (let i = 0; i < count; i++) {
+					const petKey = `${petId}_${i}`;
+					const enchants = state.petEnchantments[petKey] || [];
+					const itemEl = document.createElement('div');
+					itemEl.className = 'item-card';
+					itemEl.style.cursor = 'pointer';
+					itemEl.innerHTML = `
+						<div class="item-icon">🐾</div>
+						<div class="item-info">
+							<h3>${pet.name}</h3>
+							<p style="color:var(--${pet.rarity})">${pet.rarity.toUpperCase()}</p>
+							<p style="font-size:11px;margin-top:4px">${enchants.length} enchantment${enchants.length !== 1 ? 's' : ''} • Click to view</p>
+						</div>
+					`;
+					itemEl.addEventListener('click', () => showPetDetail(petKey, petId));
+					purchasedItemsEl.appendChild(itemEl);
+				}
+			});
+		}
+		
+		if (state.purchasedItems && state.purchasedItems.length > 0) {
+			state.purchasedItems.forEach(item => {
+				const itemEl = document.createElement('div');
+				itemEl.className = 'item-card';
+				itemEl.innerHTML = `
+					<div class="item-icon">${item.icon}</div>
+					<div class="item-info">
+						<h3>${item.name}</h3>
+						<p>${item.description}</p>
+					</div>
+				`;
+				purchasedItemsEl.appendChild(itemEl);
+			});
+		}
+		
+		if (petEntries.length === 0 && (!state.purchasedItems || state.purchasedItems.length === 0)) {
+			purchasedItemsEl.innerHTML = '<p style="color:var(--muted)">No items purchased yet</p>';
+		}
+	}
+
+	setInterval(updateInventoryUI, 1000);
+	updateInventoryUI();
 }

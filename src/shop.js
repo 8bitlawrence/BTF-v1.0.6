@@ -251,7 +251,7 @@ async function brewPotion(potency, cost){
     updateUI();
     renderBrewableFruits();
     if(typeof showAlert === 'function'){
-        await showAlert(`✅ ${potionName} brewed successfully! Check your Inventory to use it.`);
+        await showAlert(`${potionName} brewed successfully! Check your Inventory to use it.`);
     } else {
         alert(`${potionName} brewed! Check your Inventory to use it.`);
     }
@@ -338,6 +338,22 @@ if(buySlotMachineBtn){
         }
     });
 }
+
+
+if(buyThanksgivingPotion){
+    buyThanksgivingPotion.addEventListener('click', ()=>{
+        if(state.coins >= THANKSGIVING_POTION_COST && !state.thanksgivingPotionActive){
+            state.coins -= THANKSGIVING_POTION_COST;
+            state.thanksgivingPotionActive = true;
+            state.thanksgivingPotionEndsAt = Date.now() + THANKSGIVING_POTION_DURATION;
+            if(!state.purchasedItems.some(i=>i.name==='Potion of Thanksgiving')){
+                state.purchasedItems.push({ name: 'Potion of Thanksgiving', icon: '🦃', description: 'All shop items 50% off for 5 minutes' });
+            }
+            saveState();
+            updateUI();
+        }
+    });
+} 
 
 // Gift Code redemption handler
 const giftCodeInput = document.getElementById('giftCodeInput');

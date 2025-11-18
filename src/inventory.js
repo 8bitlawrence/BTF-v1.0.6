@@ -183,6 +183,23 @@ function updateUI() {
     }
 }
 
+
+function useBrewedPotion(idx){
+    const inv = Array.isArray(state.potionInventory) ? state.potionInventory : [];
+    if(idx < 0 || idx >= inv.length) return;
+    const potion = inv[idx];
+    if(!potion) return;
+
+    // Apply potion effect
+    applyPotionEffect(potion);
+
+    // Remove used potion from inventory
+    inv.splice(idx, 1);
+    state.potionInventory = inv;
+    saveState();
+    updateUI();
+}
+
 // Check effects timer every second
 setInterval(updateUI, 1000);
 
