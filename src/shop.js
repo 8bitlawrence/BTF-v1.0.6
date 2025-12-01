@@ -1,4 +1,98 @@
+// Christmas Gift: Clean implementation
+// Renders a gift card UI and wires claim to global helpers.
+(function(){
+    function ensureGlobals(){
+        if(!window.state) window.state = { inventory: {}, gifts: {} };
+        if(!window.state.inventory) window.state.inventory = {};
+        if(!window.state.gifts) window.state.gifts = {};
+    }
+
+    function createGiftCard(){
+        const container = document.getElementById('giftSection') || document.getElementById('shop') || document.body;
+        const card = document.createElement('div');
+        card.className = 'gift-card festive';
+        card.innerHTML = `
+            <h3>Christmas Gift</h3>
+            <p>Claim your free Festive Reindeer!</p>
+            <div class="gift-actions">
+                <button id="claimChristmasGift">Claim Reindeer</button>
+            </div>
+        `;
+        container.appendChild(card);
+        return card;
+    }
+
+    function wireClaim(){
+        const btn = document.getElementById('claimChristmasGift');
+        if(btn) btn.addEventListener('click', function(){
+            ensureGlobals();
+            // Prevent duplicate claims
+            if(window.state.gifts && window.state.gifts.christmas2025){
+                btn.disabled = true;
+                btn.textContent = 'Already Claimed';
+                if(typeof showAlert === 'function'){
+                    showAlert('Already claimed. Enjoy your Festive Reindeer!');
+                } else {
+                    alert('Already claimed. Enjoy your Festive Reindeer!');
+                }
+                return;
+            }
+
+            const petId = 'pet_f_1';
+            let granted = false;
+
+            if(typeof window.grantPet === 'function'){
+                granted = !!window.grantPet(petId, 1);
+            }
+
+            if(!granted){
+                // Fallback: direct mutation guarded
+                window.state.inventory[petId] = (window.state.inventory[petId] || 0) + 1;
+                if(typeof window.saveState === 'function'){
+                    window.saveState();
+                } else {
+                    try{ localStorage.setItem('btf_state_v1', JSON.stringify(window.state)); }catch(e){}
+                }
+                if(typeof window.updateUI === 'function') window.updateUI();
+            }
+
+            window.state.gifts.christmas2025 = true;
+            if(typeof window.saveState === 'function') window.saveState();
+
+            // Update UI to reflect single-claim rule
+            btn.disabled = true;
+            btn.textContent = 'Already Claimed';
+            
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', function(){
+        ensureGlobals();
+        // Render card only if not claimed; if already claimed, optionally show a note
+        if(!window.state.gifts || !window.state.gifts.christmas2025){
+            createGiftCard();
+            wireClaim();
+        } else {
+            const container = document.getElementById('giftSection') || document.getElementById('shop') || document.body;
+            const note = document.createElement('div');
+            note.className = 'gift-card festive';
+            note.innerHTML = '<h3>Christmas Gift</h3><p>Already claimed. Happy Holidays! 🎁</p>';
+            container.appendChild(note);
+        }
+    });
+})();
+
 // Shop functionality
+// Guard: only run if shop page elements exist
+if (!document.getElementById('buyLuckPotion')) {
+	// Not on shop page, skip this module
+} else {
+
+// Wait for DOM to be ready and globals to be available
+document.addEventListener('DOMContentLoaded', () => {
+	// Double-check we're on the shop page after DOM loads
+	if (!document.getElementById('buyLuckPotion')) return;
+	
 // STORAGE_KEY is now defined in index.js
 const POTION_COST = 100000;
 const POTION_DURATION = 5 * 60 * 1000; // 5 minutes in ms
@@ -6,6 +100,8 @@ const BENNY_COST = 10000;
 const BENNY_DURATION = 5 * 60 * 1000; // 5 minutes
 const BLESSING_COST = 8000;
 const BLESSING_DURATION = 5 * 60 * 1000; // 5 minutes
+const CHRISTMAS_COST = 150000;
+const CHRISTMAS_DURATION = 5 * 60 * 1000; // 5 minutes
 const SLOT_MACHINE_COST = 1000000;
 const SLOT_MACHINE_BONUS = 5;
 
@@ -16,14 +112,22 @@ const buyBennyBtn = document.getElementById('buyBennyBoost');
 const bennyTimerEl = document.getElementById('bennyTimer');
 const buyBlessingBtn = document.getElementById('buyPumpkinBlessing');
 const blessingTimerEl = document.getElementById('blessingTimer');
+const buyChristmasBtn = document.getElementById('buyChristmasPotion');
+const christmasTimerEl = document.getElementById('christmasTimer');
 const buySlotMachineBtn = document.getElementById('buySlotMachine');
 const slotsPurchasedEl = document.getElementById('slotsPurchased');
+const buyThanksgivingPotion = document.getElementById('buyThanksgivingPotion');
+
 // Brewing UI
 const tearsDisplayEl = document.getElementById('tearsDisplay');
 const brewFruitListEl = document.getElementById('brewFruitList');
 const brewSelectionEl = document.getElementById('brewSelection');
 const brewPreviewEl = document.getElementById('brewPreview');
 const brewPotionBtn = document.getElementById('brewPotionBtn');
+
+// Ensure we have local references to common header elements (may not rely on globals)
+const coinsEl = document.getElementById('coins');
+const luckMultiplierEl = document.getElementById('luckMultiplier');
 
 // State is now defined in index.js - use the global state
 // Local state object removed to avoid duplicate declaration
@@ -37,43 +141,48 @@ function loadState() {
         const raw = localStorage.getItem(STORAGE_KEY);
         if (raw) {
             const parsed = JSON.parse(raw);
-            state.coins = parsed.coins ?? 0;
-            state.potionActive = parsed.potionActive ?? false;
-            state.potionEndsAt = parsed.potionEndsAt ?? 0;
-            state.luckStacks = parsed.luckStacks ?? 0;
-            state.bennyActive = parsed.bennyActive ?? false;
-            state.bennyEndsAt = parsed.bennyEndsAt ?? 0;
-            state.blessingActive = parsed.blessingActive ?? false;
-            state.blessingEndsAt = parsed.blessingEndsAt ?? 0;
-            state.purchasedItems = parsed.purchasedItems ?? [];
-            state.bonusInventorySlots = parsed.bonusInventorySlots ?? 0;
-            state.fruits = parsed.fruits ?? {};
-            state.tears = parsed.tears ?? 0;
-            state.potionInventory = parsed.potionInventory ?? [];
+            if(!window.state) window.state = {};
+            window.state.coins = parsed.coins ?? 0;
+            window.state.potionActive = parsed.potionActive ?? false;
+            window.state.potionEndsAt = parsed.potionEndsAt ?? 0;
+            window.state.luckStacks = parsed.luckStacks ?? 0;
+            window.state.bennyActive = parsed.bennyActive ?? false;
+            window.state.bennyEndsAt = parsed.bennyEndsAt ?? 0;
+            window.state.blessingActive = parsed.blessingActive ?? false;
+            window.state.blessingEndsAt = parsed.blessingEndsAt ?? 0;
+            window.state.christmasActive = parsed.christmasActive ?? false;
+            window.state.christmasEndsAt = parsed.christmasEndsAt ?? 0;
+            window.state.purchasedItems = parsed.purchasedItems ?? [];
+            window.state.bonusInventorySlots = parsed.bonusInventorySlots ?? 0;
+            window.state.inventory = parsed.inventory ?? (window.state.inventory || {});
+            window.state.fruits = parsed.fruits ?? (window.state.fruits || {});
+            window.state.tears = parsed.tears ?? 0;
+            window.state.potionInventory = parsed.potionInventory ?? [];
         }
     } catch (e) { console.warn('load failed', e) }
     updateUI();
+    renderBrewableFruits();
 }
 
 // saveState() is now provided by index.js with hash integrity
 
 // Update UI
 function updateUI() {
-    coinsEl.textContent = state.coins;
-    if(tearsDisplayEl){ tearsDisplayEl.textContent = Math.floor(state.tears || 0); }
+    if(coinsEl){ coinsEl.textContent = window.state.coins; }
+    if(tearsDisplayEl){ tearsDisplayEl.textContent = Math.floor(window.state.tears || 0); }
     
     // Update luck multiplier
     if(luckMultiplierEl){
-        const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        const cappedStacks = Math.min(state.luckStacks, 100);
+        const isActive = window.state.potionActive && window.state.potionEndsAt > Date.now();
+        const cappedStacks = Math.min(window.state.luckStacks, 100);
         luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
     }
     // Benny UI
     if(bennyTimerEl){
-        const bActive = state.bennyActive && state.bennyEndsAt > Date.now();
-        buyBennyBtn.disabled = state.coins < BENNY_COST || bActive;
+        const bActive = window.state.bennyActive && window.state.bennyEndsAt > Date.now();
+        buyBennyBtn.disabled = window.state.coins < BENNY_COST || bActive;
         if(bActive){
-            const remaining = Math.ceil((state.bennyEndsAt - Date.now())/1000);
+            const remaining = Math.ceil((window.state.bennyEndsAt - Date.now())/1000);
             const minutes = Math.floor(remaining/60);
             const seconds = remaining%60;
             bennyTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} remaining`;
@@ -84,10 +193,10 @@ function updateUI() {
     }
     // Blessing UI
     if(blessingTimerEl){
-        const blActive = state.blessingActive && state.blessingEndsAt > Date.now();
-        if(buyBlessingBtn) buyBlessingBtn.disabled = state.coins < BLESSING_COST || blActive;
+        const blActive = window.state.blessingActive && window.state.blessingEndsAt > Date.now();
+        if(buyBlessingBtn) buyBlessingBtn.disabled = window.state.coins < BLESSING_COST || blActive;
         if(blActive){
-            const remaining = Math.ceil((state.blessingEndsAt - Date.now())/1000);
+            const remaining = Math.ceil((window.state.blessingEndsAt - Date.now())/1000);
             const minutes = Math.floor(remaining/60);
             const seconds = remaining%60;
             blessingTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} remaining`;
@@ -97,18 +206,33 @@ function updateUI() {
         }
     }
     
-    // Allow buying potions even when active (for stacking)
-    buyBtn.disabled = state.coins < POTION_COST;
+    // Christmas UI
+    if(christmasTimerEl){
+        const chrActive = window.state.christmasActive && window.state.christmasEndsAt > Date.now();
+        if(buyChristmasBtn) buyChristmasBtn.disabled = window.state.coins < CHRISTMAS_COST || chrActive;
+        if(chrActive){
+            const remaining = Math.ceil((window.state.christmasEndsAt - Date.now())/1000);
+            const minutes = Math.floor(remaining/60);
+            const seconds = remaining%60;
+            christmasTimerEl.textContent = `${minutes}:${seconds.toString().padStart(2,'0')} remaining`;
+            christmasTimerEl.style.display = 'inline';
+        } else {
+            christmasTimerEl.style.display = 'none';
+        }
+    }
     
-    if (state.potionActive) {
-        const remaining = Math.ceil((state.potionEndsAt - Date.now()) / 1000);
+    // Allow buying potions even when active (for stacking)
+    buyBtn.disabled = window.state.coins < POTION_COST;
+    
+    if (window.state.potionActive) {
+        const remaining = Math.ceil((window.state.potionEndsAt - Date.now()) / 1000);
         if (remaining <= 0) {
-            state.potionActive = false;
-            state.potionEndsAt = 0;
-            state.luckStacks = 0;
-            saveState();
+            window.state.potionActive = false;
+            window.state.potionEndsAt = 0;
+            window.state.luckStacks = 0;
+            if(typeof window.saveState === 'function') window.saveState();
             timerEl.style.display = 'none';
-            buyBtn.disabled = state.coins < POTION_COST;
+            buyBtn.disabled = window.state.coins < POTION_COST;
         } else {
             const minutes = Math.floor(remaining / 60);
             const seconds = remaining % 60;
@@ -121,14 +245,14 @@ function updateUI() {
     
     // Slot Machine UI (one-time purchase)
     if(buySlotMachineBtn){
-        const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
-        buySlotMachineBtn.disabled = (state.coins < SLOT_MACHINE_COST) || purchased;
+        const purchased = (window.state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        buySlotMachineBtn.disabled = (window.state.coins < SLOT_MACHINE_COST) || purchased;
         buySlotMachineBtn.textContent = purchased ? 'Purchased' : 'Buy Slot Machine';
     }
     if(slotsPurchasedEl){
         const base = 20;
-        const totalSlots = base + (state.bonusInventorySlots || 0);
-        const purchased = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        const totalSlots = base + (window.state.bonusInventorySlots || 0);
+        const purchased = (window.state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
         if(purchased){
             slotsPurchasedEl.textContent = `Current capacity: ${totalSlots} slots (Slot Machine owned)`;
         } else {
@@ -167,7 +291,7 @@ function getFruitDef(fid){ return FRUITS.find(f=>f.id===fid); }
 function renderBrewableFruits(){
     if(!brewFruitListEl) return;
     brewFruitListEl.innerHTML = '';
-    const entries = Object.entries(state.fruits||{}).filter(([,cnt])=>cnt>0);
+    const entries = Object.entries(window.state.fruits||{}).filter(([,cnt])=>cnt>0);
     if(entries.length===0){
         brewFruitListEl.innerHTML = '<div style="color:var(--muted)">No fruits available.</div>';
         return;
@@ -207,18 +331,18 @@ function updateBrewPreview(){
     });
     potency = Math.min(potency, 100);
     brewPreviewEl.textContent = `Cost: ${cost} Tears`;
-    const canAfford = (state.tears||0) >= cost;
-    const haveAll = selectedFruits.every(fid => (state.fruits[fid]||0) > 0);
+    const canAfford = (window.state.tears||0) >= cost;
+    const haveAll = selectedFruits.every(fid => (window.state.fruits[fid]||0) > 0);
     brewPotionBtn.disabled = !(canAfford && haveAll);
     brewPotionBtn.onclick = ()=>brewPotion(potency, cost);
 }
 
 async function brewPotion(potency, cost){
-    console.log('brewPotion called', {potency, cost, currentInventory: state.potionInventory});
+    console.log('brewPotion called', {potency, cost, currentInventory: window.state.potionInventory});
     // consume fruits
-    selectedFruits.forEach(fid=>{ if(state.fruits[fid]>0){ state.fruits[fid] -= 1; if(state.fruits[fid]===0) delete state.fruits[fid]; } });
+    selectedFruits.forEach(fid=>{ if(window.state.fruits[fid]>0){ window.state.fruits[fid] -= 1; if(window.state.fruits[fid]===0) delete window.state.fruits[fid]; } });
     // consume tears
-    state.tears = Math.max(0, (state.tears||0) - cost);
+    window.state.tears = Math.max(0, (window.state.tears||0) - cost);
     
     // Determine potion name based on potency
     let potionName = 'Luck Potion';
@@ -241,12 +365,12 @@ async function brewPotion(potency, cost){
     }
     
     // add potion to inventory
-    if(!Array.isArray(state.potionInventory)) state.potionInventory = [];
-    state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
-    console.log('After push', {newInventory: state.potionInventory, stateKeys: Object.keys(state)});
+    if(!Array.isArray(window.state.potionInventory)) window.state.potionInventory = [];
+    window.state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
+    console.log('After push', {newInventory: window.state.potionInventory, stateKeys: Object.keys(window.state)});
     // reset selection
     selectedFruits = [];
-    saveState();
+    if(typeof window.saveState === 'function') window.saveState();
     console.log('After saveState');
     updateUI();
     renderBrewableFruits();
@@ -261,27 +385,27 @@ async function brewPotion(potency, cost){
 
 // Buy potion (stackable - extends duration)
 buyBtn.addEventListener('click', () => {
-    if (state.coins >= POTION_COST) {
-        state.coins -= POTION_COST;
-        if (state.potionActive && state.potionEndsAt > Date.now()) {
+    if (window.state.coins >= POTION_COST) {
+        window.state.coins -= POTION_COST;
+        if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
             // Already active: increment stacks (max 100), reset timer
-            state.luckStacks = Math.min(state.luckStacks + 1, 100);
-            state.potionEndsAt = Date.now() + POTION_DURATION;
+            window.state.luckStacks = Math.min(window.state.luckStacks + 1, 100);
+            window.state.potionEndsAt = Date.now() + POTION_DURATION;
         } else {
             // Not active or expired: start new effect
-            state.potionActive = true;
-            state.luckStacks = 1;
-            state.potionEndsAt = Date.now() + POTION_DURATION;
+            window.state.potionActive = true;
+            window.state.luckStacks = 1;
+            window.state.potionEndsAt = Date.now() + POTION_DURATION;
         }
         // Add to purchased items if not already there
-        if (!state.purchasedItems.some(item => item.name === 'Potion of Luck')) {
-            state.purchasedItems.push({
+        if (!window.state.purchasedItems.some(item => item.name === 'Potion of Luck')) {
+            window.state.purchasedItems.push({
                 name: 'Potion of Luck',
                 icon: '',
                 description: 'Makes all items 3x more common for 5 minutes'
             });
         }
-        saveState();
+        if(typeof window.saveState === 'function') window.saveState();
         updateUI();
     }
 });
@@ -289,14 +413,14 @@ buyBtn.addEventListener('click', () => {
 // Buy Benny Boost
 if(buyBennyBtn){
     buyBennyBtn.addEventListener('click', ()=>{
-        if(state.coins >= BENNY_COST && !state.bennyActive){
-            state.coins -= BENNY_COST;
-            state.bennyActive = true;
-            state.bennyEndsAt = Date.now() + BENNY_DURATION;
-            if(!state.purchasedItems.some(i=>i.name==='Benny Boost')){
-                state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+5% CPS for 5 minutes' });
+        if(window.state.coins >= BENNY_COST && !window.state.bennyActive){
+            window.state.coins -= BENNY_COST;
+            window.state.bennyActive = true;
+            window.state.bennyEndsAt = Date.now() + BENNY_DURATION;
+            if(!window.state.purchasedItems.some(i=>i.name==='Benny Boost')){
+                window.state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+5% CPS for 5 minutes' });
             }
-            saveState();
+            if(typeof window.saveState === 'function') window.saveState();
             updateUI();
         }
     });
@@ -305,15 +429,40 @@ if(buyBennyBtn){
 // Buy Blessing of the Pumpkin
 if(buyBlessingBtn){
     buyBlessingBtn.addEventListener('click', ()=>{
-        if(state.coins >= BLESSING_COST && !state.blessingActive){
-            state.coins -= BLESSING_COST;
-            state.blessingActive = true;
-            state.blessingEndsAt = Date.now() + BLESSING_DURATION;
-            if(!state.purchasedItems.some(i=>i.name==='Blessing of the Pumpkin')){
-                state.purchasedItems.push({ name: 'Blessing of the Pumpkin', icon: '🎃', description: 'Makes spooky items 2/3 as rare for 5 minutes' });
+        if(window.state.coins >= BLESSING_COST && !window.state.blessingActive){
+            window.state.coins -= BLESSING_COST;
+            window.state.blessingActive = true;
+            window.state.blessingEndsAt = Date.now() + BLESSING_DURATION;
+            if(!window.state.purchasedItems.some(i=>i.name==='Blessing of the Pumpkin')){
+                window.state.purchasedItems.push({ name: 'Blessing of the Pumpkin', icon: '🎃', description: 'Makes spooky items 2/3 as rare for 5 minutes' });
             }
-            saveState();
+            if(typeof window.saveState === 'function') window.saveState();
             updateUI();
+        }
+    });
+}
+
+// Buy Christmas Spirit Potion
+if(buyChristmasBtn){
+    buyChristmasBtn.addEventListener('click', ()=>{
+        if(window.state.coins >= CHRISTMAS_COST){
+            window.state.coins -= CHRISTMAS_COST;
+            window.state.christmasActive = true;
+            window.state.christmasEndsAt = Date.now() + CHRISTMAS_DURATION;
+            window.state.luckStacks = (window.state.luckStacks||0) + 2;
+            if(typeof window.saveState === 'function') window.saveState();
+            updateUI();
+            if(typeof showAlert === 'function'){
+                showAlert('🎄 Christmas Spirit Potion activated! +2x luck for 5 minutes!');
+            } else {
+                alert('🎄 Christmas Spirit Potion activated! +2x luck for 5 minutes!');
+            }
+        } else {
+            if(typeof showAlert === 'function'){
+                showAlert('Not enough coins!');
+            } else {
+                alert('Not enough coins!');
+            }
         }
     });
 }
@@ -321,20 +470,28 @@ if(buyBlessingBtn){
 // Buy Slot Machine
 if(buySlotMachineBtn){
     buySlotMachineBtn.addEventListener('click', ()=>{
-        const alreadyBought = (state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
+        const alreadyBought = (window.state.bonusInventorySlots || 0) >= SLOT_MACHINE_BONUS;
         if(alreadyBought){
-            alert('You already own the Slot Machine.');
+            if(typeof showAlert === 'function'){
+                showAlert('You already own the Slot Machine.');
+            } else {
+                alert('You already own the Slot Machine.');
+            }
             return;
         }
-        if(state.coins >= SLOT_MACHINE_COST){
-            state.coins -= SLOT_MACHINE_COST;
-            state.bonusInventorySlots = SLOT_MACHINE_BONUS; // one-time purchase
-            if(!state.purchasedItems.some(i=>i.name==='Slot Machine')){
-                state.purchasedItems.push({ name: 'Slot Machine', icon: '🎰', description: `Adds +5 pet inventory slots permanently` });
+        if(window.state.coins >= SLOT_MACHINE_COST){
+            window.state.coins -= SLOT_MACHINE_COST;
+            window.state.bonusInventorySlots = SLOT_MACHINE_BONUS; // one-time purchase
+            if(!window.state.purchasedItems.some(i=>i.name==='Slot Machine')){
+                window.state.purchasedItems.push({ name: 'Slot Machine', icon: '🎰', description: `Adds +5 pet inventory slots permanently` });
             }
-            saveState();
+            if(typeof window.saveState === 'function') window.saveState();
             updateUI();
-            alert(`Purchased! Your pet inventory capacity is now ${20 + state.bonusInventorySlots} slots.`);
+            if(typeof showAlert === 'function'){
+                showAlert(`Purchased! Your pet inventory capacity is now ${20 + window.state.bonusInventorySlots} slots.`);
+            } else {
+                alert(`Purchased! Your pet inventory capacity is now ${20 + window.state.bonusInventorySlots} slots.`);
+            }
         }
     });
 }
@@ -342,18 +499,55 @@ if(buySlotMachineBtn){
 
 if(buyThanksgivingPotion){
     buyThanksgivingPotion.addEventListener('click', ()=>{
-        if(state.coins >= THANKSGIVING_POTION_COST && !state.thanksgivingPotionActive){
-            state.coins -= THANKSGIVING_POTION_COST;
-            state.thanksgivingPotionActive = true;
-            state.thanksgivingPotionEndsAt = Date.now() + THANKSGIVING_POTION_DURATION;
-            if(!state.purchasedItems.some(i=>i.name==='Potion of Thanksgiving')){
-                state.purchasedItems.push({ name: 'Potion of Thanksgiving', icon: '🦃', description: 'All shop items 50% off for 5 minutes' });
+        if(window.state.coins >= THANKSGIVING_POTION_COST && !window.state.thanksgivingPotionActive){
+            window.state.coins -= THANKSGIVING_POTION_COST;
+            window.state.thanksgivingPotionActive = true;
+            window.state.thanksgivingPotionEndsAt = Date.now() + THANKSGIVING_POTION_DURATION;
+            if(!window.state.purchasedItems.some(i=>i.name==='Potion of Thanksgiving')){
+                window.state.purchasedItems.push({ name: 'Potion of Thanksgiving', icon: '🦃', description: 'All shop items 50% off for 5 minutes' });
             }
-            saveState();
+            if(typeof window.saveState === 'function') window.saveState();
             updateUI();
         }
     });
 } 
+
+// Christmas Gift Claim handler
+const claimChristmasGiftBtn = document.getElementById('claimChristmasGift');
+if(claimChristmasGiftBtn){
+    claimChristmasGiftBtn.addEventListener('click', ()=>{
+        const petId = 'pet_f_1';
+        
+        // Use window.state explicitly (set by index.js)
+        if(!window.state || !window.state.inventory){
+            // Initialize minimal structures to allow claim to proceed
+            window.state = window.state || {};
+            window.state.inventory = window.state.inventory || {};
+            window.state.bonusInventorySlots = window.state.bonusInventorySlots || 0;
+        }
+        
+        // Check inventory capacity
+        const maxSlots = 20 + (window.state.bonusInventorySlots || 0);
+        const currentCount = Object.values(window.state.inventory).reduce((s,v)=>s+v,0);
+        if(currentCount >= maxSlots){
+            if(typeof showAlert === 'function'){
+                showAlert(`Your pet inventory is full (${maxSlots} slots). Sell pets first.`);
+            } else {
+                alert(`Your pet inventory is full (${maxSlots} slots). Sell pets first.`);
+            }
+            return;
+        }
+        
+        // Old Christmas gift logic removed. Replaced by unified setup below.
+        
+        // Show success only (no auto-redirect)
+        if(typeof showAlert === 'function'){
+            showAlert('🎁 Christmas gift claimed successfully! Merry Christmas!');
+        } else {
+            alert('🎁 Christmas gift claimed successfully! Merry Christmas!');
+        }
+    });
+}
 
 // Gift Code redemption handler
 const giftCodeInput = document.getElementById('giftCodeInput');
@@ -417,3 +611,6 @@ setInterval(updateUI, 1000);
 loadState();
 renderBrewableFruits();
 updateBrewPreview();
+
+}); // End DOMContentLoaded
+} // End shop page guard

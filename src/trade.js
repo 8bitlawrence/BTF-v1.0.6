@@ -2,7 +2,7 @@
 // and finalize via completion code without double-deducting.
 
 // LocalStorage keys
-const CLAIMED_CODES_KEY = typeof CLAIMED_CODES_KEY !== 'undefined' ? CLAIMED_CODES_KEY : 'btf_claimed_codes_v1';
+const CLAIMED_CODES_KEY = (typeof window !== 'undefined' && window.CLAIMED_CODES_KEY) || 'btf_claimed_codes_v1';
 const PENDING_TRADE_KEY = 'btf_pending_trade_v1';
 
 function getFruitName(fruitId) {
@@ -642,6 +642,11 @@ window.counterOffer = counterOffer;
 
 // Initialize when DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+    // Only run on trade page
+    if (!document.getElementById('selectItemsBtn')) {
+        return; // Not on trade page
+    }
+    
     // Initialize DOM elements
     coinsEl = document.getElementById('coins');
     yourOfferPreviewEl = document.getElementById('yourOfferPreview');

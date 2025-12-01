@@ -1,5 +1,10 @@
 // Leaderboard functionality for BTF
 
+// Only run on leaderboard page
+if (typeof document !== 'undefined' && !document.getElementById('leaderboardList')) {
+	// Not on leaderboard page, skip initialization
+} else {
+
 const STORAGE_KEY = 'mini_gacha_state_v1';
 const LEADERBOARD_API = 'https://api.jsonbin.io/v3/b/6720a1e1acd3cb34a89e8c9f'; // You'll need to replace this with your own JSONBin ID
 const API_KEY = '$2a$10$YourAPIKeyHere'; // Replace with your JSONBin API key
@@ -389,3 +394,5 @@ refreshLeaderboard.addEventListener('click', () => {
 // Initialize
 checkRegistration();
 loadLeaderboard();
+
+} // End of leaderboard page check

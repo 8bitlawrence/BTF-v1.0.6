@@ -1,3 +1,68 @@
+// Seasonal events toggle
+(() => {
+	try {
+		const now = Date.now();
+		// Christmas 2025 window (local time): Nov 27 — Dec 31
+		const start = new Date(2025, 10, 27, 0, 0, 0).getTime(); // months 0-indexed
+		const end = new Date(2025, 11, 31, 23, 59, 59).getTime();
+		const active = now >= start && now <= end;
+		if (typeof document !== 'undefined' && document.body) {
+			document.body.classList.toggle('event-christmas', !!active);
+		}
+	} catch (_) {}
+})();
+
+// Console warning
+console.log('%c CHARLES SPENCER MCGINNIS CLOSE THE CONSOLE RIGHT THIS INSTANT', 'color: #ff0000; font-size: 24px; font-weight: bold;');
+console.log("%c You're not slick", 'color: #6366f1; font-size: 12px; font-weight: bold;');
+
+// Christmas Update Modal logic (unified, non-recursive)
+(() => {
+	try {
+		if (typeof document === 'undefined') return;
+		const modal = document.getElementById('christmasUpdateModal');
+		const closeBtn = document.getElementById('closeChristmasUpdate');
+		if (!modal || !closeBtn) return; // not on this page
+
+		const STORAGE_FLAG = 'btf_seen_christmas_update';
+		const now = Date.now();
+		const start = new Date(2025, 10, 27, 0, 0, 0).getTime();
+		const end = new Date(2025, 11, 31, 23, 59, 59).getTime();
+		const active = now >= start && now <= end;
+		const alreadySeen = localStorage.getItem(STORAGE_FLAG) === '1';
+
+		function openModal() {
+			modal.style.display = 'flex';
+			const backdrop = modal.querySelector('.modal-backdrop');
+			if (backdrop) backdrop.style.display = 'block';
+			console.log('[Christmas] Modal opened');
+		}
+		function closeModal() {
+			modal.style.display = 'none';
+			const backdrop = modal.querySelector('.modal-backdrop');
+			if (backdrop) backdrop.style.display = 'none';
+			localStorage.setItem(STORAGE_FLAG, '1');
+			console.log('[Christmas] Modal closed & flagged');
+		}
+		closeBtn.addEventListener('click', closeModal);
+		modal.addEventListener('click', (e) => { if (e.target === modal) closeModal(); });
+		window.showChristmasModal = openModal; // global manual trigger
+
+		const urlParams = (typeof location !== 'undefined' && location.search) ? new URLSearchParams(location.search) : null;
+		const forceShow = urlParams ? urlParams.get('show_christmas') === '1' : false;
+		if (forceShow) {
+			setTimeout(openModal, 200);
+		} else if (active && !alreadySeen) {
+			// Show shortly after load so decorations render first
+			setTimeout(openModal, 400);
+		} else {
+			console.log('[Christmas] Modal not opened (active:', active, 'alreadySeen:', alreadySeen, ')');
+		}
+	} catch (e) {
+		console.warn('Christmas modal init failed', e);
+	}
+})();
+
 // Enchantment definitions for modal display
 const ENCHANTMENTS = [
 	{ id: 'swift_1', name: 'Swift I', tier: 1, cost: 50, description: '+2% Coins per Second' },
@@ -75,6 +140,9 @@ const PETS = [
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
 	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
+	{ id: 'pet_f_1', name: 'Festive Reindeer', rarity: 'festive', weight: 0.3, value: 2800 },
+	{ id: 'pet_f_2', name: 'Gingerbread Man', rarity: 'festive', weight: 60, value: 2500 },
+	{ id: 'pet_f_3', name: 'Santa', rarity: 'festive', weight: 0.2, value: 3000 },
 	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.005, value: 10000000 },
 	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.0005, value: 50000000 }
 ];
@@ -95,7 +163,7 @@ const GIFT_CODES = {
 	
 	"OBLIVIOUS6767676": { pet: ["pet_u_3", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_2", "pet_u_3", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_u_2", "pet_u_1", "pet_s_1", "pet_1" ], description: "5,000 Tears" },
 
-	"MYNAMEISDYLANKIM": { pet: ["pet_u_3", "pet_u_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", ], coins: 10000000000, description: "Your welcome Dylan Thomas Kim son of Edna and Thomas" }
+	"MYNAMEISDYLANKIM": { pet: ["pet_u_3", "pet_u_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", ], coins: 10000000000, description: "You're welcome Dylan Thomas Kim son of Edna and Thomas" }
 };
 
 // Config: show admin button and starting coins
@@ -116,6 +184,7 @@ const EP_PER_SEC_PER_SPECIAL = 0.5; // was 1.0 per special pet per second
 // Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
 const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
 const THANKSGIVING_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 11, 1).getTime(); })();
+const CHRISTMAS_END = (function(){ const y = new Date().getFullYear(); return new Date(y + 1, 0, 1).getTime(); })(); // Jan 1 next year
 
 // FRUITS: capsule pool
 const FRUITS = [
@@ -135,6 +204,8 @@ const FRUITS = [
 	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.005, value: 60000000 }
 	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
+	,	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 }
+	,	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 }
 	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.0005, value: 100000000 }
 	
 
@@ -154,6 +225,8 @@ let state = {
 	potionActive: false,
 	potionEndsAt: 0,
 	luckStacks: 0,
+	christmasActive: false,
+	christmasEndsAt: 0,
 	bennyActive: false,
 	bennyEndsAt: 0,
 	bonusInventorySlots: 0, // extra slots from Slot Machine purchases
@@ -170,30 +243,17 @@ const RARITY_RANK = {
 	epic: 3,
 	special: 4,
 	legendary: 5,
+	festive: 6,
 	spooky: 6,
 	chromatic: 7,
 	unique: 8,
 	godly: 9
 };
 
-// DOM
-const coinsEl = document.getElementById('coins');
-const tearsDisplayMainEl = document.getElementById('tearsDisplayMain');
-const cpsEl = document.getElementById('cps');
-const epDisplayEl = document.getElementById('epDisplay');
-const epsEl = document.getElementById('eps');
-const luckMultiplierEl = document.getElementById('luckMultiplier');
-const singleBtn = document.getElementById('singleRoll');
-const tenBtn = document.getElementById('tenRoll');
-const resultArea = document.getElementById('resultArea');
-const inventoryList = document.getElementById('inventoryListPets');
-const clearInv = document.getElementById('clearInv');
-
-const inventoryListFruits = document.getElementById('inventoryListFruits');
-const clearFruits = document.getElementById('clearFruits');
-const capSingle = document.getElementById('capSingle');
-const capTen = document.getElementById('capTen');
-const capsuleResultArea = document.getElementById('capsuleResultArea');
+// DOM - these will be initialized after DOMContentLoaded
+let coinsEl, tearsDisplayMainEl, cpsEl, epDisplayEl, epsEl, luckMultiplierEl;
+let singleBtn, tenBtn, resultArea, inventoryList, clearInv;
+let inventoryListFruits, clearFruits, capSingle, capTen, capsuleResultArea;
 
 // Persistence
 const STORAGE_KEY = 'btf_state_v1';
@@ -248,7 +308,19 @@ function computeStateHash(s){
 	const str = stableStringify(snap);
 	return fnv1a64(str);
 }
+
+// Server state management
+function saveStateToServer(stateData) {
+	if (typeof window.gameSocket !== 'undefined' && window.isServerConnected()) {
+		window.gameSocket.emit('saveState', stateData);
+		console.log('[Server] State sent to server');
+	} else {
+		console.warn('[Server] Not connected, using localStorage fallback');
+	}
+}
+
 function loadState(){
+	// First, try to load from localStorage (fallback/initial)
 	try{
 		// Migrate from previous storage key if present
 		if(!localStorage.getItem(STORAGE_KEY)){
@@ -287,6 +359,8 @@ function loadState(){
 				potionActive: parsed.potionActive ?? false,
 				potionEndsAt: parsed.potionEndsAt ?? 0,
 				luckStacks: parsed.luckStacks ?? 0,
+				christmasActive: parsed.christmasActive ?? false,
+				christmasEndsAt: parsed.christmasEndsAt ?? 0,
 				bennyActive: parsed.bennyActive ?? false,
 				bennyEndsAt: parsed.bennyEndsAt ?? 0,
 				blessingActive: parsed.blessingActive ?? false,
@@ -319,15 +393,21 @@ function loadState(){
 						bonusInventorySlots: 0,
 						redeemedGiftCodes: [],
 						tears: 0,
-						potionInventory: []
+						potionInventory: [],
+						christmasActive: false,
+						christmasEndsAt: 0
 					};
 					// Persist a clean save and hash right away
 					try{
 						localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
 						localStorage.setItem(STORAGE_HASH_KEY, computeStateHash(state));
 					}catch(e){ console.warn(e); }
-				}
+				};
 			} else if(!storedHash){
+		// Ensure global reference points to the latest state object
+		if (typeof window !== 'undefined') {
+			window.state = state;
+		}
 				// Legacy save without hash: create one
 				try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
 			}
@@ -349,12 +429,52 @@ function loadState(){
 		}
 	}catch(e){ console.warn('load failed', e) }
 }
+
+// Load state from server (called by socket event)
+window.loadServerState = function(serverState) {
+	if (serverState) {
+		console.log('[Server] Loading state from server');
+		state = {
+			coins: serverState.coins ?? (START_WITH_MILLION ? 1000000 : 2000),
+			enchantPoints: serverState.enchantPoints ?? 0,
+			inventory: serverState.inventory ?? {},
+			fruits: serverState.fruits ?? {},
+			petEnchantments: serverState.petEnchantments ?? {},
+			petNames: serverState.petNames ?? {},
+			petRerollsUsed: serverState.petRerollsUsed ?? {},
+			potionActive: serverState.potionActive ?? false,
+			potionEndsAt: serverState.potionEndsAt ?? 0,
+			luckStacks: serverState.luckStacks ?? 0,
+			christmasActive: serverState.christmasActive ?? false,
+			christmasEndsAt: serverState.christmasEndsAt ?? 0,
+			bennyActive: serverState.bennyActive ?? false,
+			bennyEndsAt: serverState.bennyEndsAt ?? 0,
+			blessingActive: serverState.blessingActive ?? false,
+			blessingEndsAt: serverState.blessingEndsAt ?? 0,
+			bonusInventorySlots: serverState.bonusInventorySlots ?? 0,
+			redeemedGiftCodes: serverState.redeemedGiftCodes ?? [],
+			tears: serverState.tears ?? 0,
+			potionInventory: serverState.potionInventory ?? []
+		};
+		window.state = state; // Update global reference
+		if (typeof updateUI === 'function') {
+			updateUI();
+		}
+	} else {
+		console.log('[Server] No saved state on server, using local state');
+	}
+};
+
 function saveState(){
 	try{
 		const json = JSON.stringify(state);
+		// Save to localStorage as backup
 		localStorage.setItem(STORAGE_KEY, json);
 		const hash = computeStateHash(state);
 		localStorage.setItem(STORAGE_HASH_KEY, hash);
+		
+		// Also save to server
+		saveStateToServer(state);
 	}catch(e){ console.warn(e) }
 }
 
@@ -362,14 +482,19 @@ function saveState(){
 function weightedPick(items){
 	// Check if luck potion is active
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
+	const christmasBuff = state.christmasActive && state.christmasEndsAt > Date.now();
 	const cappedStacks = Math.min(state.luckStacks, 100);
 	const multiplier = potionActive ? (1 + cappedStacks * 2) : 1;
 
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
-	const pool = items.filter(i => !(i.rarity === 'spooky' && !halloweenStillOn));
-	const thanksgivingStillOn = Date.now() < THANKSGIVING_END;
-	const finalPool = pool.filter(i => !(i.rarity === 'thanksgiving' && !thanksgivingStillOn));
+	const christmasStillOn = Date.now() < CHRISTMAS_END;
+	const pool = items.filter(i => {
+		if (i.rarity === 'spooky' && !halloweenStillOn) return false;
+		if (i.rarity === 'festive' && !christmasStillOn) return false;
+		return true;
+	});
+	const finalPool = pool;
 
 	// All rarities can now be obtained multiple times (no unique filter)
 	let useItems = pool;
@@ -379,14 +504,14 @@ function weightedPick(items){
 	// Rarity boost factors - rarer items get bigger multiplier
 	const rarityBoost = {
 		common: 1,
-		rare: 2,
-		epic: 4,
-		special: 3,
-		legendary: 8,
-		spooky: 6,
-		chromatic: 10,
-		unique: 12,
-		godly: 15
+		rare: 1.003454446,
+		epic: 1.008039297,
+		special: 1.019653436,
+		legendary: 1.025779402,
+		spooky: 1.02577,
+		chromatic: 1.02671028,
+		unique: 1.04888665,
+		godly: 1.058950408
 	};
 	
 	const adjustedWeights = useItems.map(i => {
@@ -394,9 +519,12 @@ function weightedPick(items){
 		let w = i.weight;
 		if(potionActive) {
 			const boost = rarityBoost[i.rarity] || 1;
-			w = i.weight * (1 + (multiplier - 1) * boost);
+			w = i.weight * (1 + (multiplier - 1) ** boost);
 		}
-		// Blessing removed: no spooky weight reduction
+		// Christmas Spirit Potion: make festive items more common
+		if (christmasBuff && i.rarity === 'festive') {
+			w *= 3; // 3x more likely while potion is active
+		}
 		return w;
 	});
 
@@ -418,6 +546,7 @@ const RARITY_CPS = {
 	epic: 8,
 	special: 12,
 	legendary: 20,
+	festive: 30,
 	spooky: 30,
 	chromatic: 80,
 	unique: 120,
@@ -638,6 +767,7 @@ function updateUI(){
 				// Add rarity shimmer classes
 				if(p.rarity === 'chromatic') el.classList.add('chromatic');
 				else if(p.rarity === 'spooky') el.classList.add('spooky');
+				else if(p.rarity === 'festive') el.classList.add('festive');
 				else if(p.rarity === 'unique') el.classList.add('unique');
 				else if(p.rarity === 'godly') el.classList.add('godly');
 				const badge = document.createElement('div');
@@ -700,6 +830,7 @@ function updateUI(){
 			// Add rarity shimmer classes
 			if(f.rarity === 'chromatic') el.classList.add('chromatic');
 			else if(f.rarity === 'spooky') el.classList.add('spooky');
+			else if(f.rarity === 'festive') el.classList.add('festive');
 			else if(f.rarity === 'unique') el.classList.add('unique');
 			else if(f.rarity === 'godly') el.classList.add('godly');
 			const badge = document.createElement('div');
@@ -762,6 +893,7 @@ function animateRoll(makeItemsCallback, revealCallback){
 		// placeholder icons reused from showResults
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
+		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
 		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
@@ -1006,6 +1138,7 @@ async function showResults(items){
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
 		else if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
+		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
 		else if(it.rarity==='epic'){ ic.textContent='✨'; card.classList.add('epic'); }
 		else if(it.rarity==='special'){ ic.textContent='👁️'; card.classList.add('special'); }
@@ -1046,6 +1179,10 @@ function showCapsuleResults(items){
 		}else if(it.rarity==='spooky'){
 			ic.textContent = '🎃';
 			card.classList.add('spooky');
+
+		}else if(it.rarity==='festive'){
+			ic.textContent = '🎄';
+			card.classList.add('festive');
 		}else if(it.rarity==='unique'){
 			ic.textContent = '👑';
 			card.classList.add('unique');
@@ -1197,108 +1334,6 @@ async function sellPetInstance(id, instanceIndex){
 	// Close the sell modal
 	const modal = document.getElementById('sellPetModal');
 	if(modal) modal.style.display = 'none';
-}
-
-// Button handlers (only attach if elements exist - for pages that load index.js)
-if(singleBtn){
-	singleBtn.addEventListener('click', async ()=>{
-		const costs = getCurrentCosts();
-		if(state.coins < costs.priceSingle){ alert('Not enough coins for a single roll.'); return; }
-		// prevent rolling if inventory full
-		const maxInv = getMaxInventory();
-		if(getPetTotalCount() >= maxInv){
-			await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
-			return;
-		}
-		state.coins -= costs.priceSingle;
-		// Cashback from enchants
-		const ef = costs._effects;
-		if(ef.spendRefundPercent > 0){
-			const refund = Math.floor(costs.priceSingle * ef.spendRefundPercent * ef.coinGainMult);
-			state.coins += refund;
-		}
-		// Grant Enchantment Points (tuned lower)
-		const epGain = EP_GAIN_SINGLE_MIN + Math.floor(Math.random() * (EP_GAIN_SINGLE_MAX - EP_GAIN_SINGLE_MIN + 1));
-		state.enchantPoints = (state.enchantPoints || 0) + epGain;
-		// animate then reveal
-		animateRoll(()=>[rollOnce()], showResults);
-	});
-}
-
-if(tenBtn){
-	tenBtn.addEventListener('click', async ()=>{
-	const costs = getCurrentCosts();
-	if(state.coins < costs.priceTen){ alert('Not enough coins for a ten-roll.'); return; }
-	// check available slots
-	const need = 10;
-	const maxInv = getMaxInventory();
-	const avail = maxInv - getPetTotalCount();
-	if(avail <= 0){
-		await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
-		return;
-	}
-	if(avail < need){
-		const cont = await showConfirm(`You only have space for ${avail} more pet(s). Rolling x10 may discard the extra ${need-avail} pet(s). Continue?`);
-		if(!cont) return;
-	}
-	state.coins -= costs.priceTen;
-	// Cashback from enchants
-	const ef = costs._effects;
-	if(ef.spendRefundPercent > 0){
-		const refund = Math.floor(costs.priceTen * ef.spendRefundPercent * ef.coinGainMult);
-		state.coins += refund;
-	}
-	// Grant Enchantment Points (tuned lower)
-	const epGain = EP_GAIN_TEN_MIN + Math.floor(Math.random() * (EP_GAIN_TEN_MAX - EP_GAIN_TEN_MIN + 1));
-	state.enchantPoints = (state.enchantPoints || 0) + epGain;
-	animateRoll(()=>rollTen(), showResults);
-	});
-}
-
-if(capSingle){
-	capSingle.addEventListener('click', ()=>{
-		const costs = getCurrentCosts();
-		if(state.coins < costs.capSingle){ alert('Not enough coins for capsule roll.'); return; }
-		state.coins -= costs.capSingle;
-		const ef = costs._effects;
-		if(ef.spendRefundPercent > 0){
-			const refund = Math.floor(costs.capSingle * ef.spendRefundPercent * ef.coinGainMult);
-			state.coins += refund;
-		}
-		animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
-	});
-}
-
-if(capTen){
-	capTen.addEventListener('click', ()=>{
-		const costs = getCurrentCosts();
-		if(state.coins < costs.capTen){ alert('Not enough coins for capsule x10.'); return; }
-		state.coins -= costs.capTen;
-		const ef = costs._effects;
-		if(ef.spendRefundPercent > 0){
-			const refund = Math.floor(costs.capTen * ef.spendRefundPercent * ef.coinGainMult);
-			state.coins += refund;
-		}
-		animateRoll(()=>rollFruitTen(), showCapsuleResults);
-	});
-}
-
-if(clearInv){
-	clearInv.addEventListener('click', async ()=>{
-		if(!await showConfirm('Clear your inventory?')) return;
-		state.inventory = {};
-		saveState();
-		updateUI();
-	});
-}
-
-if(clearFruits){
-	clearFruits.addEventListener('click', async ()=>{
-		if(!await showConfirm('Clear fruits inventory?')) return;
-		state.fruits = {};
-		saveState();
-		updateUI();
-	});
 }
 
 // Sell pet selector modal
@@ -1498,22 +1533,265 @@ function showPetInfo(petId, instanceIndex){
 	modal.style.display = 'flex';
 }
 
-// Init
-loadState();
-// ensure required objects exist (in case older saves lack them)
-state.inventory = state.inventory || {};
-state.fruits = state.fruits || {};
+// Modal setup function
+function setupModals() {
+	// Welcome modal: show on first visit
+	const welcomeModal = document.getElementById('welcomeModal');
+	const closeWelcome = document.getElementById('closeWelcome');
+	if(welcomeModal && closeWelcome){
+		const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
+		if(!hasSeenWelcome){
+			welcomeModal.style.display = 'flex';
+			closeWelcome.addEventListener('click', ()=>{
+				welcomeModal.style.display = 'none';
+				localStorage.setItem('btf_seen_welcome', 'true');
+			});
+			welcomeModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
+				welcomeModal.style.display = 'none';
+				localStorage.setItem('btf_seen_welcome', 'true');
+			});
+		}
+	}
 
-updateUI();
-saveState();
+	// Halloween Update modal: show on first visit (after welcome modal if both unseen)
+	const halloweenUpdateModal = document.getElementById('halloweenUpdateModal');
+	const closeHalloweenUpdate = document.getElementById('closeHalloweenUpdate');
+	if(halloweenUpdateModal && closeHalloweenUpdate){
+		const hasSeenHalloweenUpdate = localStorage.getItem('btf_seen_halloween_update');
+		const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
 
-// If a tampered save was detected during load, notify the player once
-const __tamperedFlag = localStorage.getItem('btf_save_tampered');
-if(__tamperedFlag === '1'){
-	localStorage.removeItem('btf_save_tampered');
-	setTimeout(()=>{
-		try{ showAlert('Tampering detected! Your save was reset to defaults.'); }catch(_){ /* fallback */ alert('Tampering detected! Your save was reset to defaults.'); }
-	}, 0);
+		// Show Halloween update after welcome modal is closed (or immediately if welcome was already seen)
+		const showHalloweenUpdate = () => {
+			if(!hasSeenHalloweenUpdate){
+				halloweenUpdateModal.style.display = 'flex';
+			}
+		};
+		
+		if(!hasSeenWelcome){
+			// Wait for welcome modal to close before showing Halloween update
+			closeWelcome?.addEventListener('click', ()=>{
+				setTimeout(showHalloweenUpdate, 300);
+			});
+		} else {
+			// Show immediately if welcome was already seen
+			showHalloweenUpdate();
+		}
+		
+		closeHalloweenUpdate.addEventListener('click', ()=>{
+			halloweenUpdateModal.style.display = 'none';
+			localStorage.setItem('btf_seen_halloween_update', 'true');
+		});
+		halloweenUpdateModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
+			halloweenUpdateModal.style.display = 'none';
+			localStorage.setItem('btf_seen_halloween_update', 'true');
+		});
+	}
+
+	// Pet info modal close
+	const closePetInfo = document.getElementById('closePetInfo');
+	const petInfoModal = document.getElementById('petInfoModal');
+	if(closePetInfo && petInfoModal){
+		closePetInfo.addEventListener('click', ()=>{
+			petInfoModal.style.display = 'none';
+		});
+		petInfoModal.addEventListener('click', (e)=>{
+			if(e.target === petInfoModal) petInfoModal.style.display = 'none';
+		});
+	}
+
+	// Pet selector modal close
+	const closePetSelector = document.getElementById('closePetSelector');
+	const petSelectorModal = document.getElementById('petSelectorModal');
+	if(closePetSelector && petSelectorModal){
+		closePetSelector.addEventListener('click', ()=>{
+			petSelectorModal.style.display = 'none';
+		});
+		petSelectorModal.addEventListener('click', (e)=>{
+			if(e.target === petSelectorModal) petSelectorModal.style.display = 'none';
+		});
+	}
+
+	// Sell pet modal close
+	const closeSellPet = document.getElementById('closeSellPet');
+	const sellPetModal = document.getElementById('sellPetModal');
+	if(closeSellPet && sellPetModal){
+		closeSellPet.addEventListener('click', ()=>{
+			sellPetModal.style.display = 'none';
+		});
+		sellPetModal.addEventListener('click', (e)=>{
+			if(e.target === sellPetModal) sellPetModal.style.display = 'none';
+		});
+	}
+
+	// Terms & Conditions button: opens terms.html in a new tab/window
+	const openTermsBtn = document.getElementById('openTerms');
+	if(openTermsBtn){
+		openTermsBtn.addEventListener('click', ()=>{
+			window.open('terms.html', '_blank');
+		});
+	}
+}
+
+// Init - moved to DOMContentLoaded to ensure DOM is ready
+function initGame() {
+	// Initialize DOM elements
+	coinsEl = document.getElementById('coins');
+	tearsDisplayMainEl = document.getElementById('tearsDisplayMain');
+	cpsEl = document.getElementById('cps');
+	epDisplayEl = document.getElementById('epDisplay');
+	epsEl = document.getElementById('eps');
+	luckMultiplierEl = document.getElementById('luckMultiplier');
+	singleBtn = document.getElementById('singleRoll');
+	tenBtn = document.getElementById('tenRoll');
+	resultArea = document.getElementById('resultArea');
+	inventoryList = document.getElementById('inventoryListPets');
+	clearInv = document.getElementById('clearInv');
+	inventoryListFruits = document.getElementById('inventoryListFruits');
+	clearFruits = document.getElementById('clearFruits');
+	capSingle = document.getElementById('capSingle');
+	capTen = document.getElementById('capTen');
+	capsuleResultArea = document.getElementById('capsuleResultArea');
+
+	loadState();
+	// ensure required objects exist (in case older saves lack them)
+	state.inventory = state.inventory || {};
+	state.fruits = state.fruits || {};
+
+	updateUI();
+	saveState();
+
+	// If a tampered save was detected during load, notify the player once
+	const __tamperedFlag = localStorage.getItem('btf_save_tampered');
+	if(__tamperedFlag === '1'){
+		localStorage.removeItem('btf_save_tampered');
+		setTimeout(()=>{
+			try{ showAlert('Tampering detected! Your save was reset to defaults.'); }catch(_){ /* fallback */ alert('Tampering detected! Your save was reset to defaults.'); }
+		}, 0);
+	}
+
+	// Setup button event listeners (only attach if elements exist)
+	setupEventListeners();
+
+	// Setup modals after DOM is ready
+	setupModals();
+
+	// run Halloween visuals update now and every minute in case the page stays open across the event end
+	updateHalloweenVisuals();
+	setInterval(updateHalloweenVisuals, 60*1000);
+}
+
+// Button handlers moved to a separate function
+function setupEventListeners() {
+	if(singleBtn){
+		singleBtn.addEventListener('click', async ()=>{
+			const costs = getCurrentCosts();
+			if(state.coins < costs.priceSingle){ alert('Not enough coins for a single roll.'); return; }
+			// prevent rolling if inventory full
+			const maxInv = getMaxInventory();
+			if(getPetTotalCount() >= maxInv){
+				await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
+				return;
+			}
+			state.coins -= costs.priceSingle;
+			// Cashback from enchants
+			const ef = costs._effects;
+			if(ef.spendRefundPercent > 0){
+				const refund = Math.floor(costs.priceSingle * ef.spendRefundPercent * ef.coinGainMult);
+				state.coins += refund;
+			}
+			// Grant Enchantment Points (tuned lower)
+			const epGain = EP_GAIN_SINGLE_MIN + Math.floor(Math.random() * (EP_GAIN_SINGLE_MAX - EP_GAIN_SINGLE_MIN + 1));
+			state.enchantPoints = (state.enchantPoints || 0) + epGain;
+			// animate then reveal
+			animateRoll(()=>[rollOnce()], showResults);
+		});
+	}
+
+	if(tenBtn){
+		tenBtn.addEventListener('click', async ()=>{
+		const costs = getCurrentCosts();
+		if(state.coins < costs.priceTen){ alert('Not enough coins for a ten-roll.'); return; }
+		// check available slots
+		const need = 10;
+		const maxInv = getMaxInventory();
+		const avail = maxInv - getPetTotalCount();
+		if(avail <= 0){
+			await showAlert(`Your pet inventory is full (${maxInv}). Sell some pets before rolling.`);
+			return;
+		}
+		if(avail < need){
+			const cont = await showConfirm(`You only have space for ${avail} more pet(s). Rolling x10 may discard the extra ${need-avail} pet(s). Continue?`);
+			if(!cont) return;
+		}
+		state.coins -= costs.priceTen;
+		// Cashback from enchants
+		const ef = costs._effects;
+		if(ef.spendRefundPercent > 0){
+			const refund = Math.floor(costs.priceTen * ef.spendRefundPercent * ef.coinGainMult);
+			state.coins += refund;
+		}
+		// Grant Enchantment Points (tuned lower)
+		const epGain = EP_GAIN_TEN_MIN + Math.floor(Math.random() * (EP_GAIN_TEN_MAX - EP_GAIN_TEN_MIN + 1));
+		state.enchantPoints = (state.enchantPoints || 0) + epGain;
+		animateRoll(()=>rollTen(), showResults);
+		});
+	}
+
+	if(capSingle){
+		capSingle.addEventListener('click', ()=>{
+			const costs = getCurrentCosts();
+			if(state.coins < costs.capSingle){ alert('Not enough coins for capsule roll.'); return; }
+			state.coins -= costs.capSingle;
+			const ef = costs._effects;
+			if(ef.spendRefundPercent > 0){
+				const refund = Math.floor(costs.capSingle * ef.spendRefundPercent * ef.coinGainMult);
+				state.coins += refund;
+			}
+			animateRoll(()=>[rollFruitOnce()], showCapsuleResults);
+		});
+	}
+
+	if(capTen){
+		capTen.addEventListener('click', ()=>{
+			const costs = getCurrentCosts();
+			if(state.coins < costs.capTen){ alert('Not enough coins for capsule x10.'); return; }
+			state.coins -= costs.capTen;
+			const ef = costs._effects;
+			if(ef.spendRefundPercent > 0){
+				const refund = Math.floor(costs.capTen * ef.spendRefundPercent * ef.coinGainMult);
+				state.coins += refund;
+			}
+			animateRoll(()=>rollFruitTen(), showCapsuleResults);
+		});
+	}
+
+	if(clearInv){
+		clearInv.addEventListener('click', async ()=>{
+			if(!await showConfirm('Clear your inventory?')) return;
+			state.inventory = {};
+			saveState();
+			updateUI();
+		});
+	}
+
+	if(clearFruits){
+		clearFruits.addEventListener('click', async ()=>{
+			if(!await showConfirm('Clear fruits inventory?')) return;
+			state.fruits = {};
+			saveState();
+			updateUI();
+		});
+	}
+}
+
+// Initialize when DOM is ready
+if (typeof document !== 'undefined') {
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initGame);
+	} else {
+		// DOM already loaded
+		initGame();
+	}
 }
 
 // Toggle Halloween visuals based on HALLOWEEN_END
@@ -1531,97 +1809,6 @@ function updateHalloweenVisuals(){
 		if(h){ h.classList.remove('halloween-shimmer'); h.style.color = ''; }
 		if(s) s.style.display = 'none';
 	}
-}
-// run now and every minute in case the page stays open across the event end
-updateHalloweenVisuals();
-setInterval(updateHalloweenVisuals, 60*1000);
-
-// Welcome modal: show on first visit
-const welcomeModal = document.getElementById('welcomeModal');
-const closeWelcome = document.getElementById('closeWelcome');
-if(welcomeModal && closeWelcome){
-    const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
-    if(!hasSeenWelcome){
-        welcomeModal.style.display = 'flex';
-        closeWelcome.addEventListener('click', ()=>{
-            welcomeModal.style.display = 'none';
-            localStorage.setItem('btf_seen_welcome', 'true');
-        });
-        welcomeModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
-            welcomeModal.style.display = 'none';
-            localStorage.setItem('btf_seen_welcome', 'true');
-        });
-    }
-}
-
-// Halloween Update modal: show on first visit (after welcome modal if both unseen)
-const halloweenUpdateModal = document.getElementById('halloweenUpdateModal');
-const closeHalloweenUpdate = document.getElementById('closeHalloweenUpdate');
-if(halloweenUpdateModal && closeHalloweenUpdate){
-    const hasSeenHalloweenUpdate = localStorage.getItem('btf_seen_halloween_update');
-    const hasSeenWelcome = localStorage.getItem('btf_seen_welcome');
-    
-    // Show Halloween update after welcome modal is closed (or immediately if welcome was already seen)
-    const showHalloweenUpdate = () => {
-        if(!hasSeenHalloweenUpdate){
-            halloweenUpdateModal.style.display = 'flex';
-        }
-    };
-    
-    if(!hasSeenWelcome){
-        // Wait for welcome modal to close before showing Halloween update
-        closeWelcome?.addEventListener('click', ()=>{
-            setTimeout(showHalloweenUpdate, 300);
-        });
-    } else {
-        // Show immediately if welcome was already seen
-        showHalloweenUpdate();
-    }
-    
-    closeHalloweenUpdate.addEventListener('click', ()=>{
-        halloweenUpdateModal.style.display = 'none';
-        localStorage.setItem('btf_seen_halloween_update', 'true');
-    });
-    halloweenUpdateModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
-        halloweenUpdateModal.style.display = 'none';
-        localStorage.setItem('btf_seen_halloween_update', 'true');
-    });
-}
-
-// Pet info modal close
-const closePetInfo = document.getElementById('closePetInfo');
-const petInfoModal = document.getElementById('petInfoModal');
-if(closePetInfo && petInfoModal){
-	closePetInfo.addEventListener('click', ()=>{
-		petInfoModal.style.display = 'none';
-	});
-	petInfoModal.addEventListener('click', (e)=>{
-		if(e.target === petInfoModal) petInfoModal.style.display = 'none';
-	});
-}
-
-// Pet selector modal close
-const closePetSelector = document.getElementById('closePetSelector');
-const petSelectorModal = document.getElementById('petSelectorModal');
-if(closePetSelector && petSelectorModal){
-	closePetSelector.addEventListener('click', ()=>{
-		petSelectorModal.style.display = 'none';
-	});
-	petSelectorModal.addEventListener('click', (e)=>{
-		if(e.target === petSelectorModal) petSelectorModal.style.display = 'none';
-	});
-}
-
-// Sell pet modal close
-const closeSellPet = document.getElementById('closeSellPet');
-const sellPetModal = document.getElementById('sellPetModal');
-if(closeSellPet && sellPetModal){
-	closeSellPet.addEventListener('click', ()=>{
-		sellPetModal.style.display = 'none';
-	});
-	sellPetModal.addEventListener('click', (e)=>{
-		if(e.target === sellPetModal) sellPetModal.style.display = 'none';
-	});
 }
 
 // Passive income: add coins every second based on total CPS
@@ -1704,18 +1891,11 @@ setInterval(()=>{
 	if(state.potionActive && state.potionEndsAt <= Date.now()){ state.potionActive = false; state.luckStacks = 0; dirty = true; }
 	if(state.bennyActive && state.bennyEndsAt <= Date.now()){ state.bennyActive = false; dirty = true; }
 	if(state.blessingActive && state.blessingEndsAt <= Date.now()){ state.blessingActive = false; dirty = true; }
+	if(state.christmasActive && state.christmasEndsAt <= Date.now()){ state.christmasActive = false; dirty = true; }
 	if(dirty){ saveState(); updateUI(); }
 }, 1000);
 
 // About is now a separate page (about.html); modal wiring removed
-
-// Terms & Conditions button: opens terms.html in a new tab/window
-const openTermsBtn = document.getElementById('openTerms');
-if(openTermsBtn){
-	openTermsBtn.addEventListener('click', ()=>{
-		window.open('terms.html', '_blank');
-	});
-}
 
 function getPetName(petId) {
 	const pet = PETS.find(p => p.id === petId);
@@ -1727,10 +1907,9 @@ function getPetRarity(petId) {
 	return pet ? pet.rarity : "Undefined";
 }
 
-
-
-// Export globals for other modules to use
+// Export ALL globals BEFORE requiring page modules so they can access them
 if (typeof window !== 'undefined') {
+	window.CLAIMED_CODES_KEY = 'btf_claimed_codes_v1';
 	window.STORAGE_KEY = STORAGE_KEY;
 	window.PETS = PETS;
 	window.FRUITS = FRUITS;
@@ -1743,9 +1922,19 @@ if (typeof window !== 'undefined') {
 	window.showAlert = showAlert;
 	window.showConfirm = showConfirm;
 	window.redeemGiftCode = redeemGiftCode;
-	window.CLAIMED_CODES_KEY = 'btf_claimed_codes_v1';
 	window.getPetName = getPetName;
 	window.getPetRarity = getPetRarity;
+
+	// Safe helper to grant a pet and persist
+	window.grantPet = function(petId, count = 1){
+		try{
+			state.inventory = state.inventory || {};
+			state.inventory[petId] = (state.inventory[petId] || 0) + (count||1);
+			saveState();
+			if(typeof updateUI === 'function') updateUI();
+			return true;
+		}catch(e){ console.warn('grantPet failed', e); return false; }
+	};
 	
 	// Export useBrewedPotion function for inventory page
 	window.useBrewedPotion = function(index){
@@ -1774,6 +1963,13 @@ if (typeof window !== 'undefined') {
 	};
 }
 
+// Import all page-specific modules AFTER globals are exported (CommonJS for simple bundling)
+require('./shop.js');
+require('./inventory.js');
+require('./enchant.js');
+require('./trade.js');
+require('./leaderboard.js');
+
 // ==================== SHOP PAGE CODE ====================
 // Only executes if shop page elements exist
 if (document.getElementById('buyLuckPotion')) {
@@ -1785,7 +1981,7 @@ if (document.getElementById('buyLuckPotion')) {
 	const BLESSING_DURATION = 5 * 60 * 1000;
 	const SLOT_MACHINE_COST = 1000000;
 	const SLOT_MACHINE_BONUS = 5;
-
+ 
 	const buyBtn = document.getElementById('buyLuckPotion');
 	const timerEl = document.getElementById('potionTimer');
 	const buyBennyBtn = document.getElementById('buyBennyBoost');

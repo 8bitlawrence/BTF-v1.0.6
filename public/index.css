@@ -15,7 +15,7 @@ body{
 	color:#e6eef8;
 }
 .container{max-width:980px;margin:28px auto;padding:20px}
-header{display:flex;align-items:center;justify-content:space-between;padding:8px 12px}
+header{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:8px 12px}
 header h1{margin:0;font-size:20px}
 .halloween-shimmer{
 	display:inline-block;
@@ -39,6 +39,74 @@ header h1{margin:0;font-size:20px}
 	50%{ background-position: 100% 50%; }
 	100%{ background-position: 0% 50%; }
 }
+
+.thanksgiving-shimmer{ color: inherit; font-weight:800; }
+.event-thanksgiving .thanksgiving-shimmer{
+	display:inline-block;
+	background: linear-gradient(90deg, #ff8c00 0%, #ffa500 25%, #d2691e 50%, #ff6347 75%, #ff8c00 100%);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: thanksgivingShift 4s ease-in-out infinite;
+}
+
+@keyframes thanksgivingShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+.autumn-leaves{ display:none; position: fixed; top: -50px; pointer-events: none; z-index: 1; font-size: 24px; opacity: 0.7; animation: fallLeaves 8s linear infinite; }
+.event-thanksgiving .autumn-leaves{ display:block; }
+
+.thanksgiving-subtitle{ display:none; }
+.event-thanksgiving .thanksgiving-subtitle{ display:block; }
+
+.christmas-shimmer{ color: inherit; font-weight:800; }
+.event-christmas .christmas-shimmer{
+	display:inline-block;
+	background: linear-gradient(90deg, #c41e3a 0%, #228b22 25%, #c41e3a 50%, #228b22 75%, #c41e3a 100%);
+	background-size: 200% 100%;
+	-webkit-background-clip: text;
+	background-clip: text;
+	color: transparent;
+	animation: christmasShift 4s ease-in-out infinite;
+}
+
+@keyframes christmasShift{
+	0%{ background-position: 0% 50%; }
+	50%{ background-position: 100% 50%; }
+	100%{ background-position: 0% 50%; }
+}
+
+.christmas-snow{ display:none; position: fixed; top: -50px; pointer-events: none; z-index: 1; font-size: 28px; opacity: 0.8; animation: fallSnow 10s linear infinite; }
+.event-christmas .christmas-snow{ display:block; }
+
+.christmas-subtitle{ display:none; }
+.event-christmas .christmas-subtitle{ display:block !important; }
+
+#christmasShopItem{ display:none; }
+.event-christmas #christmasShopItem{ display:flex; }
+#christmasGiftItem{ display:none; }
+.event-christmas #christmasGiftItem{ display:flex; }
+
+
+@keyframes fallSnow{
+	0%{ transform: translateY(0) rotate(0deg); opacity: 0.8; }
+	50%{ opacity: 1; transform: translateX(20px); }
+	100%{ transform: translateY(100vh) rotate(180deg); opacity: 0; }
+}
+
+#thanksgivingShopItem{ display:none; }
+.event-thanksgiving #thanksgivingShopItem{ display:flex; }
+
+@keyframes fallLeaves{
+	0%{ transform: translateY(0) rotate(0deg); opacity: 0.7; }
+	50%{ opacity: 0.9; }
+	100%{ transform: translateY(100vh) rotate(360deg); opacity: 0; }
+}
+
 .wallet{font-weight:600;color:var(--muted)}
 .wallet::before{
 	content: '';
@@ -120,6 +188,17 @@ button.muted{background:#1f2937;color:var(--muted)}
 /* Spooky rarity (Halloween) */
 .badge.spooky{background: linear-gradient(90deg,#ff7a18,#8e2de2); color: white}
 .rarity-spooky{ border-color: transparent; box-shadow: 0 8px 30px rgba(255,122,24,0.18); position: relative; overflow: hidden }
+
+/* Festive rarity (Christmas) */
+.badge.festive{
+	background: linear-gradient(90deg,#c41e3a,#228b22,#c41e3a);
+	background-size: 200% 100%;
+	animation: christmasShift 3.2s linear infinite;
+	color: white;
+	font-weight:700;
+}
+.rarity-festive{ border-color: transparent; box-shadow: 0 8px 30px rgba(196,30,58,0.25); position: relative; overflow: hidden }
+
 .rarity-unique{ border-color:#00bfff; box-shadow: 0 0 20px rgba(0,191,255,0.8), 0 0 40px rgba(77,208,255,0.5), 0 0 60px rgba(41,82,163,0.3); position:relative; overflow:hidden; animation:uniqueGlow 2s ease-in-out infinite }
 
 .inventory-item.spooky{ position: relative; overflow: hidden; }
@@ -133,6 +212,22 @@ button.muted{background:#1f2937;color:var(--muted)}
 	pointer-events:none;
 }
 
+.inventory-item.festive{ position: relative; overflow: hidden; }
+.inventory-item.festive::after{
+	content: '';
+	position: absolute;
+	left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,
+		#d32f2f 0%, #1b5e20 50%, #d32f2f 100%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	pointer-events: none;
+	filter: blur(12px) saturate(1.1);
+	transform: translateZ(0);
+	animation: christmasShift 4s linear infinite;
+}
+
 .rarity-spooky::after{
 	content: '';
 	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
@@ -140,6 +235,16 @@ button.muted{background:#1f2937;color:var(--muted)}
 	mix-blend-mode: screen; opacity: 0.7;
 	filter: blur(10px) saturate(1.1);
 	animation: chromaShift 3s linear infinite;
+	pointer-events:none;
+}
+
+.rarity-festive::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg,#c41e3a, #228b22, #c41e3a);
+	mix-blend-mode: screen; opacity: 0.7;
+	filter: blur(10px) saturate(1.1);
+	animation: christmasShift 4s linear infinite;
 	pointer-events:none;
 }
 
@@ -227,6 +332,19 @@ button.muted{background:#1f2937;color:var(--muted)}
 	mix-blend-mode: screen;
 	filter: blur(15px) saturate(1.3);
 	animation: godlyShift 4s linear infinite;
+	pointer-events:none;
+}
+
+.result-card.festive{ position: relative; overflow: hidden; }
+.result-card.festive::after{
+	content: '';
+	position: absolute; left: -15%; top: -15%; right: -15%; bottom: -15%;
+	background: linear-gradient(90deg, #d32f2f 0%, #1b5e20 50%, #d32f2f 100%);
+	background-size: 200% 100%;
+	opacity: 0.7;
+	mix-blend-mode: screen;
+	filter: blur(14px) saturate(1.1);
+	animation: christmasShift 4s linear infinite;
 	pointer-events:none;
 }
 

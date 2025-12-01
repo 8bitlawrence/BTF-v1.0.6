@@ -1,25 +1,161 @@
-
-<!doctype html>
+	<!doctype html>
 <html lang="en">
 	<head>
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width,initial-scale=1" />
-		<title>Super Hard Math Problems</title>
-		<link rel="stylesheet" href="index.css" />
+		<title>BTF Vibe Edition</title>
 		<link rel="icon" type="image/x-icon" href="btflogo.png" />
-		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5036397256035929"
-     crossorigin="anonymous"></script>
+		<link rel="stylesheet" href="index.css" />
+		<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5036397256035929" crossorigin="anonymous"></script>
+
+
+
+		<script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+<script>
+const socket = io("http://192.168.4.103:3000", {
+    transports: ['websocket', 'polling'],
+    reconnection: true,
+    reconnectionDelay: 1000,
+    reconnectionAttempts: 5
+});
+let isConnected = false;
+let playerId = null;
+
+// Connection established
+socket.on("connected", (data) => {
+    console.log("[Server] Connected to server with ID:", data.id);
+    playerId = data.id;
+    isConnected = true;
+    updateServerStatus('online');
+    
+    // Load state from server on connect
+    socket.emit("loadState");
+});
+
+// Connection events
+socket.on("connect", () => {
+    console.log("[Server] Socket connected, waiting for server handshake...");
+    updateServerStatus('connecting');
+    // Fallback: if server doesn't send "connected" event within 2 seconds, assume connected
+    setTimeout(() => {
+        if (!isConnected) {
+            console.warn("[Server] No 'connected' event received, but socket is open. Treating as connected.");
+            isConnected = true;
+            playerId = socket.id;
+            updateServerStatus('online');
+            socket.emit("loadState");
+        }
+    }, 2000);
+});
+
+socket.on("disconnect", (reason) => {
+    console.warn("[Server] Disconnected:", reason);
+    isConnected = false;
+    updateServerStatus('offline');
+});
+
+socket.on("connect_error", (error) => {
+    console.error("[Server] Connection error:", error.message);
+    isConnected = false;
+    updateServerStatus('error');
+});
+
+socket.on("reconnect_attempt", (attemptNumber) => {
+    console.log("[Server] Reconnection attempt", attemptNumber);
+    updateServerStatus('reconnecting');
+});
+
+socket.on("reconnect_failed", () => {
+    console.error("[Server] Failed to reconnect after multiple attempts");
+    updateServerStatus('failed');
+});
+
+// Update server status indicator
+function updateServerStatus(status) {
+    setTimeout(() => {
+        const statusEl = document.getElementById('serverStatus');
+        if (!statusEl) return;
+        
+        switch(status) {
+            case 'online':
+                statusEl.innerHTML = '🟢 Online';
+                statusEl.style.color = '#10b981';
+                break;
+            case 'connecting':
+            case 'reconnecting':
+                statusEl.innerHTML = '🟡 Connecting...';
+                statusEl.style.color = '#f59e0b';
+                break;
+            case 'offline':
+            case 'error':
+            case 'failed':
+                statusEl.innerHTML = '🔴 Offline';
+                statusEl.style.color = '#94a3b8';
+                break;
+        }
+    }, 100);
+}
+
+// Receive all players
+socket.on("currentPlayers", (players) => {
+    console.log("[Server] Players:", players);
+});
+
+// New player joined
+socket.on("newPlayer", (player) => {
+    console.log("[Server] A new player joined:", player);
+});
+
+// State loaded from server
+socket.on("stateLoaded", (serverState) => {
+    console.log("[Server] State loaded from server:", serverState);
+    if (serverState && typeof window.loadServerState === 'function') {
+        window.loadServerState(serverState);
+    }
+});
+
+// State saved confirmation
+socket.on("stateSaved", (response) => {
+    if (response.success) {
+        console.log("[Server] State saved to server successfully");
+    }
+});
+
+// Make socket available globally
+window.gameSocket = socket;
+window.isServerConnected = () => isConnected;
+</script>
+
+
+
 	</head>
 	<body>
+		<script><!-- Event class toggle -->
+		(function(){try{var now=Date.now();var start=new Date(2025,10,27,0,0,0).getTime();var end=new Date(2025,11,31,23,59,59).getTime();var active=now>=start&&now<=end;if(active){document.body.classList.add('event-christmas');}}catch(e){}})();
+		</script>
+		<script><!-- Christmas modal fallback -->
+		(function initChristmasFallback(){function setup(){try{if(window.showChristmasModal) return;var modal=document.getElementById('christmasUpdateModal');if(!modal) return;var closeBtn=document.getElementById('closeChristmasUpdate');function openModal(){modal.style.display='block';var backdrop=modal.querySelector('.modal-backdrop');if(backdrop) backdrop.style.display='block';}function closeModal(){modal.style.display='none';var backdrop=modal.querySelector('.modal-backdrop');if(backdrop) backdrop.style.display='none';}if(closeBtn) closeBtn.addEventListener('click',closeModal);modal.addEventListener('click',function(e){if(e.target===modal) closeModal();});window.showChristmasModal=openModal;try{var usp=new URLSearchParams(location.search);if(usp.get('show_christmas')==='1'){setTimeout(openModal,200);}}catch(_) {}}catch(err){console.warn('Christmas fallback init failed',err);}}if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',setup); else setup();})();
+		</script>
+
+		
+		<!-- Christmas snowflake decorations -->
+		<div class="christmas-snow" style="left:10%">❄️</div>
+		<div class="christmas-snow" style="left:30%;animation-delay:2s">❄️</div>
+		<div class="christmas-snow" style="left:50%;animation-delay:4s">❄️</div>
+		<div class="christmas-snow" style="left:70%;animation-delay:1s">❄️</div>
+		<div class="christmas-snow" style="left:85%;animation-delay:3s">❄️</div>
+
 		<div class="container">
 			<header>
-				<h1>BTF &middot; Vibe Edition</h1>
+				<h1><span class="christmas-shimmer">BTF &middot; Vibe Edition</span></h1>
+				<p class="subtitle christmas-subtitle" style="font-size:13px;color:#c41e3a;font-weight:700;margin:4px 0 0 0;text-shadow: 0 1px 2px rgba(0,0,0,0.5);"> Merry Christmas!</p>
 				<div style="display:flex;align-items:center;gap:10px">
                     <div style="text-align:right">
                         <div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
                         <div class="ep-display" style="position:relative">ENP: <span id="epDisplay">0</span> <small id="eps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
 						<div class="ep-display" style="position:relative;margin-top:4px">💧 <span id="tearsDisplayMain">0</span></div>
                         <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
+						<div id="serverStatus" style="font-size:11px;margin-top:4px;color:#94a3b8;">🔴 Offline</div>
                     </div>
 				</div>
 			</header>
@@ -83,7 +219,7 @@
 				</div>
 				<div class="modal-body">
 					<!-- text for update here -->
-					<p>Welcome to the new season of BTF! I know its been a while, but we're back with tons of new features. Now, you can enjoy collecting pets, fruits and so much more! Enjoy the vibes and happy collecting!</p>
+					<p>Welcome to the new season of BTF! We know its been a while, but we're back with tons of new features. Now, you can enjoy collecting pets, fruits and so much more! Enjoy the vibes and happy collecting!</p>
 					<p>As always, thank you for playing and supporting BTF. If you have any feedback or questions, feel free to reach out to the Eightbit Games Team.</p>
 					<p>Happy gaming!</p>
 				</div>
@@ -111,6 +247,21 @@
 			</div>
 		</div>
 
+		<!--Christmas Update Message-->
+
+		<div id="christmasUpdateModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3>🎄 The Christmas Event Is Here! ❄️</h3>
+					<button id="closeChristmasUpdate" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<p>Happy Holidays from the Eightbit Games team! To celebrate this festive season, we're giving away a <strong>Celestial Archon</strong>, the RAREST pet in the game in our Discord server, so make sure to join. Additionally, this update's Vibe is Christmas so we've added some winter-themed decorations, a new <strong>Festive</strong> rarity, and some limited edition holiday buffs in the shop. Enjoy the snow and as always, happy gaming!</p>
+				</div>
+			</div>
+		</div>
+
 		<!-- Pet Info Modal -->
 		<div id="petInfoModal" class="modal" style="display:none">
 			<div class="modal-backdrop"></div>
@@ -127,7 +278,7 @@
 						<button id="petRenameBtn" style="padding:8px 16px">Save</button>
 					</div>
 					<h4 style="margin:12px 0 8px 0">Enchantments</h4>
-					<div id="petInfoEnchants" sty```le="display:flex;flex-direction:column;gap:8px"></div>
+					<div id="petInfoEnchants" style="display:flex;flex-direction:column;gap:8px"></div>
 				</div>
 			</div>
 		</div>

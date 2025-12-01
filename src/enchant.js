@@ -12,8 +12,29 @@ let enchantPetSelectorModal, enchantClosePetSelector, enchantPetSelectorTitle, e
 
 // Load state - now uses global state from index.js
 function loadState() {
-    // State is already loaded by index.js
-    // Just ensure petRerollsUsed exists for backward compatibility
+    // Load from localStorage since each page has its own runtime
+    const STORAGE_KEY = window.STORAGE_KEY || 'btf_state_v1';
+    console.log('[Enchant] Loading from localStorage with key:', STORAGE_KEY);
+    
+    try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        console.log('[Enchant] Raw localStorage data:', raw ? raw.substring(0, 200) + '...' : 'null');
+        
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            console.log('[Enchant] Parsed state keys:', Object.keys(parsed));
+            console.log('[Enchant] Inventory from localStorage:', parsed.inventory);
+            
+            // Update the global state with loaded data
+            if (window.state) {
+                Object.assign(window.state, parsed);
+            }
+        }
+    } catch (e) {
+        console.error('[Enchant] Failed to load state:', e);
+    }
+    
+    // Ensure petRerollsUsed exists for backward compatibility
     if (!state.petRerollsUsed) {
         state.petRerollsUsed = {};
     }
@@ -345,6 +366,39 @@ function showAlert(message){
 
 // Initialize
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('[Enchant] DOMContentLoaded fired');
+    
+    // Only run on enchant page
+    const petGridElement = document.getElementById('petGrid');
+    console.log('[Enchant] petGrid element:', petGridElement);
+    
+    if (!petGridElement) {
+        console.log('[Enchant] Not on enchant page, exiting');
+        return; // Not on enchant page
+    }
+    
+    console.log('[Enchant] On enchant page, checking globals...');
+    
+    // Wait for globals to be available from index.js with retry mechanism
+    let retries = 0;
+    const maxRetries = 10;
+    const checkGlobals = () => {
+        if (typeof window.state !== 'undefined' && typeof window.PETS !== 'undefined' && typeof window.ENCHANTMENTS !== 'undefined') {
+            initEnchantPage();
+        } else {
+            retries++;
+            if (retries < maxRetries) {
+                console.warn(`[Enchant] Waiting for globals from index.js... (attempt ${retries}/${maxRetries})`);
+                setTimeout(checkGlobals, 100);
+            } else {
+                console.error('[Enchant] Failed to load globals after', maxRetries, 'attempts');
+            }
+        }
+    };
+    checkGlobals();
+});
+
+function initEnchantPage() {
     enchantPointsEl = document.getElementById('enchantPoints');
     petGridEl = document.getElementById('petGrid');
     selectedPetInfoEl = document.getElementById('selectedPetInfo');
@@ -365,4 +419,11 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     loadState();
-});
+    console.log('[Enchant] State loaded:', {
+        coins: state.coins,
+        inventoryKeys: Object.keys(state.inventory || {}),
+        inventoryCount: Object.keys(state.inventory || {}).length,
+        enchantPoints: state.enchantPoints
+    });
+    console.log('[Enchant] Initialized with', Object.keys(state.inventory || {}).length, 'pet types');
+}

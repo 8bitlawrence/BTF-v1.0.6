@@ -1,4 +1,14 @@
 // Inventory functionality
+// Guard: only run if inventory page elements exist
+if (!document.getElementById('brewedPotions')) {
+	// Not on inventory page, skip this module
+} else {
+
+// Wait for DOM to be ready and globals to be available
+document.addEventListener('DOMContentLoaded', () => {
+	// Double-check we're on the inventory page after DOM loads
+	if (!document.getElementById('brewedPotions')) return;
+	
 // STORAGE_KEY, PETS, ENCHANTMENTS, and DOM elements (coinsEl, luckMultiplierEl, state) are defined in index.js
 
 // DOM elements specific to inventory page
@@ -13,17 +23,17 @@ const enchantList = document.getElementById('enchantList');
 // Load state
 function loadState() {
     try {
-        const raw = localStorage.getItem(STORAGE_KEY);
+        const raw = localStorage.getItem('btf_state_v1');
         if (raw) {
             const parsed = JSON.parse(raw);
-            state.coins = parsed.coins ?? 0;
-            state.inventory = parsed.inventory ?? {};
-            state.petEnchantments = parsed.petEnchantments ?? {};
-            state.potionActive = parsed.potionActive ?? false;
-            state.potionEndsAt = parsed.potionEndsAt ?? 0;
-            state.luckStacks = parsed.luckStacks ?? 0;
-            state.purchasedItems = parsed.purchasedItems ?? [];
-            state.potionInventory = parsed.potionInventory ?? [];
+            window.state.coins = parsed.coins ?? 0;
+            window.state.inventory = parsed.inventory ?? {};
+            window.state.petEnchantments = parsed.petEnchantments ?? {};
+            window.state.potionActive = parsed.potionActive ?? false;
+            window.state.potionEndsAt = parsed.potionEndsAt ?? 0;
+            window.state.luckStacks = parsed.luckStacks ?? 0;
+            window.state.purchasedItems = parsed.purchasedItems ?? [];
+            window.state.potionInventory = parsed.potionInventory ?? [];
         }
     } catch (e) { console.warn('load failed', e) }
     updateUI();
@@ -69,22 +79,22 @@ petDetailModal.addEventListener('click', (e) => {
 
 // Update UI
 function updateUI() {
-    coinsEl.textContent = state.coins;
+    coinsEl.textContent = window.state.coins;
     
     // Update luck multiplier
     if(luckMultiplierEl){
-        const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        const cappedStacks = Math.min(state.luckStacks, 100);
+        const isActive = window.state.potionActive && window.state.potionEndsAt > Date.now();
+        const cappedStacks = Math.min(window.state.luckStacks, 100);
         luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
     }
     
     // Update active effects
     activeEffectsEl.innerHTML = '';
-    if (state.potionActive && state.potionEndsAt > Date.now()) {
-        const remaining = Math.ceil((state.potionEndsAt - Date.now()) / 1000);
+    if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
+        const remaining = Math.ceil((window.state.potionEndsAt - Date.now()) / 1000);
         const minutes = Math.floor(remaining / 60);
         const seconds = remaining % 60;
-        const cappedStacks = Math.min(state.luckStacks, 100);
+        const cappedStacks = Math.min(window.state.luckStacks, 100);
         
         const effectEl = document.createElement('div');
         effectEl.className = 'item-card';
@@ -104,7 +114,7 @@ function updateUI() {
     // Update brewed potions section
     if(brewedPotionsEl){
         brewedPotionsEl.innerHTML = '';
-        const inv = Array.isArray(state.potionInventory) ? state.potionInventory : [];
+        const inv = Array.isArray(window.state.potionInventory) ? window.state.potionInventory : [];
         if(inv.length === 0){
             brewedPotionsEl.innerHTML = '<p style="color:var(--muted)">No brewed potions. Visit the Shop to brew potions!</p>';
         } else {
@@ -135,7 +145,7 @@ function updateUI() {
     purchasedItemsEl.innerHTML = '';
     
     // Show pets from inventory
-    const petEntries = Object.entries(state.inventory || {});
+    const petEntries = Object.entries(window.state.inventory || {});
     if (petEntries.length > 0) {
         petEntries.forEach(([petId, count]) => {
             const pet = PETS.find(p => p.id === petId);
@@ -143,7 +153,7 @@ function updateUI() {
             
             for (let i = 0; i < count; i++) {
                 const petKey = `${petId}_${i}`;
-                const enchants = state.petEnchantments[petKey] || [];
+                const enchants = window.state.petEnchantments[petKey] || [];
                 
                 const itemEl = document.createElement('div');
                 itemEl.className = 'item-card';
@@ -163,8 +173,8 @@ function updateUI() {
     }
     
     // Show other purchased items
-    if (state.purchasedItems && state.purchasedItems.length > 0) {
-        state.purchasedItems.forEach(item => {
+    if (window.state.purchasedItems && window.state.purchasedItems.length > 0) {
+        window.state.purchasedItems.forEach(item => {
             const itemEl = document.createElement('div');
             itemEl.className = 'item-card';
             itemEl.innerHTML = `
@@ -178,14 +188,14 @@ function updateUI() {
         });
     }
     
-    if (petEntries.length === 0 && (!state.purchasedItems || state.purchasedItems.length === 0)) {
+    if (petEntries.length === 0 && (!window.state.purchasedItems || window.state.purchasedItems.length === 0)) {
         purchasedItemsEl.innerHTML = '<p style="color:var(--muted)">No items purchased yet</p>';
     }
 }
 
 
 function useBrewedPotion(idx){
-    const inv = Array.isArray(state.potionInventory) ? state.potionInventory : [];
+    const inv = Array.isArray(window.state.potionInventory) ? window.state.potionInventory : [];
     if(idx < 0 || idx >= inv.length) return;
     const potion = inv[idx];
     if(!potion) return;
@@ -195,8 +205,8 @@ function useBrewedPotion(idx){
 
     // Remove used potion from inventory
     inv.splice(idx, 1);
-    state.potionInventory = inv;
-    saveState();
+    window.state.potionInventory = inv;
+    if(typeof window.saveState === 'function') window.saveState();
     updateUI();
 }
 
@@ -205,3 +215,6 @@ setInterval(updateUI, 1000);
 
 // Initial load
 loadState();
+
+}); // End DOMContentLoaded
+} // End inventory page guard

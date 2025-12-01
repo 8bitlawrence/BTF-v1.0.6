@@ -13,9 +13,18 @@
   </style>
 </head>
 <body>
+  <script>(function(){try{var now=Date.now();var start=new Date(2025,10,27,0,0,0).getTime();var end=new Date(2025,11,31,23,59,59).getTime();var active=now>=start&&now<=end;if(active){document.body.classList.add('event-christmas');}}catch(e){}})();</script>
+  <!-- Christmas snowflake decorations -->
+  <div class="christmas-snow" style="left:10%">❄️</div>
+  <div class="christmas-snow" style="left:30%;animation-delay:2s">❄️</div>
+  <div class="christmas-snow" style="left:50%;animation-delay:4s">❄️</div>
+  <div class="christmas-snow" style="left:70%;animation-delay:1s">❄️</div>
+  <div class="christmas-snow" style="left:85%;animation-delay:3s">❄️</div>
+
   <div class="container">
     <header>
-      <h1>News & Updates</h1>
+      <h1><span class="christmas-shimmer">News & Updates</span></h1>
+        <p class="subtitle christmas-subtitle" style="font-size:13px;color:#c41e3a;font-weight:700;margin:4px 0 0 0;text-shadow: 0 1px 2px rgba(0,0,0,0.5);"> Merry Christmas! </p>
       <div class="wallet">Coins: <span id="coins">0</span></div>
     </header>
 
@@ -33,7 +42,8 @@
         <h2>Update Schedule</h2>
         <p>🎃Halloween Event ~ October 23 🎃:✅</p>
         <p>💎Enchantment Update ~ November 10 💎:✅</p>
-        <p>⛔Possible Downtime ~ November 21-22 ⛔</p>
+        <p>⛔Possible Downtime ~ November 21-22 ⛔:🚫</p>
+        <p>🦃Thanksgiving Event ~ November 24🦃</p>
         <p>🎄Christmas Event ~ December 15🎄</p>
         <p>🎊New Year Event ~ December 31🎊</p>
         <p id="disclaimer">*All dates are subject to change</p>
@@ -62,5 +72,6 @@
     </main>
 
   </div>
+  <script src="bundle.js"></script>
 </body>
 </html>

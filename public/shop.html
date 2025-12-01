@@ -58,7 +58,7 @@
             font-weight: 600;
             cursor: pointer;
         }
-        .buy-btn:disabled {
+        .buy-btn:disabled {    
             opacity: 0.5;
             cursor: not-allowed;
         }
@@ -70,9 +70,18 @@
     </style>
 </head>
 <body>
+    <script>(function(){try{var now=Date.now();var start=new Date(2025,10,27,0,0,0).getTime();var end=new Date(2025,11,31,23,59,59).getTime();var active=now>=start&&now<=end;if(active){document.body.classList.add('event-christmas');}}catch(e){}})();</script>
+    <!-- Christmas snowflake decorations -->
+    <div class="christmas-snow" style="left:10%">❄️</div>
+    <div class="christmas-snow" style="left:30%;animation-delay:2s">❄️</div>
+    <div class="christmas-snow" style="left:50%;animation-delay:4s">❄️</div>
+    <div class="christmas-snow" style="left:70%;animation-delay:1s">❄️</div>
+    <div class="christmas-snow" style="left:85%;animation-delay:3s">❄️</div>
+    
     <div class="container">
         <header>
-            <h1>BTF Shop</h1>
+            <h1><span class="christmas-shimmer">BTF Shop</span></h1>
+            <p class="subtitle christmas-subtitle" style="font-size:13px;color:#c41e3a;font-weight:700;margin:4px 0 0 0;text-shadow: 0 1px 2px rgba(0,0,0,0.5);"> Merry Christmas! </p>
             <div style="text-align:right">
                 <div class="wallet" style="position:relative">Coins: <span id="coins">0</span></div>
                 <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
@@ -97,8 +106,8 @@
                 <section class="shop-item">
                     <div class="item-icon">🧪</div>
                     <div class="item-details">
-                        <h3>Potion of Luck</h3>
-                        <p>Give 3x luck for 5 minutes</p>
+                        <h3>Basic Potion of Luck</h3>
+                        <p>Gives 3x luck for 5 minutes</p>
                         <p style="margin-top:4px">Cost: 100000c</p>
                     </div>
                     <button id="buyLuckPotion" class="buy-btn">Buy</button>
@@ -116,18 +125,19 @@
                     <span id="bennyTimer" class="timer" style="display:none"></span>
                 </section>
 
-                <section class = "shop-item">
-                    <div class="item-icon">🦃</div>
+                <section id="christmasShopItem" class="shop-item" style="position:relative;overflow:hidden;border:2px solid #c41e3a;box-shadow:0 0 20px rgba(196,30,58,0.3);">
+                    <div class="item-icon" style="animation: christmasShift 4s ease-in-out infinite;">🎄</div>
                     <div class="item-details">
-                        <h3>Potion of Thanksgiving</h3>
-                        <p><strong>NOT FUNCTIONAL YET All shop items 50% off for 5 minutes</strong></p>
-                        <p style="margin-top:4px">Cost: 100000c</p>
+                        <h3><span class="christmas-shimmer">Potion of Festivity</span></h3>
+                        <p>+2x luck for 5 minutes and 3x higher chance to obtain Festive pets and fruits (stacks with other luck buffs)</p>
+                        <p style="margin-top:4px">Cost: 150000c</p>
                     </div>
-                    <button id="buyThanksgivingPotion" class="buy-btn">Buy</button>
+                    <button id="buyChristmasPotion" class="buy-btn">Buy</button>
+                    <span id="christmasTimer" class="timer" style="display:none"></span>
                 </section>
             </section>
             
-            <section class="shop-section">
+            <section class="shop-section">  
                 <h2>Upgrades</h2>
                 
                 <section class="shop-item">
@@ -181,6 +191,15 @@
                     <button id="buyBTFPlus" class="buy-btn">Buy Bundle</button>
                 </section>
 
+                <section id="christmasGiftItem" class="shop-item" style="position:relative;overflow:hidden;border:2px solid #c41e3a;box-shadow:0 0 20px rgba(196,30,58,0.3);">
+                    <div class="item-icon" style="animation: christmasShift 4s ease-in-out infinite;">🎁</div>
+                    <div class="item-details">
+                        <h3><span class="christmas-shimmer">Free Christmas Gift</span></h3>
+                        <p>FREE FESTIVE REINDEER PET!!!</p>
+                        <p style="margin-top:4px;color:#10b981;font-weight:600">FREE - Limited Time Only!</p>
+                    </div>
+                    <button id="claimChristmasGift" class="buy-btn" style="background:#10b981">Claim Gift</button>
+                </section>
 
                 <section class="shop-item">
                     <div class="item-icon">🎁</div>
