@@ -1083,89 +1083,7 @@ loadLeaderboard();
   \*********************/
 /***/ (() => {
 
-// Christmas Gift: Clean implementation
-// Renders a gift card UI and wires claim to global helpers.
-(function(){
-    function ensureGlobals(){
-        if(!window.state) window.state = { inventory: {}, gifts: {} };
-        if(!window.state.inventory) window.state.inventory = {};
-        if(!window.state.gifts) window.state.gifts = {};
-    }
-
-    function createGiftCard(){
-        const container = document.getElementById('giftSection') || document.getElementById('shop') || document.body;
-        const card = document.createElement('div');
-        card.className = 'gift-card festive';
-        card.innerHTML = `
-            <h3>Christmas Gift</h3>
-            <p>Claim your free Festive Reindeer!</p>
-            <div class="gift-actions">
-                <button id="claimChristmasGift">Claim Reindeer</button>
-            </div>
-        `;
-        container.appendChild(card);
-        return card;
-    }
-
-    function wireClaim(){
-        const btn = document.getElementById('claimChristmasGift');
-        if(btn) btn.addEventListener('click', function(){
-            ensureGlobals();
-            // Prevent duplicate claims
-            if(window.state.gifts && window.state.gifts.christmas2025){
-                btn.disabled = true;
-                btn.textContent = 'Already Claimed';
-                if(typeof showAlert === 'function'){
-                    showAlert('Already claimed. Enjoy your Festive Reindeer!');
-                } else {
-                    alert('Already claimed. Enjoy your Festive Reindeer!');
-                }
-                return;
-            }
-
-            const petId = 'pet_f_1';
-            let granted = false;
-
-            if(typeof window.grantPet === 'function'){
-                granted = !!window.grantPet(petId, 1);
-            }
-
-            if(!granted){
-                // Fallback: direct mutation guarded
-                window.state.inventory[petId] = (window.state.inventory[petId] || 0) + 1;
-                if(typeof window.saveState === 'function'){
-                    window.saveState();
-                } else {
-                    try{ localStorage.setItem('btf_state_v1', JSON.stringify(window.state)); }catch(e){}
-                }
-                if(typeof window.updateUI === 'function') window.updateUI();
-            }
-
-            window.state.gifts.christmas2025 = true;
-            if(typeof window.saveState === 'function') window.saveState();
-
-            // Update UI to reflect single-claim rule
-            btn.disabled = true;
-            btn.textContent = 'Already Claimed';
-            
-        });
-    }
-
-    document.addEventListener('DOMContentLoaded', function(){
-        ensureGlobals();
-        // Render card only if not claimed; if already claimed, optionally show a note
-        if(!window.state.gifts || !window.state.gifts.christmas2025){
-            createGiftCard();
-            wireClaim();
-        } else {
-            const container = document.getElementById('giftSection') || document.getElementById('shop') || document.body;
-            const note = document.createElement('div');
-            note.className = 'gift-card festive';
-            note.innerHTML = '<h3>Christmas Gift</h3><p>Already claimed. Happy Holidays! 🎁</p>';
-            container.appendChild(note);
-        }
-    });
-})();
+// Christmas Gift dynamic card removed per request. No injection.
 
 // Shop functionality
 // Guard: only run if shop page elements exist
@@ -1600,8 +1518,30 @@ if(buyThanksgivingPotion){
 // Christmas Gift Claim handler
 const claimChristmasGiftBtn = document.getElementById('claimChristmasGift');
 if(claimChristmasGiftBtn){
+    // Disable button immediately if already claimed (on page load)
+    (function(){
+        const GIFT_FLAG_KEY = 'btf_gift_christmas2025_claimed';
+        const alreadyClaimed = localStorage.getItem(GIFT_FLAG_KEY) === '1' || (window.state && window.state.gifts && window.state.gifts.christmas2025);
+        if(alreadyClaimed){
+            claimChristmasGiftBtn.disabled = true;
+            claimChristmasGiftBtn.textContent = 'Already Claimed';
+        }
+    })();
+
     claimChristmasGiftBtn.addEventListener('click', ()=>{
         const petId = 'pet_f_1';
+        const GIFT_FLAG_KEY = 'btf_gift_christmas2025_claimed';
+        const alreadyClaimed = localStorage.getItem(GIFT_FLAG_KEY) === '1' || (window.state && window.state.gifts && window.state.gifts.christmas2025);
+        if(alreadyClaimed){
+            claimChristmasGiftBtn.disabled = true;
+            claimChristmasGiftBtn.textContent = 'Already Claimed';
+            if(typeof showAlert === 'function'){
+                showAlert('Already claimed. Enjoy your Festive Reindeer!');
+            } else {
+                alert('Already claimed. Enjoy your Festive Reindeer!');
+            }
+            return;
+        }
         
         // Use window.state explicitly (set by index.js)
         if(!window.state || !window.state.inventory){
@@ -1623,9 +1563,27 @@ if(claimChristmasGiftBtn){
             return;
         }
         
-        // Old Christmas gift logic removed. Replaced by unified setup below.
-        
-        // Show success only (no auto-redirect)
+        // Grant the pet via global helper if available
+        let granted = false;
+        if(typeof window.grantPet === 'function'){
+            granted = !!window.grantPet(petId, 1);
+        }
+        if(!granted){
+            // Fallback: direct mutation guarded
+            window.state.inventory[petId] = (window.state.inventory[petId] || 0) + 1;
+            if(typeof window.saveState === 'function') window.saveState();
+            if(typeof window.updateUI === 'function') window.updateUI();
+        }
+
+        // Persist one-time claim in both state and localStorage
+        window.state.gifts = window.state.gifts || {};
+        window.state.gifts.christmas2025 = true;
+        try { localStorage.setItem(GIFT_FLAG_KEY, '1'); } catch(_) {}
+        if(typeof window.saveState === 'function') window.saveState();
+
+        // Update UI and notify
+        claimChristmasGiftBtn.disabled = true;
+        claimChristmasGiftBtn.textContent = 'Already Claimed';
         if(typeof showAlert === 'function'){
             showAlert('🎁 Christmas gift claimed successfully! Merry Christmas!');
         } else {
@@ -2699,7 +2657,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 // Console warning
 console.log('%c CHARLES SPENCER MCGINNIS CLOSE THE CONSOLE RIGHT THIS INSTANT', 'color: #ff0000; font-size: 24px; font-weight: bold;');
-console.log("%c You're not slick", 'color: #6366f1; font-size: 12px; font-weight: bold;');
+console.log("%c You're not slick", 'color: #ffffffff; font-size: 12px; font-weight: bold;');
 
 // Christmas Update Modal logic (unified, non-recursive)
 (() => {

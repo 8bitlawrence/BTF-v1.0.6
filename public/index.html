@@ -155,7 +155,7 @@ window.isServerConnected = () => isConnected;
                         <div class="ep-display" style="position:relative">ENP: <span id="epDisplay">0</span> <small id="eps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
 						<div class="ep-display" style="position:relative;margin-top:4px">💧 <span id="tearsDisplayMain">0</span></div>
                         <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
-						<div id="serverStatus" style="font-size:11px;margin-top:4px;color:#94a3b8;">🔴 Offline</div>
+						<div id="serverStatus" style="font-size:11px;margin-top:4px;color:#94a3b8;">🔴 Server Offline</div>
                     </div>
 				</div>
 			</header>
@@ -312,5 +312,17 @@ window.isServerConnected = () => isConnected;
 		</div>
 
 		<script src="bundle.js"></script>
+		<script>
+		// Defensive cleanup: ensure no stray injected gift card appears on Game page
+		(function(){
+		  try {
+		    var isShop = !!document.getElementById('buyLuckPotion');
+		    if (!isShop) {
+		      var nodes = document.querySelectorAll('.gift-card.festive');
+		      nodes.forEach(function(n){ n.parentElement && n.parentElement.removeChild(n); });
+		    }
+		  } catch (e) { /* noop */ }
+		})();
+		</script>
 	</body>
 </html>

@@ -14,7 +14,7 @@
 
 // Console warning
 console.log('%c CHARLES SPENCER MCGINNIS CLOSE THE CONSOLE RIGHT THIS INSTANT', 'color: #ff0000; font-size: 24px; font-weight: bold;');
-console.log("%c You're not slick", 'color: #6366f1; font-size: 12px; font-weight: bold;');
+console.log("%c You're not slick", 'color: #ffffffff; font-size: 12px; font-weight: bold;');
 
 // Christmas Update Modal logic (unified, non-recursive)
 (() => {
