@@ -78,18 +78,18 @@ function updateServerStatus(status) {
         
         switch(status) {
             case 'online':
-                statusEl.innerHTML = '🟢 Online';
+                statusEl.innerHTML = '🟢 Server Online';
                 statusEl.style.color = '#10b981';
                 break;
             case 'connecting':
             case 'reconnecting':
-                statusEl.innerHTML = '🟡 Connecting...';
+                statusEl.innerHTML = '🟡 Connecting to server...';
                 statusEl.style.color = '#f59e0b';
                 break;
             case 'offline':
             case 'error':
             case 'failed':
-                statusEl.innerHTML = '🔴 Offline';
+                statusEl.innerHTML = '🔴 Server Offline';
                 statusEl.style.color = '#94a3b8';
                 break;
         }
