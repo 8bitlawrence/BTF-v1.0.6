@@ -404,10 +404,6 @@ function loadState(){
 					}catch(e){ console.warn(e); }
 				};
 			} else if(!storedHash){
-		// Ensure global reference points to the latest state object
-		if (typeof window !== 'undefined') {
-			window.state = state;
-		}
 				// Legacy save without hash: create one
 				try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
 			}
@@ -428,6 +424,10 @@ function loadState(){
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
+	// Ensure global reference points to the latest state object AFTER loading
+	if (typeof window !== 'undefined') {
+		window.state = state;
+	}
 }
 
 // Load state from server (called by socket event)
@@ -519,7 +519,7 @@ function weightedPick(items){
 		let w = i.weight;
 		if(potionActive) {
 			const boost = rarityBoost[i.rarity] || 1;
-			w = i.weight * (1 + (multiplier - 1) ** boost);
+			w = i.weight * boost**multiplier;
 		}
 		// Christmas Spirit Potion: make festive items more common
 		if (christmasBuff && i.rarity === 'festive') {
@@ -775,12 +775,6 @@ function updateUI(){
 				badge.textContent = p.rarity.toUpperCase();
 				const name = document.createElement('div');
 				name.innerHTML = `<div style="font-weight:700">${p.name}</div><div style="color:var(--muted);font-size:12px">x${count} • Sell: ${p.value}c</div>`;
-				// show CPS for this pet line
-				const petCps = (RARITY_CPS[p.rarity] || 0) * count;
-				const cpsLine = document.createElement('div');
-				cpsLine.style.color = 'var(--muted)'; cpsLine.style.fontSize = '12px';
-				cpsLine.textContent = `CPS: ${petCps}`;
-				name.appendChild(cpsLine);
 
 				// sell buttons
 				const sell = document.createElement('button');
@@ -1653,6 +1647,8 @@ function initGame() {
 	capsuleResultArea = document.getElementById('capsuleResultArea');
 
 	loadState();
+	// Ensure window.state is bound to the loaded state
+	window.state = state;
 	// ensure required objects exist (in case older saves lack them)
 	state.inventory = state.inventory || {};
 	state.fruits = state.fruits || {};
@@ -2073,7 +2069,13 @@ if (document.getElementById('buyLuckPotion')) {
 		if(!Array.isArray(state.potionInventory)) state.potionInventory = [];
 		state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
 		selectedFruits = [];
-		saveState();
+		// Persist via global save to ensure other pages (inventory/index) see it
+		if (typeof window !== 'undefined' && typeof window.saveState === 'function') {
+			window.saveState();
+		} else if (typeof saveState === 'function') {
+			// fallback in same runtime
+			saveState();
+		}
 		updateShopUI();
 		renderBrewableFruits();
 		await showAlert(` ${potionName} brewed successfully! Check your Inventory to use it.`);

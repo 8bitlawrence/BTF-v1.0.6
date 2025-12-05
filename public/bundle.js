@@ -21,7 +21,7 @@ let enchantPetSelectorModal, enchantClosePetSelector, enchantPetSelectorTitle, e
 
 // Load state - now uses global state from index.js
 function loadState() {
-    // Load from localStorage since each page has its own runtime
+    // First, load from localStorage to ensure we have latest data
     const STORAGE_KEY = window.STORAGE_KEY || 'btf_state_v1';
     console.log('[Enchant] Loading from localStorage with key:', STORAGE_KEY);
     
@@ -34,9 +34,19 @@ function loadState() {
             console.log('[Enchant] Parsed state keys:', Object.keys(parsed));
             console.log('[Enchant] Inventory from localStorage:', parsed.inventory);
             
-            // Update the global state with loaded data
+            // Merge localStorage into global state (don't overwrite, merge deeply)
             if (window.state) {
-                Object.assign(window.state, parsed);
+                // Merge all properties, preserving nested objects like petEnchantments
+                for (const key in parsed) {
+                    if (typeof parsed[key] === 'object' && parsed[key] !== null && !Array.isArray(parsed[key])) {
+                        // For objects like petEnchantments, merge them
+                        if (!window.state[key]) window.state[key] = {};
+                        Object.assign(window.state[key], parsed[key]);
+                    } else {
+                        // For primitives and arrays, directly assign
+                        window.state[key] = parsed[key];
+                    }
+                }
             }
         }
     } catch (e) {
@@ -303,7 +313,11 @@ function applyEnchantment(enchant) {
     }
     state.petEnchantments[selectedPetKey].push(enchant.id);
     
-    saveState();
+    // Use global saveState from window to persist across pages
+    if (window.saveState) {
+        window.saveState();
+    }
+    // Update local enchant page UI
     updateUI();
     
     // Refresh selected pet display
@@ -3047,10 +3061,6 @@ function loadState(){
 					}catch(e){ console.warn(e); }
 				};
 			} else if(!storedHash){
-		// Ensure global reference points to the latest state object
-		if (typeof window !== 'undefined') {
-			window.state = state;
-		}
 				// Legacy save without hash: create one
 				try{ localStorage.setItem(STORAGE_HASH_KEY, recalculated); }catch(e){ console.warn(e); }
 			}
@@ -3071,6 +3081,10 @@ function loadState(){
 			};
 		}
 	}catch(e){ console.warn('load failed', e) }
+	// Ensure global reference points to the latest state object AFTER loading
+	if (typeof window !== 'undefined') {
+		window.state = state;
+	}
 }
 
 // Load state from server (called by socket event)
@@ -3162,7 +3176,7 @@ function weightedPick(items){
 		let w = i.weight;
 		if(potionActive) {
 			const boost = rarityBoost[i.rarity] || 1;
-			w = i.weight * (1 + (multiplier - 1) ** boost);
+			w = i.weight * boost**multiplier;
 		}
 		// Christmas Spirit Potion: make festive items more common
 		if (christmasBuff && i.rarity === 'festive') {
@@ -3418,12 +3432,6 @@ function updateUI(){
 				badge.textContent = p.rarity.toUpperCase();
 				const name = document.createElement('div');
 				name.innerHTML = `<div style="font-weight:700">${p.name}</div><div style="color:var(--muted);font-size:12px">x${count} • Sell: ${p.value}c</div>`;
-				// show CPS for this pet line
-				const petCps = (RARITY_CPS[p.rarity] || 0) * count;
-				const cpsLine = document.createElement('div');
-				cpsLine.style.color = 'var(--muted)'; cpsLine.style.fontSize = '12px';
-				cpsLine.textContent = `CPS: ${petCps}`;
-				name.appendChild(cpsLine);
 
 				// sell buttons
 				const sell = document.createElement('button');
@@ -4296,6 +4304,8 @@ function initGame() {
 	capsuleResultArea = document.getElementById('capsuleResultArea');
 
 	loadState();
+	// Ensure window.state is bound to the loaded state
+	window.state = state;
 	// ensure required objects exist (in case older saves lack them)
 	state.inventory = state.inventory || {};
 	state.fruits = state.fruits || {};
@@ -4716,7 +4726,13 @@ if (document.getElementById('buyLuckPotion')) {
 		if(!Array.isArray(state.potionInventory)) state.potionInventory = [];
 		state.potionInventory.push({ type:'luck', name: potionName, potency, durationMs: BREW_DURATION, createdAt: Date.now() });
 		selectedFruits = [];
-		saveState();
+		// Persist via global save to ensure other pages (inventory/index) see it
+		if (typeof window !== 'undefined' && typeof window.saveState === 'function') {
+			window.saveState();
+		} else if (typeof saveState === 'function') {
+			// fallback in same runtime
+			saveState();
+		}
 		updateShopUI();
 		renderBrewableFruits();
 		await showAlert(` ${potionName} brewed successfully! Check your Inventory to use it.`);

@@ -12,7 +12,7 @@ let enchantPetSelectorModal, enchantClosePetSelector, enchantPetSelectorTitle, e
 
 // Load state - now uses global state from index.js
 function loadState() {
-    // Load from localStorage since each page has its own runtime
+    // First, load from localStorage to ensure we have latest data
     const STORAGE_KEY = window.STORAGE_KEY || 'btf_state_v1';
     console.log('[Enchant] Loading from localStorage with key:', STORAGE_KEY);
     
@@ -25,9 +25,19 @@ function loadState() {
             console.log('[Enchant] Parsed state keys:', Object.keys(parsed));
             console.log('[Enchant] Inventory from localStorage:', parsed.inventory);
             
-            // Update the global state with loaded data
+            // Merge localStorage into global state (don't overwrite, merge deeply)
             if (window.state) {
-                Object.assign(window.state, parsed);
+                // Merge all properties, preserving nested objects like petEnchantments
+                for (const key in parsed) {
+                    if (typeof parsed[key] === 'object' && parsed[key] !== null && !Array.isArray(parsed[key])) {
+                        // For objects like petEnchantments, merge them
+                        if (!window.state[key]) window.state[key] = {};
+                        Object.assign(window.state[key], parsed[key]);
+                    } else {
+                        // For primitives and arrays, directly assign
+                        window.state[key] = parsed[key];
+                    }
+                }
             }
         }
     } catch (e) {
@@ -294,7 +304,11 @@ function applyEnchantment(enchant) {
     }
     state.petEnchantments[selectedPetKey].push(enchant.id);
     
-    saveState();
+    // Use global saveState from window to persist across pages
+    if (window.saveState) {
+        window.saveState();
+    }
+    // Update local enchant page UI
     updateUI();
     
     // Refresh selected pet display
