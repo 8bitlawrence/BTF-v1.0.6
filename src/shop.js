@@ -377,7 +377,7 @@ if(buyChristmasBtn){
             } else {
                 // Not active or expired: start new effect with 2 stacks
                 window.state.potionActive = true;
-                window.state.luckStacks = 2;
+                window.state.luckStacks += 2;
                 window.state.potionEndsAt = Date.now() + CHRISTMAS_DURATION;
             }
             
