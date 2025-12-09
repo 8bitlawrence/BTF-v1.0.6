@@ -371,13 +371,13 @@ if(buyChristmasBtn){
             
             // Properly manage luck stacks with the potion system
             if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
-                // Already active: add 2 stacks (max 100), reset timer
-                window.state.luckStacks = Math.min((window.state.luckStacks || 0) + 2, 100);
+                // Already active: add 1 stack (max 100), reset timer
+                window.state.luckStacks = Math.min((window.state.luckStacks || 0) + 1, 100);
                 window.state.potionEndsAt = Date.now() + CHRISTMAS_DURATION;
             } else {
-                // Not active or expired: start new effect with 2 stacks
+                // Not active or expired: start new effect with 1 stack
                 window.state.potionActive = true;
-                window.state.luckStacks += 2;
+                window.state.luckStacks = 1;
                 window.state.potionEndsAt = Date.now() + CHRISTMAS_DURATION;
             }
             
