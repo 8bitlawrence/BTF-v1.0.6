@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 	if (!document.getElementById('buyLuckPotion')) return;
 	
 // STORAGE_KEY is now defined in index.js
-const POTION_COST = 100000;
+const POTION_BASE_COST = 100000;
 const POTION_DURATION = 5 * 60 * 1000; // 5 minutes in ms
 const BENNY_COST = 10000;
 const BENNY_DURATION = 5 * 60 * 1000; // 5 minutes
@@ -140,8 +140,24 @@ function updateUI() {
         }
     }
     
+    // Calculate current potion cost based on purchases
+    if (!window.state.luckPotionsPurchased) {
+        window.state.luckPotionsPurchased = 0;
+    }
+    const currentPotionCost = Math.floor(POTION_BASE_COST * Math.pow(1.5, window.state.luckPotionsPurchased));
+    
     // Allow buying potions even when active (for stacking)
-    buyBtn.disabled = window.state.coins < POTION_COST;
+    buyBtn.disabled = window.state.coins < currentPotionCost;
+    
+    // Update button text to show current cost
+    if (buyBtn) {
+        const costText = currentPotionCost >= 1000000 
+            ? `${(currentPotionCost / 1000000).toFixed(1)}M` 
+            : currentPotionCost >= 1000 
+            ? `${(currentPotionCost / 1000).toFixed(0)}k` 
+            : currentPotionCost;
+        buyBtn.textContent = `Buy (${costText}c)`;
+    }
     
     if (window.state.potionActive) {
         const remaining = Math.ceil((window.state.potionEndsAt - Date.now()) / 1000);
@@ -151,7 +167,7 @@ function updateUI() {
             window.state.luckStacks = 0;
             if(typeof window.saveState === 'function') window.saveState();
             timerEl.style.display = 'none';
-            buyBtn.disabled = window.state.coins < POTION_COST;
+            buyBtn.disabled = window.state.coins < currentPotionCost;
         } else {
             const minutes = Math.floor(remaining / 60);
             const seconds = remaining % 60;
@@ -304,8 +320,18 @@ async function brewPotion(potency, cost){
 
 // Buy potion (stackable - extends duration)
 buyBtn.addEventListener('click', () => {
-    if (window.state.coins >= POTION_COST) {
-        window.state.coins -= POTION_COST;
+    // Initialize purchase counter if it doesn't exist
+    if (!window.state.luckPotionsPurchased) {
+        window.state.luckPotionsPurchased = 0;
+    }
+    
+    // Calculate exponential cost: baseCost * (1.5 ^ purchases)
+    const currentCost = Math.floor(POTION_BASE_COST * Math.pow(1.5, window.state.luckPotionsPurchased));
+    
+    if (window.state.coins >= currentCost) {
+        window.state.coins -= currentCost;
+        window.state.luckPotionsPurchased += 1;
+        
         if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
             // Already active: increment stacks (max 100), reset timer
             window.state.luckStacks = Math.min(window.state.luckStacks + 1, 100);
