@@ -1460,9 +1460,17 @@ if(buyBlessingBtn){
     });
 }
 
-// Buy Christmas Spirit Potion
+// Buy Christmas Spirit Potion - TEMPORARILY DISABLED
 if(buyChristmasBtn){
     buyChristmasBtn.addEventListener('click', ()=>{
+        if(typeof showAlert === 'function'){
+            showAlert('This item is temporarily unavailable!');
+        } else {
+            alert('This item is temporarily unavailable!');
+        }
+        return;
+        
+        /* DISABLED CODE
         if(window.state.coins >= CHRISTMAS_COST){
             window.state.coins -= CHRISTMAS_COST;
             window.state.christmasActive = true;
@@ -1494,6 +1502,7 @@ if(buyChristmasBtn){
                 alert('Not enough coins!');
             }
         }
+        */
     });
 }
 
