@@ -159,11 +159,7 @@ function getMaxInventory(){
 
 // Gift code system: maps 16-character codes to rewards
 const GIFT_CODES = { 
-	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" },
-	
-	"OBLIVIOUS6767676": { pet: ["pet_u_3", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_2", "pet_u_3", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_u_2", "pet_u_1", "pet_s_1", "pet_1" ], description: "5,000 Tears" },
-
-	"MYNAMEISDYLANKIM": { pet: ["pet_u_3", "pet_u_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", ], coins: 10000000000, description: "You're welcome Dylan Thomas Kim son of Edna and Thomas" }
+	"fzsghnt6d675xv8w": { pets: { 'pet_ch_1': 10, 'pet_l_1':  6, 'pet_s_2': 5, 'pet_s_1': 3, 'pet_u_2': 1}, fruits: { 'fruit_l_1': 82, 'fruit_l_2': 75, 'fruit_l_3': 64, 'fruit_ch_1': 55, 'fruit_ch_2': 46, 'fruit_u_1': 2 } },
 };
 
 // Config: show admin button and starting coins
@@ -671,10 +667,10 @@ function computeTotalCPS(){
 	// Apply enchantment CPS multiplier
 	const ef = computeEnchantEffects();
 	total = Math.floor(total * ef.cpsMult);
-	
-	// Apply Benny Boost (+5% CPS) if active
+
+	// Apply Happy Powder (+10% CPS) if active
 	if(state.bennyActive && state.bennyEndsAt > Date.now()){
-		return Math.floor(total * 1.05);
+		return Math.floor(total * 1.1);
 	}
 	return total;
 }

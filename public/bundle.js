@@ -1105,7 +1105,7 @@ if (!document.getElementById('buyLuckPotion')) {
 	// Not on shop page, skip this module
 } else {
 
-// Wait for DOM to be ready and globals to be available
+// Wait for DOM to be ready and globals to be availablec
 document.addEventListener('DOMContentLoaded', () => {
 	// Double-check we're on the shop page after DOM loads
 	if (!document.getElementById('buyLuckPotion')) return;
@@ -1134,6 +1134,7 @@ const christmasTimerEl = document.getElementById('christmasTimer');
 const buySlotMachineBtn = document.getElementById('buySlotMachine');
 const slotsPurchasedEl = document.getElementById('slotsPurchased');
 const buyThanksgivingPotion = document.getElementById('buyThanksgivingPotion');
+let btf_plus = false;
 
 // Brewing UI
 const tearsDisplayEl = document.getElementById('tearsDisplay');
@@ -1435,7 +1436,7 @@ if(buyBennyBtn){
             window.state.bennyActive = true;
             window.state.bennyEndsAt = Date.now() + BENNY_DURATION;
             if(!window.state.purchasedItems.some(i=>i.name==='Benny Boost')){
-                window.state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+5% CPS for 5 minutes' });
+                window.state.purchasedItems.push({ name: 'Happy Powder', icon: '😃', description: '+10% CPS for 5 minutes' });
             }
             if(typeof window.saveState === 'function') window.saveState();
             updateUI();
@@ -1466,7 +1467,19 @@ if(buyChristmasBtn){
             window.state.coins -= CHRISTMAS_COST;
             window.state.christmasActive = true;
             window.state.christmasEndsAt = Date.now() + CHRISTMAS_DURATION;
-            window.state.luckStacks = (window.state.luckStacks||0) + 2;
+            
+            // Properly manage luck stacks with the potion system
+            if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
+                // Already active: add 2 stacks (max 100), reset timer
+                window.state.luckStacks = Math.min((window.state.luckStacks || 0) + 2, 100);
+                window.state.potionEndsAt = Date.now() + CHRISTMAS_DURATION;
+            } else {
+                // Not active or expired: start new effect with 2 stacks
+                window.state.potionActive = true;
+                window.state.luckStacks = 2;
+                window.state.potionEndsAt = Date.now() + CHRISTMAS_DURATION;
+            }
+            
             if(typeof window.saveState === 'function') window.saveState();
             updateUI();
             if(typeof showAlert === 'function'){
@@ -2816,11 +2829,7 @@ function getMaxInventory(){
 
 // Gift code system: maps 16-character codes to rewards
 const GIFT_CODES = { 
-	"HIVIHAAN67676767": { pet: ["pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_s_1", "pet_s_2"], description: "3x Chromabeasts and both spooky pets" },
-	
-	"OBLIVIOUS6767676": { pet: ["pet_u_3", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_2", "pet_u_3", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_ch_1", "pet_u_2", "pet_u_1", "pet_s_1", "pet_1" ], description: "5,000 Tears" },
-
-	"MYNAMEISDYLANKIM": { pet: ["pet_u_3", "pet_u_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", "pet_sp_1", ], coins: 10000000000, description: "You're welcome Dylan Thomas Kim son of Edna and Thomas" }
+	"fzsghnt6d675xv8w": { pets: { 'pet_ch_1': 10, 'pet_l_1':  6, 'pet_s_2': 5, 'pet_s_1': 3, 'pet_u_2': 1}, fruits: { 'fruit_l_1': 82, 'fruit_l_2': 75, 'fruit_l_3': 64, 'fruit_ch_1': 55, 'fruit_ch_2': 46, 'fruit_u_1': 2 } },
 };
 
 // Config: show admin button and starting coins
@@ -3328,10 +3337,10 @@ function computeTotalCPS(){
 	// Apply enchantment CPS multiplier
 	const ef = computeEnchantEffects();
 	total = Math.floor(total * ef.cpsMult);
-	
-	// Apply Benny Boost (+5% CPS) if active
+
+	// Apply Happy Powder (+10% CPS) if active
 	if(state.bennyActive && state.bennyEndsAt > Date.now()){
-		return Math.floor(total * 1.05);
+		return Math.floor(total * 1.1);
 	}
 	return total;
 }
