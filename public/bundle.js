@@ -3653,11 +3653,29 @@ function redeemGiftCode(code){
 		state.enchantPoints = (state.enchantPoints || 0) + reward.enchantPoints;
 	}
 	
+	// Handle single pet (pet property)
 	if(reward.pet){
 		// Add pet(s) to inventory - can be a single pet ID or an array
 		const pets = Array.isArray(reward.pet) ? reward.pet : [reward.pet];
 		pets.forEach(petId => {
 			state.inventory[petId] = (state.inventory[petId] || 0) + 1;
+		});
+	}
+	
+	// Handle multiple pets with quantities (pets property)
+	if(reward.pets){
+		Object.keys(reward.pets).forEach(petId => {
+			const quantity = reward.pets[petId];
+			state.inventory[petId] = (state.inventory[petId] || 0) + quantity;
+		});
+	}
+	
+	// Handle multiple fruits with quantities (fruits property)
+	if(reward.fruits){
+		if(!state.fruits) state.fruits = {};
+		Object.keys(reward.fruits).forEach(fruitId => {
+			const quantity = reward.fruits[fruitId];
+			state.fruits[fruitId] = (state.fruits[fruitId] || 0) + quantity;
 		});
 	}
 	

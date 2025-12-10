@@ -101,7 +101,10 @@ const ENCHANTMENTS = [
 	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, cost: 500, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' },
 	{ id: 'mage_1', name: 'Mage I', tier: 1, cost: 50, description: '+25% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
 	{ id: 'mage_2', name: 'Mage II', tier: 2, cost: 150, description: '+50% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
-	{ id: 'mage_3', name: 'Mage III', tier: 3, cost: 400, description: '+100% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' }
+	{ id: 'mage_3', name: 'Mage III', tier: 3, cost: 400, description: '+100% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
+	{ id: 'sad_1', name: 'Sad I', tier: 1, cost: 50, description: '+10% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'},
+	{ id: 'sad_2', name: 'Sad II', tier: 2, cost: 150, description: '+25% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'},
+	{ id: 'sad_3', name: 'Sad III', tier: 3, cost: 400, description: '+50% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'}
 	
 ];
 
@@ -132,19 +135,19 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.005, value: 10000000 },
-	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.005, value: 10000000 },
+	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.0005, value: 10000000 },
+	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.0005, value: 10000000 },
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 1, value: 1000 },
 	{ id: 'pet_sp_2', name: 'Weeping Spirit', rarity: 'special', weight: 1, value: 1200 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
-	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.025, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
 	{ id: 'pet_f_1', name: 'Festive Reindeer', rarity: 'festive', weight: 0.3, value: 2800 },
 	{ id: 'pet_f_2', name: 'Gingerbread Man', rarity: 'festive', weight: 0.3, value: 2500 },
 	{ id: 'pet_f_3', name: 'Santa', rarity: 'festive', weight: 0.2, value: 3000 },
-	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.005, value: 10000000 },
-	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.0005, value: 50000000 }
+	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.0005, value: 10000000 },
+	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.00005, value: 50000000 }
 ];
 
 // Prices
@@ -176,7 +179,7 @@ const EP_GAIN_SINGLE_MAX = 1; // was up to 3
 const EP_GAIN_TEN_MIN = 5;
 const EP_GAIN_TEN_MAX = 10; // was 10-20
 const EP_PER_SEC_PER_SPECIAL = 0.5; // was 1.0 per special pet per second
-
+``
 // Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
 const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
 const THANKSGIVING_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 11, 1).getTime(); })();
@@ -191,18 +194,18 @@ const FRUITS = [
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 0.5, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_c_4', name: 'Watermelon', rarity: 'common', weight: 50, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.25, value: 1200}
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.025, value: 1200}
 	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
 	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
 	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.25, value: 1200 }
+	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.025, value: 1200 }
 	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
-	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.005, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
+	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.0005, value: 60000000 }
+	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.0005, value: 60000000 }
 	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
 	,	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 }
 	,	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 }
-	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.0005, value: 100000000 }
+	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.00005, value: 100000000 }
 	
 
 
@@ -918,8 +921,8 @@ function animateRoll(makeItemsCallback, revealCallback){
 
 // Gift code redemption function
 function redeemGiftCode(code){
-	// Normalize code
-	const normalizedCode = code.trim().toUpperCase();
+	// Normalize code to lowercase for consistency
+	const normalizedCode = code.trim().toLowerCase();
 	
 	// Validate length
 	if(normalizedCode.length !== 16){
@@ -948,11 +951,29 @@ function redeemGiftCode(code){
 		state.enchantPoints = (state.enchantPoints || 0) + reward.enchantPoints;
 	}
 	
+	// Handle single pet (pet property)
 	if(reward.pet){
 		// Add pet(s) to inventory - can be a single pet ID or an array
 		const pets = Array.isArray(reward.pet) ? reward.pet : [reward.pet];
 		pets.forEach(petId => {
 			state.inventory[petId] = (state.inventory[petId] || 0) + 1;
+		});
+	}
+	
+	// Handle multiple pets with quantities (pets property)
+	if(reward.pets){
+		Object.keys(reward.pets).forEach(petId => {
+			const quantity = reward.pets[petId];
+			state.inventory[petId] = (state.inventory[petId] || 0) + quantity;
+		});
+	}
+	
+	// Handle multiple fruits with quantities (fruits property)
+	if(reward.fruits){
+		if(!state.fruits) state.fruits = {};
+		Object.keys(reward.fruits).forEach(fruitId => {
+			const quantity = reward.fruits[fruitId];
+			state.fruits[fruitId] = (state.fruits[fruitId] || 0) + quantity;
 		});
 	}
 	
