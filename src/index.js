@@ -482,8 +482,8 @@ function weightedPick(items){
 	// Check if luck potion is active
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
 	const christmasBuff = state.christmasActive && state.christmasEndsAt > Date.now();
-	const cappedStacks = Math.min(state.luckStacks, 100);
-	const multiplier = potionActive ? (1 + cappedStacks * 2) : 1;
+	const cappedStacks = Math.min(state.luckStacks, 49); // Caps multiplier at ~99x (1 + 49*2)
+	const multiplier = potionActive ? Math.min(1 + cappedStacks * 2, 100) : 1;
 
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
@@ -734,8 +734,9 @@ function updateUI(){
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        const cappedStacks = Math.min(state.luckStacks, 100);
-        luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
+        const cappedStacks = Math.min(state.luckStacks, 49);
+        const multiplier = isActive ? Math.min(1 + cappedStacks * 2, 100) : 1;
+        luckMultiplierEl.textContent = `${multiplier}x`;
     }
 
 	// Update button price labels based on enchantment discounts

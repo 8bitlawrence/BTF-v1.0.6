@@ -333,8 +333,8 @@ buyBtn.addEventListener('click', () => {
         window.state.luckPotionsPurchased += 1;
         
         if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
-            // Already active: increment stacks (max 100), reset timer
-            window.state.luckStacks = Math.min(window.state.luckStacks + 1, 100);
+            // Already active: increment stacks (max 49 to cap multiplier at 100x), reset timer
+            window.state.luckStacks = Math.min(window.state.luckStacks + 1, 49);
             window.state.potionEndsAt = Date.now() + POTION_DURATION;
         } else {
             // Not active or expired: start new effect
