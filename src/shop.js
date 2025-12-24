@@ -143,7 +143,7 @@ function updateUI() {
     // Calculate current potion cost based on purchases
     if (!window.state.luckPotionsPurchased) {
         window.state.luckPotionsPurchased = 0;
-    }
+    }   
     const currentPotionCost = Math.floor(POTION_BASE_COST * Math.pow(1.5, window.state.luckPotionsPurchased));
     
     // Allow buying potions even when active (for stacking)

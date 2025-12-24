@@ -149,64 +149,72 @@ window.isServerConnected = () => isConnected;
 
 		<div class="container">
 			<header>
-				<h1><span class="christmas-shimmer">BTF &middot; Vibe Edition</span></h1>
-				<p class="subtitle christmas-subtitle" style="font-size:13px;color:#c41e3a;font-weight:700;margin:4px 0 0 0;text-shadow: 0 1px 2px rgba(0,0,0,0.5);"> Merry Christmas!</p>
-				<div style="display:flex;align-items:center;gap:10px">
-                    <div style="text-align:right">
-                        <div class="wallet" style="position:relative">Coins: <span id="coins">0</span> <small id="cps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
-                        <div class="ep-display" style="position:relative">ENP: <span id="epDisplay">0</span> <small id="eps" style="color:var(--muted);margin-left:8px">(+0/s)</small></div>
-						<div class="ep-display" style="position:relative;margin-top:4px">💧 <span id="tearsDisplayMain">0</span></div>
-                        <div style="font-size:14px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
-						<div id="serverStatus" style="font-size:11px;margin-top:4px;color:#94a3b8;">🔴 Server Offline</div>
-                    </div>
+				<div>
+					<h1><span class="christmas-shimmer">BTF &middot; Vibe Edition</span></h1>
+					<p class="subtitle christmas-subtitle" style="font-size:12px;color:#c41e3a;font-weight:600;margin:4px 0 0 0;text-shadow:0 1px 2px rgba(0,0,0,0.5);"> Merry Christmas!</p>
+				</div>
+				<div style="display:flex;align-items:center;gap:24px">
+					<div style="text-align:right">
+							<div class="wallet" style="position:relative;font-size:15px"><img src="coin.png" alt="coin-icon" class="coin-icon" /> <span id="coins">0</span> <small id="cps" style="color:var(--text-secondary);margin-left:8px">(+0/s)</small></div>
+						<div class="ep-display" style="position:relative;font-size:14px">⚡ ENP: <span id="epDisplay">0</span> <small id="eps" style="color:var(--text-secondary);margin-left:8px">(+0/s)</small></div>
+						<div class="ep-display" style="position:relative;margin-top:4px;font-size:14px">💧 <span id="tearsDisplayMain">0</span></div>
+						<div style="font-size:13px;margin-top:4px">Luck: <span id="luckMultiplier" style="color:#10b981;font-weight:600">1x</span></div>
+						<div id="serverStatus" style="font-size:11px;margin-top:4px;color:var(--text-secondary);">🔴 Server Offline</div>
+					</div>
 				</div>
 			</header>
 
-        <nav class="nav-bar">
-            <a href="index.html" class="active">Game</a>
-            <a href="shop.html">Shop</a>
-            <a href="inventory.html">Inventory</a>
-            <a href="trade.html">Trade</a>
-            <a href="enchant.html">Enchanting</a>
-            <a href="leaderboard.html">Leaderboard</a>
-            <a href="about.html">About</a>
-            <a href="news.html">News</a>
-        </nav>			<main>
-				<section class="gacha">
-					<div class="banner">Pet Capsules</div>
-					<div class="controls">
-						<button id="singleRoll">Open x1 (100c)</button>
-						<button id="tenRoll">Open x10 (900c)</button>
-					</div>
-					<div id="resultArea" class="result-area"></div>
-				</section>
+		<nav class="nav-bar">
+			<a href="index.html" class="active">Game</a>
+			<a href="shop.html">Shop</a>
+			<a href="inventory.html">Inventory</a>
+			<a href="trade.html">Trade</a>
+			<a href="enchant.html">Enchanting</a>
+			<a href="leaderboard.html">Leaderboard</a>
+			<a href="about.html">About</a>
+			<a href="news.html">News</a>
+		</nav>
 
-				<section class="capsule">
-					<div class="banner">Fruit Capsules</div>
-					<div class="controls">
-						<button id="capSingle">Open Capsule x1 (20c)</button>
-						<button id="capTen">Open Capsule x10 (180c)</button>
-					</div>
-					<div id="capsuleResultArea" class="result-area"></div>
-				</section>
+
+
+		<main>
+				<div>
+					<section class="gacha">
+						<div class="banner"> Pet Capsules</div>
+						<div class="controls">
+							<button id="singleRoll">Open x1 (100c)</button>
+							<button id="tenRoll">Open x10 (900c)</button>
+						</div>
+						<div id="resultArea" class="result-area"></div>
+					</section>
+
+					<section class="capsule" style="margin-top:24px">
+						<div class="banner"> Fruit Capsules</div>
+						<div class="controls">
+							<button id="capSingle">Open Capsule x1 (20c)</button>
+							<button id="capTen">Open Capsule x10 (180c)</button>
+						</div>
+						<div id="capsuleResultArea" class="result-area"></div>
+					</section>
+				</div>
 
 				<section class="inventory">
-					<h2>Your Pets</h2>
+					<h2 style="margin-bottom:16px;font-size:20px">Your Pets</h2>
 					<div id="inventoryListPets" class="inventory-list"></div>
-					<button id="clearInv" class="muted">Clear Pet Inventory</button>
+					<button id="clearInv" class="muted" style="margin-top:16px;width:100%">Clear Pet Inventory</button>
 
-					<hr style="margin:12px 0;border:none;border-top:1px solid rgba(255,255,255,0.03)" />
+					<hr style="margin:24px 0;border:none;border-top:1px solid var(--border)" />
 
-					<h2>Your Fruits</h2>
+					<h2 style="margin-bottom:16px;font-size:20px">Your Fruits</h2>
 					<div id="inventoryListFruits" class="inventory-list"></div>
-					<button id="clearFruits" class="muted">Clear Fruit Inventory</button>
+					<button id="clearFruits" class="muted" style="margin-top:16px;width:100%">Clear Fruit Inventory</button>
 				</section>
 			</main>
 
 			<footer>
-				<small>Made by the Cookiemonster and the Eightbit Games Team</small><br>
-				<small>© 2025 Eightbit Games | Contact: lawrencetong1030@gmail.com</small><br>
-				<a href="https://www.youtube.com/watch?v=xvFZjo5PgG0" style="opacity:0.3;font-size:11px;color:white;text-decoration:none;margin-top:12px;display:inline-block;padding:6px 12px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:6px;transition:all 0.3s ease" onmouseover="this.style.opacity='1';this.style.transform='scale(1.05)'" onmouseout="this.style.opacity='0.3';this.style.transform='scale(1)'">Get Free BTF+</a>
+				<small style="color:var(--text-secondary)">Made by the Cookiemonster and the Eightbit Games Team</small><br>
+				<small style="color:var(--text-secondary);margin-top:8px;display:inline-block">© 2025 Eightbit Games | Contact: lawrencetong1030@gmail.com</small><br>
+				<a href="https://www.youtube.com/watch?v=xvFZjo5PgG0" style="opacity:0.6;font-size:12px;color:var(--text);text-decoration:none;margin-top:16px;display:inline-block;padding:8px 16px;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);border-radius:8px;transition:all 0.3s ease" onmouseover="this.style.opacity='1';this.style.transform='scale(1.05)'" onmouseout="this.style.opacity='0.6';this.style.transform='scale(1)'">Get Free BTF+</a>
 			</footer>
 		</div>
 
@@ -265,6 +273,23 @@ window.isServerConnected = () => isConnected;
 			</div>
 		</div>
 
+		<!--Eternal Update Message-->
+		<div id="eternalUpdateModal" class="modal" style="display:none">
+			<div class="modal-backdrop"></div>
+			<div class="modal-panel">
+				<div class="modal-header">
+					<h3>💎 New Eternal Rarity Added! 💎</h3>
+					<button id="closeEternalUpdate" class="muted">Close</button>
+				</div>
+				<div class="modal-body">
+					<p>Hello players! We are happy to announce a new rarity - <strong>Eternal</strong>!. Eternal pets and fruits are the new rarest and most powerful items in the game. Check the about page for more info and as always happy gaming!</p>
+				</div>
+			</div>
+		</div>
+
+
+
+
 		<!-- Pet Info Modal -->
 		<div id="petInfoModal" class="modal" style="display:none">
 			<div class="modal-backdrop"></div>
@@ -280,7 +305,7 @@ window.isServerConnected = () => isConnected;
 						<input type="text" id="petRenameInput" placeholder="Pet name" style="flex:1;padding:8px;border-radius:6px;border:1px solid rgba(255,255,255,0.1);background:var(--glass);color:white" />
 						<button id="petRenameBtn" style="padding:8px 16px">Save</button>
 					</div>
-					<h4 style="margin:12px 0 8px 0">Enchantments</h4>
+					<h4 style="margin:12px 0 8px 0">Enchantments</h4>	
 					<div id="petInfoEnchants" style="display:flex;flex-direction:column;gap:8px"></div>
 				</div>
 			</div>

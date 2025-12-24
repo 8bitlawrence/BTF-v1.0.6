@@ -147,7 +147,8 @@ const PETS = [
 	{ id: 'pet_f_2', name: 'Gingerbread Man', rarity: 'festive', weight: 0.3, value: 2500 },
 	{ id: 'pet_f_3', name: 'Santa', rarity: 'festive', weight: 0.2, value: 3000 },
 	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.0005, value: 10000000 },
-	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.00005, value: 50000000 }
+	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.00005, value: 50000000 },
+	{ id: 'pet_et_1', name: 'Sneaky Golem', rarity: 'eternal', weight: 0.0000005, value: 100000000 }
 ];
 
 // Prices
@@ -194,18 +195,19 @@ const FRUITS = [
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 0.5, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_c_4', name: 'Watermelon', rarity: 'common', weight: 50, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.025, value: 1200}
-	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
-	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
-	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.025, value: 1200 }
-	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
-	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.0005, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.0005, value: 60000000 }
-	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
-	,	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 }
-	,	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 }
-	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.00005, value: 100000000 }
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.025, value: 1200},
+	{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 },
+	{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 },
+	{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 },
+	{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.025, value: 1200 },
+	{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 },
+	{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.0005, value: 60000000 },
+	{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.0005, value: 60000000 },
+	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 },
+	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 },
+	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 },
+	{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.00005, value: 100000000 },
+	{ id: 'fruit_et_1', name: 'Eternalfruit', rarity: 'eternal', weight: 0.0000005, value: 500000000 }
 	
 
 
@@ -246,7 +248,8 @@ const RARITY_RANK = {
 	spooky: 6,
 	chromatic: 7,
 	unique: 8,
-	godly: 9
+	godly: 9,
+	eternal: 10
 };
 
 // DOM - these will be initialized after DOMContentLoaded
@@ -510,7 +513,9 @@ function weightedPick(items){
 		spooky: 1.02577,
 		chromatic: 1.02671028,
 		unique: 1.04888665,
-		godly: 1.058950408
+		godly: 1.058950408,
+		eternal: 1.069
+
 	};
 	
 	const adjustedWeights = useItems.map(i => {
@@ -550,6 +555,7 @@ const RARITY_CPS = {
 	chromatic: 80,
 	unique: 120,
 	godly: 200,
+	eternal: 500
 };
 
 // Aggregate coin-related effects from pet enchantments
@@ -770,6 +776,7 @@ function updateUI(){
 				else if(p.rarity === 'festive') el.classList.add('festive');
 				else if(p.rarity === 'unique') el.classList.add('unique');
 				else if(p.rarity === 'godly') el.classList.add('godly');
+				else if(p.rarity === 'eternal') el.classList.add('eternal');
 				const badge = document.createElement('div');
 				badge.className = `badge ${p.rarity}`;
 				badge.textContent = p.rarity.toUpperCase();
@@ -827,6 +834,7 @@ function updateUI(){
 			else if(f.rarity === 'festive') el.classList.add('festive');
 			else if(f.rarity === 'unique') el.classList.add('unique');
 			else if(f.rarity === 'godly') el.classList.add('godly');
+			else if(f.rarity === 'eternal') el.classList.add('eternal');
 			const badge = document.createElement('div');
 			badge.className = `badge ${f.rarity}`;
 			badge.textContent = f.rarity.toUpperCase();
@@ -886,6 +894,7 @@ function animateRoll(makeItemsCallback, revealCallback){
 				const ic = document.createElement('div'); ic.style.fontSize='28px';
 		// placeholder icons reused from showResults
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
+		else if(it.rarity==='eternal'){ ic.textContent='💎'; card.classList.add('eternal'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
@@ -1148,6 +1157,7 @@ async function showResults(items){
 		ic.style.fontSize = '28px';
 		// placeholder icons reused from showResults
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
+		else if(it.rarity==='eternal'){ ic.textContent='💎'; card.classList.add('eternal'); }
 		else if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
@@ -1185,7 +1195,12 @@ function showCapsuleResults(items){
 		if(it.rarity==='godly'){
 			ic.textContent = '⚡';
 			card.classList.add('godly');
-		}else if(it.rarity==='chromatic'){
+		}
+		else if(it.rarity==='eternal'){
+			ic.textContent = '💎';
+			card.classList.add('eternal');
+		}
+		else if(it.rarity==='chromatic'){
 			ic.textContent = '🌈';
 			card.classList.add('chromatic');
 		}else if(it.rarity==='spooky'){
@@ -1596,6 +1611,40 @@ function setupModals() {
 		halloweenUpdateModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
 			halloweenUpdateModal.style.display = 'none';
 			localStorage.setItem('btf_seen_halloween_update', 'true');
+		});
+	}
+
+	// Eternal Update modal: show on first visit (after Halloween modal if both unseen)
+	const eternalUpdateModal = document.getElementById('eternalUpdateModal');
+	const closeEternalUpdate = document.getElementById('closeEternalUpdate');
+	if(eternalUpdateModal && closeEternalUpdate){
+		const hasSeenEternalUpdate = localStorage.getItem('btf_seen_eternal_update');
+		const hasSeenHalloweenUpdate = localStorage.getItem('btf_seen_halloween_update');
+
+		// Show Eternal update after Halloween modal is closed (or immediately if Halloween was already seen)
+		const showEternalUpdate = () => {
+			if(!hasSeenEternalUpdate){
+				eternalUpdateModal.style.display = 'flex';
+			}
+		};
+		
+		if(!hasSeenHalloweenUpdate){
+			// Wait for Halloween modal to close before showing Eternal update
+			closeHalloweenUpdate?.addEventListener('click', ()=>{
+				setTimeout(showEternalUpdate, 300);
+			});
+		} else {
+			// Show immediately if Halloween was already seen
+			showEternalUpdate();
+		}
+		
+		closeEternalUpdate.addEventListener('click', ()=>{
+			eternalUpdateModal.style.display = 'none';
+			localStorage.setItem('btf_seen_eternal_update', 'true');
+		});
+		eternalUpdateModal.querySelector('.modal-backdrop')?.addEventListener('click', ()=>{
+			eternalUpdateModal.style.display = 'none';
+			localStorage.setItem('btf_seen_eternal_update', 'true');
 		});
 	}
 

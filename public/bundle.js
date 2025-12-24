@@ -1242,7 +1242,7 @@ function updateUI() {
     // Calculate current potion cost based on purchases
     if (!window.state.luckPotionsPurchased) {
         window.state.luckPotionsPurchased = 0;
-    }
+    }   
     const currentPotionCost = Math.floor(POTION_BASE_COST * Math.pow(1.5, window.state.luckPotionsPurchased));
     
     // Allow buying potions even when active (for stacking)
@@ -1432,8 +1432,8 @@ buyBtn.addEventListener('click', () => {
         window.state.luckPotionsPurchased += 1;
         
         if (window.state.potionActive && window.state.potionEndsAt > Date.now()) {
-            // Already active: increment stacks (max 100), reset timer
-            window.state.luckStacks = Math.min(window.state.luckStacks + 1, 100);
+            // Already active: increment stacks (max 49 to cap multiplier at 100x), reset timer
+            window.state.luckStacks = Math.min(window.state.luckStacks + 1, 49);
             window.state.potionEndsAt = Date.now() + POTION_DURATION;
         } else {
             // Not active or expired: start new effect
@@ -2806,7 +2806,10 @@ const ENCHANTMENTS = [
 	{ id: 'ultimate_3', name: 'Ultimate III', tier: 3, cost: 500, description: '+5% all coin gains; -5% roll/capsule cost; +5% double-sell chance' },
 	{ id: 'mage_1', name: 'Mage I', tier: 1, cost: 50, description: '+25% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
 	{ id: 'mage_2', name: 'Mage II', tier: 2, cost: 150, description: '+50% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
-	{ id: 'mage_3', name: 'Mage III', tier: 3, cost: 400, description: '+100% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' }
+	{ id: 'mage_3', name: 'Mage III', tier: 3, cost: 400, description: '+100% EP generation (Suspicious Creature only)', exclusiveTo: 'pet_sp_1' },
+	{ id: 'sad_1', name: 'Sad I', tier: 1, cost: 50, description: '+10% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'},
+	{ id: 'sad_2', name: 'Sad II', tier: 2, cost: 150, description: '+25% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'},
+	{ id: 'sad_3', name: 'Sad III', tier: 3, cost: 400, description: '+50% Tears generation (Weeping Spirit only)', exclusiveTo: 'fruit_sp_2'}
 	
 ];
 
@@ -2837,19 +2840,20 @@ const PETS = [
 	{ id: 'pet_r_2', name: 'Aero Lynx', rarity: 'rare', weight: 25, value: 160 },
 
 	{ id: 'pet_e_1', name: 'Nebula Kirin', rarity: 'epic', weight: 10, value: 800 },
-	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.005, value: 10000000 },
-	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.005, value: 10000000 },
+	{ id: 'pet_u_1', name: 'Singularity Phoenix', rarity: 'unique', weight: 0.0005, value: 10000000 },
+	{ id: 'pet_u_2', name: 'Timekeeper Dragon', rarity: 'unique', weight: 0.0005, value: 10000000 },
 	{ id: 'pet_sp_1', name: 'Suspicious Creature', rarity: 'special', weight: 1, value: 1000 },
 	{ id: 'pet_sp_2', name: 'Weeping Spirit', rarity: 'special', weight: 1, value: 1200 },
 	{ id: 'pet_l_1', name: 'Infinity Golem', rarity: 'legendary', weight: 0.5, value: 1200 },
 	{ id: 'pet_s_1', name: 'Nightmare Skeleton', rarity: 'spooky', weight: 0.3, value: 2500 },
-	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.25, value: 5000 },
+	{ id: 'pet_ch_1', name: 'Chroma Beast', rarity: 'chromatic', weight: 0.025, value: 5000 },
 	{ id: 'pet_s_2', name: 'Spooky Ghost', rarity: 'spooky', weight: 0.3, value: 2200 },
 	{ id: 'pet_f_1', name: 'Festive Reindeer', rarity: 'festive', weight: 0.3, value: 2800 },
 	{ id: 'pet_f_2', name: 'Gingerbread Man', rarity: 'festive', weight: 0.3, value: 2500 },
 	{ id: 'pet_f_3', name: 'Santa', rarity: 'festive', weight: 0.2, value: 3000 },
-	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.005, value: 10000000 },
-	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.0005, value: 50000000 }
+	{ id: 'pet_u_3', name: 'Max Verstappen', rarity: 'unique', weight: 0.0005, value: 10000000 },
+	{ id: 'pet_g_1', name: 'Celestial Archon', rarity: 'godly', weight: 0.00005, value: 50000000 },
+	{ id: 'pet_et_1', name: 'UnMega Knight', rarity: 'eternal', weight: 60, value: 100000000 }
 ];
 
 // Prices
@@ -2881,7 +2885,7 @@ const EP_GAIN_SINGLE_MAX = 1; // was up to 3
 const EP_GAIN_TEN_MIN = 5;
 const EP_GAIN_TEN_MAX = 10; // was 10-20
 const EP_PER_SEC_PER_SPECIAL = 0.5; // was 1.0 per special pet per second
-
+``
 // Halloween window: spooky items are available until Nov 1 of the current year (exclusive)
 const HALLOWEEN_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 10, 1).getTime(); })();
 const THANKSGIVING_END = (function(){ const y = new Date().getFullYear(); return new Date(y, 11, 1).getTime(); })();
@@ -2896,18 +2900,19 @@ const FRUITS = [
 	{ id: 'fruit_l_1', name: 'Eternal Mango', rarity: 'legendary', weight: 0.5, value: 200 },
 	{id: 'fruit_c_3', name: 'Dirtfruit', rarity: 'common', weight: 50, value: 5},
 	{id: 'fruit_c_4', name: 'Watermelon', rarity: 'common', weight: 50, value: 5},
-	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.25, value: 1200}
-	,{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 }
-	,{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 }
-	,{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 }
-	,{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.25, value: 1200 }
-	,{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 }
-	,{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.005, value: 60000000 }
-	,{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.005, value: 60000000 }
-	,	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 }
-	,	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 }
-	,	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 }
-	,{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.0005, value: 100000000 }
+	{id: 'fruit_ch_1', name: 'Chromafruit', rarity: 'chromatic', weight: 0.025, value: 1200},
+	{ id: 'fruit_r_2', name: 'Lunar Melon', rarity: 'rare', weight: 35, value: 30 },
+	{ id: 'fruit_e_2', name: 'Solar Melon', rarity: 'epic', weight: 10, value: 150 },
+	{ id: 'fruit_l_2', name: 'Mythic Pineapple', rarity: 'legendary', weight: 0.5, value: 200 },
+	{ id: 'fruit_ch_2', name: 'Positive Potato', rarity: 'chromatic',  weight: 0.025, value: 1200 },
+	{ id: 'fruit_l_3', name: 'Negative Potato', rarity: 'legendary', weight: 0.5, value: 500 },
+	{ id: 'fruit_u_1', name: 'Aurora Berry', rarity: 'unique', weight: 0.0005, value: 60000000 },
+	{ id: 'fruit_u_2', name: 'Cookiefruit', rarity: 'unique', weight: 0.0005, value: 60000000 },
+	{ id: 'fruit_s_1', name: 'Cursed Pumpkin', rarity: 'spooky', weight: 0.3, value: 800 },
+	{ id: 'fruit_f_1', name: 'Candy Cane', rarity: 'festive', weight: 0.3, value: 850 },
+	{ id: 'fruit_f_2', name: 'Christmas Cookie', rarity: 'festive', weight: 0.3, value: 900 },
+	{ id: 'fruit_g_1', name: 'Omnifruit', rarity: 'godly', weight: 0.00005, value: 100000000 },
+	{ id: 'fruit_et_1', name: 'Eternalfruit', rarity: 'eternal', weight: 60, value: 500000000 }
 	
 
 
@@ -2948,7 +2953,8 @@ const RARITY_RANK = {
 	spooky: 6,
 	chromatic: 7,
 	unique: 8,
-	godly: 9
+	godly: 9,
+	eternal: 10
 };
 
 // DOM - these will be initialized after DOMContentLoaded
@@ -3184,8 +3190,8 @@ function weightedPick(items){
 	// Check if luck potion is active
 	const potionActive = state.potionActive && state.potionEndsAt > Date.now();
 	const christmasBuff = state.christmasActive && state.christmasEndsAt > Date.now();
-	const cappedStacks = Math.min(state.luckStacks, 100);
-	const multiplier = potionActive ? (1 + cappedStacks * 2) : 1;
+	const cappedStacks = Math.min(state.luckStacks, 49); // Caps multiplier at ~99x (1 + 49*2)
+	const multiplier = potionActive ? Math.min(1 + cappedStacks * 2, 100) : 1;
 
 	// If current date is past HALLOWEEN_END, exclude spooky items from the pick pool
 	const halloweenStillOn = Date.now() < HALLOWEEN_END;
@@ -3212,7 +3218,9 @@ function weightedPick(items){
 		spooky: 1.02577,
 		chromatic: 1.02671028,
 		unique: 1.04888665,
-		godly: 1.058950408
+		godly: 1.058950408,
+		eternal: 1.069
+
 	};
 	
 	const adjustedWeights = useItems.map(i => {
@@ -3252,6 +3260,7 @@ const RARITY_CPS = {
 	chromatic: 80,
 	unique: 120,
 	godly: 200,
+	eternal: 500
 };
 
 // Aggregate coin-related effects from pet enchantments
@@ -3436,8 +3445,9 @@ function updateUI(){
     // Update luck multiplier
     if(luckMultiplierEl){
         const isActive = state.potionActive && state.potionEndsAt > Date.now();
-        const cappedStacks = Math.min(state.luckStacks, 100);
-        luckMultiplierEl.textContent = isActive ? `${1 + cappedStacks * 2}x` : "1x";
+        const cappedStacks = Math.min(state.luckStacks, 49);
+        const multiplier = isActive ? Math.min(1 + cappedStacks * 2, 100) : 1;
+        luckMultiplierEl.textContent = `${multiplier}x`;
     }
 
 	// Update button price labels based on enchantment discounts
@@ -3471,6 +3481,7 @@ function updateUI(){
 				else if(p.rarity === 'festive') el.classList.add('festive');
 				else if(p.rarity === 'unique') el.classList.add('unique');
 				else if(p.rarity === 'godly') el.classList.add('godly');
+				else if(p.rarity === 'eternal') el.classList.add('eternal');
 				const badge = document.createElement('div');
 				badge.className = `badge ${p.rarity}`;
 				badge.textContent = p.rarity.toUpperCase();
@@ -3528,6 +3539,7 @@ function updateUI(){
 			else if(f.rarity === 'festive') el.classList.add('festive');
 			else if(f.rarity === 'unique') el.classList.add('unique');
 			else if(f.rarity === 'godly') el.classList.add('godly');
+			else if(f.rarity === 'eternal') el.classList.add('eternal');
 			const badge = document.createElement('div');
 			badge.className = `badge ${f.rarity}`;
 			badge.textContent = f.rarity.toUpperCase();
@@ -3587,6 +3599,7 @@ function animateRoll(makeItemsCallback, revealCallback){
 				const ic = document.createElement('div'); ic.style.fontSize='28px';
 		// placeholder icons reused from showResults
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
+		else if(it.rarity==='eternal'){ ic.textContent='💎'; card.classList.add('eternal'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
 		else if(it.rarity==='unique'){ ic.textContent='👑'; card.classList.add('unique'); }
@@ -3623,8 +3636,8 @@ function animateRoll(makeItemsCallback, revealCallback){
 
 // Gift code redemption function
 function redeemGiftCode(code){
-	// Normalize code
-	const normalizedCode = code.trim().toUpperCase();
+	// Normalize code to lowercase for consistency
+	const normalizedCode = code.trim().toLowerCase();
 	
 	// Validate length
 	if(normalizedCode.length !== 16){
@@ -3849,6 +3862,7 @@ async function showResults(items){
 		ic.style.fontSize = '28px';
 		// placeholder icons reused from showResults
 		if(it.rarity==='godly'){ ic.textContent='⚡'; card.classList.add('godly'); }
+		else if(it.rarity==='eternal'){ ic.textContent='💎'; card.classList.add('eternal'); }
 		else if(it.rarity==='chromatic'){ ic.textContent='🌈'; card.classList.add('chromatic'); }
 		else if(it.rarity==='spooky'){ ic.textContent='🎃'; card.classList.add('spooky'); }
 		else if(it.rarity==='festive'){ ic.textContent='🎄'; card.classList.add('festive'); }
@@ -3886,7 +3900,12 @@ function showCapsuleResults(items){
 		if(it.rarity==='godly'){
 			ic.textContent = '⚡';
 			card.classList.add('godly');
-		}else if(it.rarity==='chromatic'){
+		}
+		else if(it.rarity==='eternal'){
+			ic.textContent = '💎';
+			card.classList.add('eternal');
+		}
+		else if(it.rarity==='chromatic'){
 			ic.textContent = '🌈';
 			card.classList.add('chromatic');
 		}else if(it.rarity==='spooky'){
